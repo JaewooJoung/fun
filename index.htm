@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Markdown & Mermaid Editor</title>
-    <!-- Include the required libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.2/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
     <style>
@@ -57,6 +56,13 @@
             word-wrap: break-word;
         }
 
+        .mermaid {
+            background: #fff;
+            padding: 10px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+
         /* Markdown Styling */
         .preview h1 { font-size: 2em; margin-bottom: 0.5em; }
         .preview h2 { font-size: 1.5em; margin-bottom: 0.5em; }
@@ -93,29 +99,42 @@
             <textarea id="input" placeholder="Enter Markdown or Mermaid diagram here...">
 # Welcome to Markdown & Mermaid Editor
 
-## Markdown Example
-This is a **bold** text and *italic* text.
+## Basic Markdown
+This is **bold** and *italic* text.
 
-Here's a list:
-- Item 1
-- Item 2
-- Item 3
+- List item 1
+- List item 2
+- List item 3
 
-## Mermaid Diagram Example
+## Flowchart Example
 ```mermaid
 graph TD
-    A[Start] --> B{Is it?}
-    B -- Yes --> C[OK]
-    B -- No --> D[End]
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Do Something]
+    B -->|No| D[Do Nothing]
+    C --> E[End]
+    D --> E
 ```
 
-## Another Mermaid Example
+## Sequence Diagram
 ```mermaid
 sequenceDiagram
-    participant Alice
-    participant Bob
-    Alice->>Bob: Hello Bob, how are you?
-    Bob-->>Alice: Great!
+    participant User
+    participant System
+    User->>System: Request Data
+    System-->>User: Return Data
+    User->>System: Process Data
+    System-->>User: Confirmation
+```
+
+## State Diagram
+```mermaid
+stateDiagram-v2
+    [*] --> Still
+    Still --> Moving
+    Moving --> Still
+    Moving --> Crash
+    Crash --> [*]
 ```
 </textarea>
         </div>
@@ -123,32 +142,56 @@ sequenceDiagram
     </div>
 
     <script>
-        // Initialize Mermaid
-        mermaid.initialize({ startOnLoad: true });
-
-        // Setup Marked with Mermaid support
-        marked.setOptions({
-            breaks: true,
-            highlight: function(code, language) {
-                if (language === 'mermaid') {
-                    return `<div class="mermaid">${code}</div>`;
-                }
-                return code;
-            }
+        // Initialize Mermaid with specific configuration
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            securityLevel: 'loose',
+            htmlLabels: true
         });
 
-        // Function to update preview
-        function updatePreview() {
+        // Custom renderer for marked
+        const renderer = new marked.Renderer();
+        const originalCodeRenderer = renderer.code.bind(renderer);
+        
+        renderer.code = (code, language) => {
+            if (language === 'mermaid') {
+                return `<pre class="mermaid">${code}</pre>`;
+            }
+            return originalCodeRenderer(code, language);
+        };
+
+        // Configure marked
+        marked.setOptions({
+            renderer: renderer,
+            breaks: true,
+            gfm: true
+        });
+
+        // Function to update preview with proper Mermaid rendering
+        async function updatePreview() {
             const input = document.getElementById('input').value;
             const preview = document.getElementById('preview');
+            
+            // First, render markdown
             preview.innerHTML = marked.parse(input);
             
-            // Reinitialize Mermaid for new diagrams
-            mermaid.init(undefined, document.getElementsByClassName('mermaid'));
+            // Then, render Mermaid diagrams
+            try {
+                await mermaid.run({
+                    querySelector: '.mermaid'
+                });
+            } catch (error) {
+                console.error('Mermaid rendering error:', error);
+            }
         }
 
-        // Add event listener for input changes
-        document.getElementById('input').addEventListener('input', updatePreview);
+        // Add event listener with debounce for better performance
+        let timeout;
+        document.getElementById('input').addEventListener('input', () => {
+            clearTimeout(timeout);
+            timeout = setTimeout(updatePreview, 300);
+        });
 
         // Initial render
         updatePreview();
