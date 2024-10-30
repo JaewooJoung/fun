@@ -1,2 +1,2 @@
 # fun
-fun projects
+fun projects nothing more mothing less 😶‍🌫️
