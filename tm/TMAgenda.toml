@@ -1,0 +1,172 @@
+# Toastmasters Meeting Agenda
+
+[[agenda_items]]
+time = "09:30"
+role = "Breakfast"
+presenter = ""
+event = ""
+green = 3
+amber = 6
+red = 9
+
+[[agenda_items]]
+time = "10:00"
+role = "President"
+presenter = "Mariya Bokova"
+event = "Welcomes members and guests"
+green = 0
+amber = 0
+red = 300
+
+[[agenda_items]]
+time = "10:05"
+role = "Toastmaster"
+presenter = "Karin Strand Björk"
+event = "Introduces the program and roles"
+green = 0
+amber = 0
+red = 300
+
+[[agenda_items]]
+time = "10:10"
+role = "1st Speaker"
+presenter = "Britta Berg"
+event = "Educational session"
+green = 1200
+amber = 1440
+red = 1500
+
+[[agenda_items]]
+time = "10:35"
+role = "1st Write eval notes"
+presenter = ""
+event = "1 minute"
+green = 0
+amber = 0
+red = 60
+
+[[agenda_items]]
+time = "10:36"
+role = "1st Evaluator"
+presenter = "Sofia Haarderup"
+event = "Evaluate speech 1"
+green = 480
+amber = 540
+red = 600
+
+[[agenda_items]]
+time = "10:46"
+role = "2nd Speaker"
+presenter = "Gianluca Tognon"
+event = "TBD"
+green = 300
+amber = 360
+red = 420
+
+[[agenda_items]]
+time = "10:53"
+role = "2nd Write eval notes"
+presenter = ""
+event = "1 minute"
+green = 0
+amber = 0
+red = 60
+
+[[agenda_items]]
+time = "10:54"
+role = "2nd Evaluator"
+presenter = "Carolina Ahlstedt"
+event = "Evaluate speech 2"
+green = 480
+amber = 540
+red = 600
+
+[[agenda_items]]
+time = "11:04"
+role = "3rd Speaker"
+presenter = "Zain Zubair"
+event = "TBA"
+green = 300
+amber = 360
+red = 420
+
+[[agenda_items]]
+time = "11:11"
+role = "3rd Write eval notes"
+presenter = ""
+event = "1 minute"
+green = 0
+amber = 0
+red = 60
+
+[[agenda_items]]
+time = "11:12"
+role = "Short break"
+presenter = ""
+event = "Break"
+green = 270
+amber = 285
+red = 300
+
+[[agenda_items]]
+time = "11:17"
+role = "3rd Evaluator"
+presenter = "Mariya Bokova"
+event = "Evaluate speech 3"
+green = 480
+amber = 540
+red = 600
+
+[[agenda_items]]
+time = "11:27"
+role = "Table Topics"
+presenter = "Michael Ruutu"
+event = "Table Topics"
+green = 60
+amber = 90
+red = 120
+
+[[agenda_items]]
+time = "11:37"
+role = "1st Timekeeper"
+presenter = ""
+event = "Timers report"
+green = 60
+amber = 90
+red = 120
+
+[[agenda_items]]
+time = "11:39"
+role = "Grammarian & Ah Counter"
+presenter = "Kerstin Löfstedt"
+event = "Grammarian & Ah counter Report"
+green = 120
+amber = 150
+red = 180
+
+[[agenda_items]]
+time = "11:42"
+role = "Discussion"
+presenter = ""
+event = "Roles and theme for next meeting"
+green = 300
+amber = 360
+red = 420
+
+[[agenda_items]]
+time = "11:49"
+role = "Club Business & Awards"
+presenter = "Mariya Bokova"
+event = "Announcements"
+green = 0
+amber = 0
+red = 300
+
+[[agenda_items]]
+time = "11:54"
+role = "End of Meeting"
+presenter = ""
+event = ""
+green = 0
+amber = 0
+red = 0
