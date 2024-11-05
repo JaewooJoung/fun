@@ -1,0 +1,207 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { AlertCircle, Play, Square, SkipForward, RefreshCw } from 'lucide-react';
+
+const sampleAgenda = {
+  agenda_items: [
+    {
+      time: "09:30",
+      role: "Breakfast",
+      presenter: "",
+      event: "",
+      green: 0,
+      amber: 0,
+      red: 0
+    },
+    {
+      time: "10:00",
+      role: "President",
+      presenter: "Mariya Bokova",
+      event: "Welcomes members and guests",
+      green: 0,
+      amber: 0,
+      red: 300
+    }
+    // ... more items can be added here
+  ]
+};
+
+export default function ToastmastersTimer() {
+  const [currentItem, setCurrentItem] = useState(0);
+  const [elapsed, setElapsed] = useState(0);
+  const [isRunning, setIsRunning] = useState(false);
+  const [logs, setLogs] = useState([]);
+  const timerRef = useRef(null);
+
+  const currentAgendaItem = sampleAgenda.agenda_items[currentItem];
+
+  useEffect(() => {
+    if (isRunning) {
+      timerRef.current = setInterval(() => {
+        setElapsed(prev => prev + 1);
+      }, 1000);
+    } else {
+      clearInterval(timerRef.current);
+    }
+    return () => clearInterval(timerRef.current);
+  }, [isRunning]);
+
+  const formatTime = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
+  const getTimingStatus = () => {
+    const { green, amber, red } = currentAgendaItem;
+    if (red === 0) return null;
+    if (elapsed < green) return "under";
+    if (elapsed < amber) return "green";
+    if (elapsed < red) return "amber";
+    return "red";
+  };
+
+  const addLogEntry = () => {
+    if (currentAgendaItem.red > 0) {
+      const status = getTimingStatus();
+      const timestamp = new Date().toLocaleTimeString();
+      const logEntry = {
+        timestamp,
+        role: currentAgendaItem.role,
+        presenter: currentAgendaItem.presenter,
+        time: formatTime(elapsed),
+        status: status === "red" ? `Red (${elapsed - currentAgendaItem.red}s over)` : status
+      };
+      setLogs(prev => [logEntry, ...prev]);
+    }
+  };
+
+  const handleNext = () => {
+    if (elapsed > 0) {
+      addLogEntry();
+    }
+    if (currentItem < sampleAgenda.agenda_items.length - 1) {
+      setCurrentItem(prev => prev + 1);
+      setElapsed(0);
+      setIsRunning(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-100 p-8">
+      <div className="max-w-6xl mx-auto grid grid-cols-3 gap-8">
+        {/* Left Panel */}
+        <div className="col-span-2 space-y-6">
+          {/* Current Item Info */}
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-2xl font-bold mb-4">Current Item</h2>
+            <div className="space-y-2">
+              <p><span className="font-semibold">Role:</span> {currentAgendaItem.role}</p>
+              <p><span className="font-semibold">Presenter:</span> {currentAgendaItem.presenter}</p>
+              <p><span className="font-semibold">Event:</span> {currentAgendaItem.event}</p>
+              <p className="text-3xl font-mono mt-4">Time: {formatTime(elapsed)}</p>
+            </div>
+          </div>
+
+          {/* Timing Signals */}
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-2xl font-bold mb-4">Signals</h2>
+            <div className="flex justify-around">
+              <AlertCircle 
+                size={48} 
+                color={getTimingStatus() === "green" ? "green" : "gray"} 
+              />
+              <AlertCircle 
+                size={48} 
+                color={getTimingStatus() === "amber" ? "orange" : "gray"} 
+              />
+              <AlertCircle 
+                size={48} 
+                color={getTimingStatus() === "red" ? "red" : "gray"} 
+              />
+            </div>
+          </div>
+
+          {/* Control Buttons */}
+          <div className="flex gap-4">
+            <button
+              onClick={() => setIsRunning(true)}
+              disabled={isRunning}
+              className="flex-1 bg-green-500 text-white p-4 rounded-lg flex items-center justify-center gap-2 hover:bg-green-600 disabled:opacity-50"
+            >
+              <Play /> Start
+            </button>
+            <button
+              onClick={() => setIsRunning(false)}
+              disabled={!isRunning}
+              className="flex-1 bg-red-500 text-white p-4 rounded-lg flex items-center justify-center gap-2 hover:bg-red-600 disabled:opacity-50"
+            >
+              <Square /> Stop
+            </button>
+            <button
+              onClick={handleNext}
+              className="flex-1 bg-blue-500 text-white p-4 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-600"
+            >
+              <SkipForward /> Next
+            </button>
+            <button
+              onClick={() => setElapsed(0)}
+              className="flex-1 bg-gray-500 text-white p-4 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-600"
+            >
+              <RefreshCw /> Reset
+            </button>
+          </div>
+
+          {/* Agenda List */}
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-2xl font-bold mb-4">Agenda</h2>
+            <div className="overflow-auto max-h-64">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="text-left p-2">Time</th>
+                    <th className="text-left p-2">Role</th>
+                    <th className="text-left p-2">Presenter</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sampleAgenda.agenda_items.map((item, index) => (
+                    <tr 
+                      key={index}
+                      className={`${index === currentItem ? 'bg-blue-100' : ''} hover:bg-gray-50`}
+                    >
+                      <td className="p-2">{item.time}</td>
+                      <td className="p-2">{item.role}</td>
+                      <td className="p-2">{item.presenter}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Panel - Timing Log */}
+        <div className="bg-white p-6 rounded-lg shadow-md h-[calc(100vh-4rem)] overflow-auto">
+          <h2 className="text-2xl font-bold mb-4">Timing Log</h2>
+          <div className="space-y-4">
+            {logs.map((log, index) => (
+              <div key={index} className="border-b pb-4">
+                <p className="text-gray-500">[{log.timestamp}] {log.role}</p>
+                <p>Presenter: {log.presenter}</p>
+                <p>Time: {log.time}</p>
+                <p className={`font-semibold ${
+                  log.status === "green" ? "text-green-600" :
+                  log.status === "amber" ? "text-orange-600" :
+                  log.status === "red" ? "text-red-600" :
+                  "text-gray-600"
+                }`}>
+                  Status: {log.status}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
