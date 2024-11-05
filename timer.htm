@@ -1,207 +1,314 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { AlertCircle, Play, Square, SkipForward, RefreshCw } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toastmasters Timer</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
 
-const sampleAgenda = {
-  agenda_items: [
-    {
-      time: "09:30",
-      role: "Breakfast",
-      presenter: "",
-      event: "",
-      green: 0,
-      amber: 0,
-      red: 0
-    },
-    {
-      time: "10:00",
-      role: "President",
-      presenter: "Mariya Bokova",
-      event: "Welcomes members and guests",
-      green: 0,
-      amber: 0,
-      red: 300
-    }
-    // ... more items can be added here
-  ]
-};
+        .container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
 
-export default function ToastmastersTimer() {
-  const [currentItem, setCurrentItem] = useState(0);
-  const [elapsed, setElapsed] = useState(0);
-  const [isRunning, setIsRunning] = useState(false);
-  const [logs, setLogs] = useState([]);
-  const timerRef = useRef(null);
+        .panel {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
 
-  const currentAgendaItem = sampleAgenda.agenda_items[currentItem];
+        .current-item {
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
 
-  useEffect(() => {
-    if (isRunning) {
-      timerRef.current = setInterval(() => {
-        setElapsed(prev => prev + 1);
-      }, 1000);
-    } else {
-      clearInterval(timerRef.current);
-    }
-    return () => clearInterval(timerRef.current);
-  }, [isRunning]);
+        .lights {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px;
+        }
 
-  const formatTime = (seconds) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
+        .light {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid #333;
+            background-color: #ddd;
+        }
 
-  const getTimingStatus = () => {
-    const { green, amber, red } = currentAgendaItem;
-    if (red === 0) return null;
-    if (elapsed < green) return "under";
-    if (elapsed < amber) return "green";
-    if (elapsed < red) return "amber";
-    return "red";
-  };
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
 
-  const addLogEntry = () => {
-    if (currentAgendaItem.red > 0) {
-      const status = getTimingStatus();
-      const timestamp = new Date().toLocaleTimeString();
-      const logEntry = {
-        timestamp,
-        role: currentAgendaItem.role,
-        presenter: currentAgendaItem.presenter,
-        time: formatTime(elapsed),
-        status: status === "red" ? `Red (${elapsed - currentAgendaItem.red}s over)` : status
-      };
-      setLogs(prev => [logEntry, ...prev]);
-    }
-  };
+        button {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+        }
 
-  const handleNext = () => {
-    if (elapsed > 0) {
-      addLogEntry();
-    }
-    if (currentItem < sampleAgenda.agenda_items.length - 1) {
-      setCurrentItem(prev => prev + 1);
-      setElapsed(0);
-      setIsRunning(false);
-    }
-  };
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
 
-  return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <div className="max-w-6xl mx-auto grid grid-cols-3 gap-8">
-        {/* Left Panel */}
-        <div className="col-span-2 space-y-6">
-          {/* Current Item Info */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-2xl font-bold mb-4">Current Item</h2>
-            <div className="space-y-2">
-              <p><span className="font-semibold">Role:</span> {currentAgendaItem.role}</p>
-              <p><span className="font-semibold">Presenter:</span> {currentAgendaItem.presenter}</p>
-              <p><span className="font-semibold">Event:</span> {currentAgendaItem.event}</p>
-              <p className="text-3xl font-mono mt-4">Time: {formatTime(elapsed)}</p>
+        #startBtn { background-color: #4CAF50; }
+        #stopBtn { background-color: #f44336; }
+        #nextBtn { background-color: #2196F3; }
+        #resetBtn { background-color: #9e9e9e; }
+
+        .time-display {
+            font-size: 2em;
+            font-family: monospace;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .agenda-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .agenda-table th, .agenda-table td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .agenda-table tr.current {
+            background-color: #e3f2fd;
+        }
+
+        .log-panel {
+            height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            white-space: pre-wrap;
+            background: #f8f9fa;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="left-panel">
+            <div class="panel current-item">
+                <h2>Current Item</h2>
+                <div id="roleDisplay">Role: </div>
+                <div id="presenterDisplay">Presenter: </div>
+                <div id="eventDisplay">Event: </div>
+                <div class="time-display" id="timeDisplay">0:00</div>
             </div>
-          </div>
 
-          {/* Timing Signals */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-2xl font-bold mb-4">Signals</h2>
-            <div className="flex justify-around">
-              <AlertCircle 
-                size={48} 
-                color={getTimingStatus() === "green" ? "green" : "gray"} 
-              />
-              <AlertCircle 
-                size={48} 
-                color={getTimingStatus() === "amber" ? "orange" : "gray"} 
-              />
-              <AlertCircle 
-                size={48} 
-                color={getTimingStatus() === "red" ? "red" : "gray"} 
-              />
+            <div class="panel">
+                <h2>Signals</h2>
+                <div class="lights">
+                    <div id="greenLight" class="light"></div>
+                    <div id="amberLight" class="light"></div>
+                    <div id="redLight" class="light"></div>
+                </div>
             </div>
-          </div>
 
-          {/* Control Buttons */}
-          <div className="flex gap-4">
-            <button
-              onClick={() => setIsRunning(true)}
-              disabled={isRunning}
-              className="flex-1 bg-green-500 text-white p-4 rounded-lg flex items-center justify-center gap-2 hover:bg-green-600 disabled:opacity-50"
-            >
-              <Play /> Start
-            </button>
-            <button
-              onClick={() => setIsRunning(false)}
-              disabled={!isRunning}
-              className="flex-1 bg-red-500 text-white p-4 rounded-lg flex items-center justify-center gap-2 hover:bg-red-600 disabled:opacity-50"
-            >
-              <Square /> Stop
-            </button>
-            <button
-              onClick={handleNext}
-              className="flex-1 bg-blue-500 text-white p-4 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-600"
-            >
-              <SkipForward /> Next
-            </button>
-            <button
-              onClick={() => setElapsed(0)}
-              className="flex-1 bg-gray-500 text-white p-4 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-600"
-            >
-              <RefreshCw /> Reset
-            </button>
-          </div>
-
-          {/* Agenda List */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-2xl font-bold mb-4">Agenda</h2>
-            <div className="overflow-auto max-h-64">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="text-left p-2">Time</th>
-                    <th className="text-left p-2">Role</th>
-                    <th className="text-left p-2">Presenter</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sampleAgenda.agenda_items.map((item, index) => (
-                    <tr 
-                      key={index}
-                      className={`${index === currentItem ? 'bg-blue-100' : ''} hover:bg-gray-50`}
-                    >
-                      <td className="p-2">{item.time}</td>
-                      <td className="p-2">{item.role}</td>
-                      <td className="p-2">{item.presenter}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div class="buttons">
+                <button id="startBtn">Start</button>
+                <button id="stopBtn" disabled>Stop</button>
+                <button id="nextBtn">Next</button>
+                <button id="resetBtn">Reset</button>
             </div>
-          </div>
+
+            <div class="panel">
+                <h2>Agenda</h2>
+                <table class="agenda-table" id="agendaTable">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Role</th>
+                            <th>Presenter</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
         </div>
 
-        {/* Right Panel - Timing Log */}
-        <div className="bg-white p-6 rounded-lg shadow-md h-[calc(100vh-4rem)] overflow-auto">
-          <h2 className="text-2xl font-bold mb-4">Timing Log</h2>
-          <div className="space-y-4">
-            {logs.map((log, index) => (
-              <div key={index} className="border-b pb-4">
-                <p className="text-gray-500">[{log.timestamp}] {log.role}</p>
-                <p>Presenter: {log.presenter}</p>
-                <p>Time: {log.time}</p>
-                <p className={`font-semibold ${
-                  log.status === "green" ? "text-green-600" :
-                  log.status === "amber" ? "text-orange-600" :
-                  log.status === "red" ? "text-red-600" :
-                  "text-gray-600"
-                }`}>
-                  Status: {log.status}
-                </p>
-              </div>
-            ))}
-          </div>
+        <div class="right-panel">
+            <div class="panel">
+                <h2>Timing Log</h2>
+                <div class="log-panel" id="logPanel"></div>
+            </div>
         </div>
-      </div>
     </div>
-  );
-}
+
+    <script>
+        // Define agenda data structure (this would normally come from a TOML file)
+        const agenda = [
+            {
+                time: "09:30",
+                role: "Breakfast",
+                presenter: "",
+                event: "",
+                green: 1,
+                amber: 2,
+                red: 3
+            },
+            {
+                time: "10:00",
+                role: "President",
+                presenter: "Mariya Bokova",
+                event: "Welcomes members and guests",
+                green: 0,
+                amber: 0,
+                red: 300
+            }
+            // Add more agenda items here
+        ];
+
+        let currentItemIndex = 0;
+        let elapsed = 0;
+        let timerInterval = null;
+        let isRunning = false;
+
+        // DOM elements
+        const timeDisplay = document.getElementById('timeDisplay');
+        const roleDisplay = document.getElementById('roleDisplay');
+        const presenterDisplay = document.getElementById('presenterDisplay');
+        const eventDisplay = document.getElementById('eventDisplay');
+        const greenLight = document.getElementById('greenLight');
+        const amberLight = document.getElementById('amberLight');
+        const redLight = document.getElementById('redLight');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const logPanel = document.getElementById('logPanel');
+        const agendaTable = document.getElementById('agendaTable').getElementsByTagName('tbody')[0];
+
+        function updateDisplay() {
+            const currentItem = agenda[currentItemIndex];
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+
+            timeDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            roleDisplay.textContent = `Role: ${currentItem.role}`;
+            presenterDisplay.textContent = `Presenter: ${currentItem.presenter}`;
+            eventDisplay.textContent = `Event: ${currentItem.event}`;
+
+            // Update lights
+            if (currentItem.red > 0) {
+                greenLight.style.backgroundColor = elapsed >= currentItem.green ? 'green' : '#ddd';
+                amberLight.style.backgroundColor = elapsed >= currentItem.amber ? 'yellow' : '#ddd';
+                redLight.style.backgroundColor = elapsed >= currentItem.red ? 'red' : '#ddd';
+            } else {
+                greenLight.style.backgroundColor = '#ddd';
+                amberLight.style.backgroundColor = '#ddd';
+                redLight.style.backgroundColor = '#ddd';
+            }
+
+            // Update agenda table
+            updateAgendaTable();
+        }
+
+        function updateAgendaTable() {
+            agendaTable.innerHTML = '';
+            agenda.forEach((item, index) => {
+                const row = agendaTable.insertRow();
+                if (index === currentItemIndex) {
+                    row.classList.add('current');
+                }
+                row.insertCell(0).textContent = item.time;
+                row.insertCell(1).textContent = item.role;
+                row.insertCell(2).textContent = item.presenter;
+            });
+        }
+
+        function addLogEntry() {
+            const currentItem = agenda[currentItemIndex];
+            if (currentItem.red > 0 && elapsed > 0) {
+                let status;
+                if (elapsed < currentItem.green) {
+                    status = "Under minimum time";
+                } else if (elapsed < currentItem.amber) {
+                    status = "Green";
+                } else if (elapsed < currentItem.red) {
+                    status = "Amber";
+                } else {
+                    const overTime = elapsed - currentItem.red;
+                    status = `Red (${overTime} seconds over)`;
+                }
+
+                const timestamp = new Date().toLocaleTimeString();
+                const minutes = Math.floor(elapsed / 60);
+                const seconds = elapsed % 60;
+                
+                const logEntry = `[${timestamp}] ${currentItem.role}
+Presenter: ${currentItem.presenter}
+Time: ${minutes}:${seconds.toString().padStart(2, '0')}
+Status: ${status}
+───────────────────\n`;
+
+                logPanel.innerText = logEntry + logPanel.innerText;
+            }
+        }
+
+        startBtn.addEventListener('click', () => {
+            if (!isRunning) {
+                isRunning = true;
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                timerInterval = setInterval(() => {
+                    elapsed++;
+                    updateDisplay();
+                }, 1000);
+            }
+        });
+
+        stopBtn.addEventListener('click', () => {
+            if (isRunning) {
+                isRunning = false;
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+                clearInterval(timerInterval);
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (elapsed > 0) {
+                addLogEntry();
+            }
+            if (currentItemIndex < agenda.length - 1) {
+                currentItemIndex++;
+                elapsed = 0;
+                isRunning = false;
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+                clearInterval(timerInterval);
+                updateDisplay();
+            }
+        });
+
+        resetBtn.addEventListener('click', () => {
+            elapsed = 0;
+            updateDisplay();
+        });
+
+        // Initialize display
+        updateDisplay();
+    </script>
+</body>
+</html>
