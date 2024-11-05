@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Toastmasters Timer</title>
-    <style>
+ <style>
         body {
             margin: 0;
             padding: 20px;
@@ -45,6 +45,7 @@
             border-radius: 50%;
             border: 2px solid #333;
             background-color: #ddd;
+            transition: background-color 0.3s ease;
         }
 
         .buttons {
@@ -61,6 +62,7 @@
             border-radius: 4px;
             cursor: pointer;
             color: white;
+            transition: opacity 0.2s ease;
         }
 
         button:disabled {
@@ -102,6 +104,8 @@
             white-space: pre-wrap;
             background: #f8f9fa;
             padding: 10px;
+        }
+
         .agenda-table td.editable {
             cursor: pointer;
             position: relative;
@@ -126,8 +130,43 @@
             font-size: inherit;
             font-family: inherit;
         }
+
+        /* Additional styles for better visuals */
+        h2 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        .panel h2 {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .current-item div {
+            margin-bottom: 8px;
+        }
+
+        /* Scrollbar styling */
+        .log-panel::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .log-panel::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .log-panel::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        .log-panel::-webkit-scrollbar-thumb:hover {
+            background: #666;
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="left-panel">
