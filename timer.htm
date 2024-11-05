@@ -102,6 +102,29 @@
             white-space: pre-wrap;
             background: #f8f9fa;
             padding: 10px;
+        .agenda-table td.editable {
+            cursor: pointer;
+            position: relative;
+        }
+
+        .agenda-table td.editable:hover {
+            background-color: #f0f0f0;
+        }
+
+        .agenda-table td.editable:hover::after {
+            content: '✎';
+            position: absolute;
+            right: 5px;
+            color: #666;
+        }
+
+        .edit-input {
+            width: 100%;
+            padding: 5px;
+            border: 2px solid #2196F3;
+            border-radius: 4px;
+            font-size: inherit;
+            font-family: inherit;
         }
     </style>
 </head>
@@ -458,6 +481,71 @@ Status: ${status}
             elapsed = 0;
             updateDisplay();
         });
+
+        function updateAgendaTable() {
+            agendaTable.innerHTML = '';
+            agenda.forEach((item, index) => {
+                const row = agendaTable.insertRow();
+                if (index === currentItemIndex) {
+                    row.classList.add('current');
+                }
+                row.insertCell(0).textContent = item.time;
+                row.insertCell(1).textContent = item.role;
+                
+                // Make presenter cell editable
+                const presenterCell = row.insertCell(2);
+                presenterCell.textContent = item.presenter;
+                presenterCell.className = 'editable';
+                presenterCell.setAttribute('data-index', index);
+                presenterCell.addEventListener('click', function() {
+                    startEditing(this);
+                });
+            });
+        }
+
+        function startEditing(cell) {
+            // Don't start editing if already editing
+            if (cell.querySelector('input')) return;
+
+            const currentValue = cell.textContent;
+            const index = cell.getAttribute('data-index');
+            
+            // Create input element
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = currentValue;
+            input.className = 'edit-input';
+            
+            // Clear cell and add input
+            cell.textContent = '';
+            cell.appendChild(input);
+            input.focus();
+
+            // Handle input events
+            input.addEventListener('blur', function() {
+                finishEditing(cell, input, index);
+            });
+            
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    finishEditing(cell, input, index);
+                }
+                if (e.key === 'Escape') {
+                    cell.textContent = currentValue;
+                }
+            });
+        }
+
+        function finishEditing(cell, input, index) {
+            const newValue = input.value.trim();
+            agenda[index].presenter = newValue;
+            cell.textContent = newValue;
+            
+            // Update current item display if editing current item
+            if (index == currentItemIndex) {
+                presenterDisplay.textContent = `Presenter: ${newValue}`;
+            }
+        }
 
         // Initialize display
         updateDisplay();
