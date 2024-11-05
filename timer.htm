@@ -378,12 +378,12 @@ const agenda = [
             const currentItem = agenda[currentItemIndex];
             const minutes = Math.floor(elapsed / 60);
             const seconds = elapsed % 60;
-
+        
             timeDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
             roleDisplay.textContent = `Role: ${currentItem.role}`;
             presenterDisplay.textContent = `Presenter: ${currentItem.presenter}`;
             eventDisplay.textContent = `Event: ${currentItem.event}`;
-
+        
             // Update lights
             if (currentItem.red > 0) {
                 greenLight.style.backgroundColor = elapsed >= currentItem.green ? 'green' : '#ddd';
@@ -394,10 +394,11 @@ const agenda = [
                 amberLight.style.backgroundColor = '#ddd';
                 redLight.style.backgroundColor = '#ddd';
             }
-
-            // Update agenda table
+        
+            // Update agenda table with editable presenters
             updateAgendaTable();
         }
+
 
         function updateAgendaTable() {
             agendaTable.innerHTML = '';
@@ -408,7 +409,15 @@ const agenda = [
                 }
                 row.insertCell(0).textContent = item.time;
                 row.insertCell(1).textContent = item.role;
-                row.insertCell(2).textContent = item.presenter;
+                
+                // Make presenter cell editable
+                const presenterCell = row.insertCell(2);
+                presenterCell.textContent = item.presenter;
+                presenterCell.className = 'editable';
+                presenterCell.setAttribute('data-index', index);
+                presenterCell.addEventListener('click', function() {
+                    startEditing(this);
+                });
             });
         }
 
@@ -426,17 +435,17 @@ const agenda = [
                     const overTime = elapsed - currentItem.red;
                     status = `Red (${overTime} seconds over)`;
                 }
-
+        
                 const timestamp = new Date().toLocaleTimeString();
                 const minutes = Math.floor(elapsed / 60);
                 const seconds = elapsed % 60;
                 
                 const logEntry = `[${timestamp}] ${currentItem.role}
-Presenter: ${currentItem.presenter}
-Time: ${minutes}:${seconds.toString().padStart(2, '0')}
-Status: ${status}
-───────────────────\n`;
-
+        Presenter: ${currentItem.presenter}
+        Time: ${minutes}:${seconds.toString().padStart(2, '0')}
+        Status: ${status}
+        ───────────────────\n`;
+        
                 logPanel.innerText = logEntry + logPanel.innerText;
             }
         }
@@ -453,6 +462,7 @@ Status: ${status}
             }
         });
 
+
         stopBtn.addEventListener('click', () => {
             if (isRunning) {
                 isRunning = false;
@@ -461,7 +471,7 @@ Status: ${status}
                 clearInterval(timerInterval);
             }
         });
-
+        
         nextBtn.addEventListener('click', () => {
             if (elapsed > 0) {
                 addLogEntry();
@@ -506,7 +516,7 @@ Status: ${status}
         function startEditing(cell) {
             // Don't start editing if already editing
             if (cell.querySelector('input')) return;
-
+        
             const currentValue = cell.textContent;
             const index = cell.getAttribute('data-index');
             
@@ -520,7 +530,7 @@ Status: ${status}
             cell.textContent = '';
             cell.appendChild(input);
             input.focus();
-
+        
             // Handle input events
             input.addEventListener('blur', function() {
                 finishEditing(cell, input, index);
@@ -535,7 +545,7 @@ Status: ${status}
                 }
             });
         }
-
+        
         function finishEditing(cell, input, index) {
             const newValue = input.value.trim();
             agenda[index].presenter = newValue;
