@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Toastmasters Timer</title>
- <style>
+    <style>
         body {
             margin: 0;
             padding: 20px;
@@ -104,7 +104,7 @@
             white-space: pre-wrap;
             background: #f8f9fa;
             padding: 10px;
-        }}
+        }
 
         .agenda-table td.editable {
             cursor: pointer;
@@ -123,7 +123,7 @@
         }
 
         .edit-input {
-            width: 100%;
+            width: calc(100% - 10px);
             padding: 5px;
             border: 2px solid #2196F3;
             border-radius: 4px;
@@ -131,7 +131,6 @@
             font-family: inherit;
         }
 
-        /* Additional styles for better visuals */
         h2 {
             margin-top: 0;
             color: #333;
@@ -147,7 +146,6 @@
             margin-bottom: 8px;
         }
 
-        /* Scrollbar styling */
         .log-panel::-webkit-scrollbar {
             width: 8px;
         }
@@ -166,7 +164,6 @@
         }
     </style>
 </head>
-
 <body>
     <div class="container">
         <div class="left-panel">
@@ -217,9 +214,7 @@
         </div>
     </div>
 
-    <script>
-        // Define agenda data structure (this would normally come from a TOML file)
-const agenda = [
+ const agenda = [
     {
         time: "09:30",
         role: "Breakfast",
@@ -392,7 +387,6 @@ const agenda = [
         red: 0
     }
 ];
-
         let currentItemIndex = 0;
         let elapsed = 0;
         let timerInterval = null;
@@ -413,31 +407,36 @@ const agenda = [
         const logPanel = document.getElementById('logPanel');
         const agendaTable = document.getElementById('agendaTable').getElementsByTagName('tbody')[0];
 
+        function updateLights(currentItem) {
+            const resetLights = () => {
+                greenLight.style.backgroundColor = '#ddd';
+                amberLight.style.backgroundColor = '#ddd';
+                redLight.style.backgroundColor = '#ddd';
+            };
+
+            if (!currentItem.red) {
+                resetLights();
+                return;
+            }
+
+            greenLight.style.backgroundColor = elapsed >= currentItem.green ? 'green' : '#ddd';
+            amberLight.style.backgroundColor = elapsed >= currentItem.amber ? 'yellow' : '#ddd';
+            redLight.style.backgroundColor = elapsed >= currentItem.red ? 'red' : '#ddd';
+        }
+
         function updateDisplay() {
             const currentItem = agenda[currentItemIndex];
             const minutes = Math.floor(elapsed / 60);
             const seconds = elapsed % 60;
-        
+            
             timeDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
             roleDisplay.textContent = `Role: ${currentItem.role}`;
             presenterDisplay.textContent = `Presenter: ${currentItem.presenter}`;
             eventDisplay.textContent = `Event: ${currentItem.event}`;
-        
-            // Update lights
-            if (currentItem.red > 0) {
-                greenLight.style.backgroundColor = elapsed >= currentItem.green ? 'green' : '#ddd';
-                amberLight.style.backgroundColor = elapsed >= currentItem.amber ? 'yellow' : '#ddd';
-                redLight.style.backgroundColor = elapsed >= currentItem.red ? 'red' : '#ddd';
-            } else {
-                greenLight.style.backgroundColor = '#ddd';
-                amberLight.style.backgroundColor = '#ddd';
-                redLight.style.backgroundColor = '#ddd';
-            }
-        
-            // Update agenda table with editable presenters
+            
+            updateLights(currentItem);
             updateAgendaTable();
         }
-
 
         function updateAgendaTable() {
             agendaTable.innerHTML = '';
@@ -446,16 +445,19 @@ const agenda = [
                 if (index === currentItemIndex) {
                     row.classList.add('current');
                 }
+                
                 row.insertCell(0).textContent = item.time;
                 row.insertCell(1).textContent = item.role;
                 
-                // Make presenter cell editable
                 const presenterCell = row.insertCell(2);
                 presenterCell.textContent = item.presenter;
                 presenterCell.className = 'editable';
                 presenterCell.setAttribute('data-index', index);
-                presenterCell.addEventListener('click', function() {
-                    startEditing(this);
+                presenterCell.addEventListener('click', function(e) {
+                    // Prevent multiple inputs
+                    if (e.target.tagName !== 'INPUT') {
+                        startEditing(this);
+                    }
                 });
             });
         }
@@ -472,21 +474,54 @@ const agenda = [
                     status = "Amber";
                 } else {
                     const overTime = elapsed - currentItem.red;
-                    status = `Red (${overTime} seconds over)`;
+                    status = `Red (${Math.floor(overTime / 60)}:${(overTime % 60).toString().padStart(2, '0')} over)`;
                 }
-        
+
                 const timestamp = new Date().toLocaleTimeString();
                 const minutes = Math.floor(elapsed / 60);
                 const seconds = elapsed % 60;
                 
                 const logEntry = `[${timestamp}] ${currentItem.role}
-        Presenter: ${currentItem.presenter}
-        Time: ${minutes}:${seconds.toString().padStart(2, '0')}
-        Status: ${status}
-        ───────────────────\n`;
-        
+Presenter: ${currentItem.presenter}
+Time: ${minutes}:${seconds.toString().padStart(2, '0')}
+Status: ${status}
+───────────────────\n`;
+
                 logPanel.innerText = logEntry + logPanel.innerText;
             }
+        }
+
+        function startEditing(cell) {
+            const currentValue = cell.textContent;
+            const index = parseInt(cell.getAttribute('data-index'));
+            
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = currentValue;
+            input.className = 'edit-input';
+            
+            cell.textContent = '';
+            cell.appendChild(input);
+            input.focus();
+
+            function finishEditing() {
+                const newValue = input.value.trim();
+                agenda[index].presenter = newValue;
+                cell.textContent = newValue;
+                
+                if (index === currentItemIndex) {
+                    presenterDisplay.textContent = `Presenter: ${newValue}`;
+                }
+            }
+            
+            input.addEventListener('blur', finishEditing);
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    finishEditing();
+                } else if (e.key === 'Escape') {
+                    cell.textContent = currentValue;
+                }
+            });
         }
 
         startBtn.addEventListener('click', () => {
@@ -501,7 +536,6 @@ const agenda = [
             }
         });
 
-
         stopBtn.addEventListener('click', () => {
             if (isRunning) {
                 isRunning = false;
@@ -510,7 +544,7 @@ const agenda = [
                 clearInterval(timerInterval);
             }
         });
-        
+
         nextBtn.addEventListener('click', () => {
             if (elapsed > 0) {
                 addLogEntry();
@@ -528,73 +562,12 @@ const agenda = [
 
         resetBtn.addEventListener('click', () => {
             elapsed = 0;
+            isRunning = false;
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            clearInterval(timerInterval);
             updateDisplay();
         });
-
-        function updateAgendaTable() {
-            agendaTable.innerHTML = '';
-            agenda.forEach((item, index) => {
-                const row = agendaTable.insertRow();
-                if (index === currentItemIndex) {
-                    row.classList.add('current');
-                }
-                row.insertCell(0).textContent = item.time;
-                row.insertCell(1).textContent = item.role;
-                
-                // Make presenter cell editable
-                const presenterCell = row.insertCell(2);
-                presenterCell.textContent = item.presenter;
-                presenterCell.className = 'editable';
-                presenterCell.setAttribute('data-index', index);
-                presenterCell.addEventListener('click', function() {
-                    startEditing(this);
-                });
-            });
-        }
-
-        function startEditing(cell) {
-            // Don't start editing if already editing
-            if (cell.querySelector('input')) return;
-        
-            const currentValue = cell.textContent;
-            const index = cell.getAttribute('data-index');
-            
-            // Create input element
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.value = currentValue;
-            input.className = 'edit-input';
-            
-            // Clear cell and add input
-            cell.textContent = '';
-            cell.appendChild(input);
-            input.focus();
-        
-            // Handle input events
-            input.addEventListener('blur', function() {
-                finishEditing(cell, input, index);
-            });
-            
-            input.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    finishEditing(cell, input, index);
-                }
-                if (e.key === 'Escape') {
-                    cell.textContent = currentValue;
-                }
-            });
-        }
-        
-        function finishEditing(cell, input, index) {
-            const newValue = input.value.trim();
-            agenda[index].presenter = newValue;
-            cell.textContent = newValue;
-            
-            // Update current item display if editing current item
-            if (index == currentItemIndex) {
-                presenterDisplay.textContent = `Presenter: ${newValue}`;
-            }
-        }
 
         // Initialize display
         updateDisplay();
