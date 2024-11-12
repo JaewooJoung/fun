@@ -651,3 +651,18 @@ Data recorded during verification measure execution
 Raw data, logs, traces, tool outputs
 Measurement values
 Review findings
+
+
+ASPICE 4.0:
+
+Does not mandate the use of MISRA
+Does not specify which MISRA version to use
+Does not detail specific MISRA rules to follow
+Mentions it only as one example among other possible coding standards
+
+The inclusion of MISRA is relevant in:
+
+Static code analysis context
+Software unit verification
+Coding standards compliance
+Quality assurance activities
