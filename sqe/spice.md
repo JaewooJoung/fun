@@ -612,3 +612,42 @@ Review of:
 - Goal achievement
 - Verification coverage
 - Traceability maintenance
+- 
+
+
+##verification tools 
+
+Verification Measure (08-60):
+
+
+Test cases
+Measurements
+Calculations
+Simulations
+Reviews
+Analyses
+
+
+Verification Measure Selection Set (08-58):
+
+
+Criteria for re-verification in case of changes
+Identification of verification measures for regression
+
+
+Verification Results (15-52):
+
+
+Verification data and logs
+Verification measure passed/failed/not executed
+Information about test execution
+Summary of verification results
+
+
+Verification Measure Data (03-50):
+
+
+Data recorded during verification measure execution
+Raw data, logs, traces, tool outputs
+Measurement values
+Review findings
