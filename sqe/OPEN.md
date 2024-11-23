@@ -22,7 +22,7 @@ style: |
 # OPEN System: SQE Grading System
 ## Software Quality Engineering Process
 
-![width:200px](https://via.placeholder.com/200x200)
+![width:200px](https://jaewoojoung.github.io/fun/sqe/door.jpeg)
 
 #### Jaewoo Joung
 #### November 23, 2024
@@ -52,17 +52,7 @@ style: |
 
 # The Four Key Questions
 
-```mermaid
-flowchart TD
-    A[Do you have?] -->|Yes| B[Can you show?]
-    A -->|No| C[Nothing = 0%]
-    B -->|Yes| D[Can you give?]
-    B -->|No| C
-    D -->|Yes| E[Is it good?]
-    D -->|No| F[Poor = 40%]
-    E -->|Yes| G[Outstanding = 100%]
-    E -->|No| H[Excellent = 80%]
-```
+![width:200px](https://jaewoojoung.github.io/fun/sqe/OPEN.png)
 
 ---
 
@@ -152,7 +142,7 @@ flowchart TD
 
 # Poor Compliance Warning
 
-![bg right:40%](./warning.jpeg)
+![bg right:40%](https://jaewoojoung.github.io/fun/sqe/warning.jpeg)
 
 ## Risk Factors:
 - Incomplete documentation
