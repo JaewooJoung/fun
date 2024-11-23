@@ -152,7 +152,7 @@ flowchart TD
 
 # Poor Compliance Warning
 
-![bg right:40%](https://via.placeholder.com/400x300)
+![bg right:40%](./warning.jpeg)
 
 ## Risk Factors:
 - Incomplete documentation
