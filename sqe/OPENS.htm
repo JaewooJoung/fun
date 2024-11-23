@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+            font-family: Arial, sans-serif;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .health-good {
+            background-color: #90EE90;
+        }
+        .health-ok {
+            background-color: #FFD700;
+        }
+        .health-reconsider {
+            background-color: #FFB6C1;
+        }
+        .total-row {
+            font-weight: bold;
+            background-color: #f8f8f8;
+        }
+        .health-meter {
+            width: 100%;
+            height: 30px;
+            background-color: #f0f0f0;
+            margin-top: 20px;
+            position: relative;
+        }
+        .health-bar {
+            height: 100%;
+            transition: width 0.5s ease-in-out;
+        }
+        .health-text {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            line-height: 30px;
+            color: black;
+            font-weight: bold;
+        }
+        .status-O { background-color: #98FB98; }
+        .status-P { background-color: #FFB6C1; }
+        .status-E { background-color: #FFD700; }
+        .status-N { background-color: #FF6B6B; }
+    </style>
+</head>
+<body>
+    <table id="healthTable">
+        <tr>
+            <th>Document Category</th>
+            <th>Weight</th>
+            <th>Status</th>
+            <th>Score</th>
+        </tr>
+    </table>
+    <div class="health-meter">
+        <div id="healthBar" class="health-bar"></div>
+        <div id="healthText" class="health-text"></div>
+    </div>
+
+    <script>
+        function getScoreFromStatus(status, weight) {
+            const scoreMap = {
+                'O': 1,
+                'E': 0.8,
+                'P': 0.4,
+                'N': 0
+            };
+            return weight * scoreMap[status];
+        }
+
+        const documentData = [
+            { name: "SW SOW Compliance Matrix", items: [
+                { weight: 1, status: 'O' },
+                { weight: 1, status: 'P' },
+                { weight: 1, status: 'E' }
+            ]},
+            { name: "Document Traceability Matrix", items: [
+                { weight: 1, status: 'N' }
+            ]},
+            { name: "SW Development Plan (SWDP)", items: Array(13).fill({ weight: 1, status: 'O' })},
+            { name: "SW Risk Management List", items: Array(4).fill({ weight: 1, status: 'O' })},
+            { name: "SW Development Schedule (SWDS)", items: Array(5).fill({ weight: 1, status: 'O' })},
+            { name: "SW Progress Report", items: [
+                ...Array(6).fill({ weight: 1, status: 'O' }),
+                { weight: 0, status: 'O' },
+                ...Array(4).fill({ weight: 0.5, status: 'O' })
+            ]},
+            // ... Add the rest of your categories here
+        ];
+
+        const table = document.getElementById('healthTable');
+        let totalWeight = 0;
+        let totalScore = 0;
+
+        documentData.forEach(category => {
+            let categoryWeight = category.items.reduce((sum, item) => sum + item.weight, 0);
+            let categoryScore = category.items.reduce((sum, item) => sum + getScoreFromStatus(item.status, item.weight), 0);
+            
+            const row = table.insertRow();
+            row.insertCell(0).textContent = category.name;
+            row.insertCell(1).textContent = categoryWeight.toFixed(1);
+            
+            const statusCell = row.insertCell(2);
+            const scores = category.items.map(item => item.status).join(', ');
+            statusCell.textContent = scores;
+            
+            row.insertCell(3).textContent = categoryScore.toFixed(1);
+
+            totalWeight += categoryWeight;
+            totalScore += categoryScore;
+        });
+
+        // Add total row
+        const totalRow = table.insertRow();
+        totalRow.className = 'total-row';
+        totalRow.insertCell(0).textContent = 'TOTAL';
+        totalRow.insertCell(1).textContent = totalWeight.toFixed(1);
+        totalRow.insertCell(2).textContent = '-';
+        totalRow.insertCell(3).textContent = totalScore.toFixed(1);
+
+        // Calculate health percentage
+        const healthPercentage = (totalScore / totalWeight) * 100;
+        
+        // Update health bar
+        const healthBar = document.getElementById('healthBar');
+        const healthText = document.getElementById('healthText');
+        
+        healthBar.style.width = `${healthPercentage}%`;
+        healthText.textContent = `Health Check: ${healthPercentage.toFixed(1)}%`;
+
+        if (healthPercentage >= 80) {
+            healthBar.style.backgroundColor = '#90EE90';
+            healthText.textContent += ' (GOOD)';
+        } else if (healthPercentage >= 60) {
+            healthBar.style.backgroundColor = '#FFD700';
+            healthText.textContent += ' (OK)';
+        } else {
+            healthBar.style.backgroundColor = '#FFB6C1';
+            healthText.textContent += ' (Reconsider recommended)';
+        }
+    </script>
+</body>
+</html>
