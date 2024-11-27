@@ -96,4 +96,46 @@ flowchart TB
     class perf1,perf2,perf3 criteria
 
 ```
+Project overview
+```mermaid
+flowchart TB
+    subgraph "Project Overview W47-48"
+        status[Current Status:<br/>High Priority<br/>High Complexity<br/>Assigned to Jaewoo & Lucas]
+    end
 
+    subgraph "Requirements & Scope"
+        req1[System Integration]
+        req2[Functional Requirements]
+        req3[500M Requirements]
+        tech[New Automotive Concept]
+    end
+
+    subgraph "Development Process"
+        sup[Supplier Development Track]
+        vol[Volvo Development Track]
+        int[Integration Points]
+        
+        sup <--> int
+        vol <--> int
+    end
+
+    subgraph "Timeline"
+        start[W47: Project Start]
+        progress[W48: Team Assignment]
+        target[Q4 2024: C-Release]
+    end
+
+    classDef highlight fill:#f96,stroke:#333,stroke-width:2px
+    classDef standard fill:#bbf,stroke:#333,stroke-width:2px
+    classDef timeline fill:#bfb,stroke:#333,stroke-width:2px
+
+    status --> req1 & req2 & req3
+    req1 & req2 & req3 --> tech
+    tech --> sup & vol
+    int --> target
+    start --> progress --> target
+
+    class status highlight
+    class req1,req2,req3,tech standard
+    class start,progress,target timeline
+```
