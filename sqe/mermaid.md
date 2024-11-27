@@ -1,6 +1,7 @@
+ID 40
 ```mermaid
 flowchart TB
-    subgraph "Order 40: HUA LED Solution"
+    subgraph "HUA LED Solution"
         SW40[Software Update Design]
         MOD40[Modify LED Control]
         TEST40[Testing Suite]
@@ -16,8 +17,12 @@ flowchart TB
         DOC40 --> PPAP
         PPAP --> SOP
     end
+```
 
-    subgraph "Order 41: E-fan Development"
+
+```mermaid
+flowchart TB
+    subgraph "E-fan Development"
         REQ41[Requirements Gathering]
         ARCH41[Architecture Design]
         SAFE41[Safety System Design]
@@ -40,3 +45,4 @@ flowchart TB
     end
 
 ```
+
