@@ -46,3 +46,54 @@ flowchart TB
 
 ```
 
+LPS handling
+```mermaid
+flowchart TB
+    start[Monthly Performance Monitoring]
+    warning[Warning Letter to Supplier]
+    entry[Entry into LPS Process]
+    stage1[Stage 1]
+    stage2[Stage 2]
+    stage3[Stage 3]
+    monitor[Monitoring Status]
+    
+    subgraph "Performance Tracking"
+        metrics[Monitored Parameters]
+        metrics --> |Negative Trend| start
+        metrics --> |Abnormality| start
+    end
+    
+    subgraph "Entry Process"
+        start --> |Poor Performance| warning
+        warning --> |No Improvement| entry
+    end
+    
+    subgraph "Three-Stage Elevation Process"
+        entry --> stage1
+        stage1 --> |Meet Exit Criteria| monitor
+        stage1 --> |Miss Target Date| stage2
+        stage2 --> |Meet Exit Criteria| monitor
+        stage2 --> |Miss Target Date| stage3
+        stage3 --> |Meet Exit Criteria| monitor
+    end
+    
+    subgraph "Monitoring Criteria"
+        perf1[Individual Part Performance]
+        perf2[Multiple Part Performance]
+        perf3[Overall Organization Performance]
+        
+        monitor --> perf1
+        monitor --> perf2
+        monitor --> perf3
+    end
+    
+    classDef process fill:#f9f,stroke:#333,stroke-width:2px
+    classDef status fill:#bbf,stroke:#333,stroke-width:2px
+    classDef criteria fill:#bfb,stroke:#333,stroke-width:2px
+    
+    class start,entry process
+    class warning,monitor status
+    class perf1,perf2,perf3 criteria
+
+```
+
