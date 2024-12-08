@@ -222,5 +222,23 @@
 
         function resetSelections() {
             const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-            checkboxes.forEach(checkbox => {
-                checkbox.
+            checkboxes.forEach(checkbox => checkbox.checked = false);
+            updateStats();
+        }
+
+        const tableBody = document.getElementById('languageTable');
+        languages.forEach((lang, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><input type="checkbox" data-index="${index}" onchange="updateStats()"></td>
+                <td>${lang.rank}</td>
+                <td>${lang.name}</td>
+                <td>${lang.country}</td>
+                <td class="number-cell">${lang.population.toLocaleString()}</td>
+            `;
+            tableBody.appendChild(row);
+        });
+    </script>
+</body>
+</html>
+
