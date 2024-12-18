@@ -1,0 +1,140 @@
+name: Deploy ASIL Compliance Table
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4.1.0
+        with:
+          node-version: '21.x'
+
+      # Install HTML validator
+      - name: Install validator
+        run: npm install -g html-validator-cli
+
+      # Validate HTML structure
+      - name: Validate ASIL table
+        run: |
+          echo "Validating HTML structure..."
+          for file in $(find . -name "*.html" -o -name "*.htm"); do
+            echo "Checking $file"
+            # Check for required ASIL table elements
+            if ! grep -q "class=\"asil-table\"" "$file"; then
+              echo "Warning: ASIL table structure missing in $file"
+              exit 1
+            fi
+            if ! grep -q "id=\"asilSelect\"" "$file"; then
+              echo "Warning: ASIL selector missing in $file"
+              exit 1
+            fi
+            # Validate HTML
+            html-validator --file $file --verbose || exit 1
+          done
+
+      # Check JavaScript functionality
+      - name: Verify JavaScript
+        run: |
+          echo "Checking JavaScript functionality..."
+          for file in $(find . -name "*.html" -o -name "*.htm"); do
+            if ! grep -q "highlightColumn" "$file"; then
+              echo "Warning: Column highlighting function missing in $file"
+              exit 1
+            fi
+          done
+
+  deploy:
+    needs: validate
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Process HTML files
+      - name: Process HTML
+        run: |
+          for file in $(find . -name "*.html" -o -name "*.htm"); do
+            # Update paths for GitHub Pages
+            sed -i 's|href="/|href="./|g' "$file"
+            sed -i 's|src="/|src="./|g' "$file"
+          done
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  monitor:
+    needs: deploy
+    if: success()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check deployment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const deploymentUrl = '${{ needs.deploy.outputs.page_url }}';
+            
+            // Create or update deployment status issue
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: ['deployment-status']
+            });
+            
+            const statusMessage = `
+            # ASIL Table Deployment Status
+            
+            ## Latest Deployment
+            - Status: ✅ Success
+            - URL: ${deploymentUrl}
+            - Date: ${new Date().toISOString()}
+            
+            ## Validation Results
+            - HTML Structure: ✓ Valid
+            - JavaScript Functionality: ✓ Present
+            - Asset Paths: ✓ Updated
+            `;
+            
+            if (issues.data.length === 0) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: 'ASIL Table Deployment Status',
+                body: statusMessage,
+                labels: ['deployment-status']
+              });
+            } else {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issues.data[0].number,
+                body: statusMessage
+              });
+            }
