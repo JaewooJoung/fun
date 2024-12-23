@@ -5,60 +5,8 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-# Function to display disk selection menu
-select_disk() {
-    echo "Available disks:"
-    local disks=($(lsblk -dpno NAME,SIZE,MODEL | grep -E "nvme|sd"))
-    local i=1
-    
-    for disk in "${disks[@]}"; do
-        echo "$i) $disk"
-        ((i++))
-    done
-    
-    while true; do
-        read -p "Select disk number (1-${#disks[@]}): " selection
-        if [[ "$selection" =~ ^[0-9]+$ ]] && [ "$selection" -ge 1 ] && [ "$selection" -le "${#disks[@]}" ]; then
-            DEVICE=$(echo "${disks[$((selection-1))]}" | awk '{print $1}')
-            break
-        fi
-        echo "Invalid selection. Please try again."
-    done
-}
-
-# Function to set up passwords
-setup_passwords() {
-    # Root password
-    while true; do
-        read -s -p "Enter root password: " ROOT_PASSWORD
-        echo
-        read -s -p "Confirm root password: " ROOT_PASSWORD_CONFIRM
-        echo
-        if [ "$ROOT_PASSWORD" = "$ROOT_PASSWORD_CONFIRM" ]; then
-            break
-        fi
-        echo "Passwords don't match. Please try again."
-    done
-
-    # User setup
-    read -p "Enter username: " USERNAME
-    while true; do
-        read -s -p "Enter password for $USERNAME: " USER_PASSWORD
-        echo
-        read -s -p "Confirm password for $USERNAME: " USER_PASSWORD_CONFIRM
-        echo
-        if [ "$USER_PASSWORD" = "$USER_PASSWORD_CONFIRM" ]; then
-            break
-        fi
-        echo "Passwords don't match. Please try again."
-    done
-}
-
-# Select disk and set up passwords
-select_disk
-setup_passwords
-
-# Set partition variables
+# Disk setup
+DEVICE="/dev/nvme0n1"
 EFI_PART="${DEVICE}p1"
 SWAP_PART="${DEVICE}p2"
 ROOT_PART="${DEVICE}p3"
@@ -80,10 +28,10 @@ sgdisk -Z ${DEVICE}
 # Create fresh GPT
 sgdisk -o ${DEVICE}
 
-# Create partitions
-sgdisk -n 1:0:+1G -t 1:ef00 -c 1:"EFI System Partition" ${DEVICE}
-sgdisk -n 2:0:+8G -t 2:8200 -c 2:"Linux swap" ${DEVICE}
-sgdisk -n 3:0:0 -t 3:8300 -c 3:"Linux root" ${DEVICE}
+# Create partitions with specific partition type GUIDs
+sgdisk -n 1:0:+1G -t 1:ef00 -c 1:"EFI System Partition" ${DEVICE}    # Larger EFI partition
+sgdisk -n 2:0:+8G -t 2:8200 -c 2:"Linux swap" ${DEVICE}             # Swap partition
+sgdisk -n 3:0:0 -t 3:8300 -c 3:"Linux root" ${DEVICE}               # Root partition
 
 # Wait for kernel to update partition table
 sleep 3
@@ -103,11 +51,11 @@ mkdir -p /mnt/boot/efi
 mount ${EFI_PART} /mnt/boot/efi
 swapon ${SWAP_PART}
 
-# Install essential packages including Korean support
+# Install essential packages (removed grub)
 echo "Installing base system..."
 pacstrap -K /mnt base linux linux-firmware \
-    base-devel intel-ucode amd-ucode \
-    networkmanager vim grub efibootmgr \
+    base-devel intel-ucode rust \
+    networkmanager vim efibootmgr \
     xorg plasma plasma-desktop sddm \
     firefox konsole dolphin \
     sudo dosfstools mtools os-prober \
@@ -121,74 +69,54 @@ echo "Generating fstab..."
 genfstab -U /mnt >> /mnt/etc/fstab
 
 # Configure the system
-arch-chroot /mnt /bin/bash <<CHROOT_COMMANDS
+arch-chroot /mnt /bin/bash <<'CHROOT_COMMANDS'
 # Set timezone
-ln -sf /usr/share/zoneinfo/Asia/Seoul /etc/localtime
+ln -sf /usr/share/zoneinfo/Europe/Stockholm /etc/localtime
 hwclock --systohc
 
 # Set locale
 echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
+echo "sv_SE.UTF-8 UTF-8" >> /etc/locale.gen
 echo "ko_KR.UTF-8 UTF-8" >> /etc/locale.gen
 locale-gen
-echo "LANG=en_US.UTF-8" > /etc/locale.conf
+echo "LANG=ko_KR.UTF-8" > /etc/locale.conf
 
 # Set hostname
-echo "arch" > /etc/hostname
+echo "lisa" > /etc/hostname
 cat > /etc/hosts <<EOF
 127.0.0.1   localhost
 ::1         localhost
-127.0.1.1   arch.localdomain arch
+127.0.1.1   lisa.localdomain lisa
 EOF
 
-# Set passwords
-echo "root:${ROOT_PASSWORD}" | chpasswd
-useradd -m -G wheel -s /bin/bash ${USERNAME}
-echo "${USERNAME}:${USER_PASSWORD}" | chpasswd
+# Set root password
+echo "root:1234" | chpasswd
+
+# Create user
+useradd -m -G wheel -s /bin/bash crux
+echo "crux:1234" | chpasswd
 echo "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/wheel
 
-# Configure GRUB
-mkdir -p /boot/efi/EFI/BOOT
-mkdir -p /boot/efi/EFI/GRUB
-mkdir -p /boot/grub
+# Install and configure systemd-boot
+bootctl --path=/boot/efi install
 
-cat > /etc/default/grub <<EOF
-GRUB_DEFAULT=0
-GRUB_TIMEOUT=5
-GRUB_DISTRIBUTOR="Arch"
-GRUB_CMDLINE_LINUX_DEFAULT="quiet"
-GRUB_CMDLINE_LINUX=""
-GRUB_PRELOAD_MODULES="part_gpt part_msdos"
-GRUB_TIMEOUT_STYLE=menu
-GRUB_TERMINAL_INPUT=console
-GRUB_GFXMODE=auto
-GRUB_GFXPAYLOAD_LINUX=keep
-GRUB_DISABLE_OS_PROBER=false
+# Create boot loader configuration
+mkdir -p /boot/efi/loader/entries
+cat > /boot/efi/loader/loader.conf <<EOF
+default arch
+timeout 3
+console-mode max
+editor no
 EOF
 
-# Install GRUB
-grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB --recheck
-grub-install --target=x86_64-efi --efi-directory=/boot/efi --removable --recheck
-grub-mkconfig -o /boot/grub/grub.cfg
-
-# Create additional EFI boot entries
-cp /boot/efi/EFI/GRUB/grubx64.efi /boot/efi/EFI/BOOT/BOOTX64.EFI
-cp /boot/grub/grub.cfg /boot/efi/EFI/GRUB/
-cp /boot/grub/grub.cfg /boot/efi/EFI/BOOT/
-
-# Create UEFI boot entries
-efibootmgr --create --disk ${DEVICE} --part 1 --loader /EFI/GRUB/grubx64.efi --label "GRUB" --verbose
-efibootmgr --create --disk ${DEVICE} --part 1 --loader /EFI/BOOT/BOOTX64.EFI --label "Arch Linux Fallback" --verbose
-
-# Configure Korean input method
-cat > /home/${USERNAME}/.xprofile <<EOF
-export GTK_IM_MODULE=nimf
-export QT4_IM_MODULE="nimf"
-export QT_IM_MODULE=nimf
-export XMODIFIERS="@im=nimf"
-nimf &
+# Create arch boot entry
+cat > /boot/efi/loader/entries/arch.conf <<EOF
+title   Arch Linux
+linux   /vmlinuz-linux
+initrd  /intel-ucode.img
+initrd  /initramfs-linux.img
+options root=PARTUUID=$(blkid -s PARTUUID -o value ${ROOT_PART}) rw
 EOF
-
-chown ${USERNAME}:${USERNAME} /home/${USERNAME}/.xprofile
 
 # Enable services
 systemctl enable NetworkManager
@@ -196,32 +124,102 @@ systemctl enable sddm
 
 # Generate initial ramdisk
 mkinitcpio -P
-CHROOT_COMMANDS
 
-# Post-installation Korean setup
-arch-chroot /mnt /bin/bash <<'KOREAN_SETUP'
+# Install juliaup from AUR
+echo "Installing juliaup..."
 cd /tmp
-git clone https://aur.archlinux.org/spoqa-han-sans.git
-cd spoqa-han-sans
+sudo -u ${USERNAME} git clone https://aur.archlinux.org/juliaup.git
+cd juliaup
 sudo -u ${USERNAME} makepkg -si --noconfirm
-cd ..
+cd /
 
-for font in ttf-d2coding ttf-nanum ttf-nanumgothic_coding ttf-kopub ttf-kopubworld; do
-    git clone https://aur.archlinux.org/${font}.git
+# Install Julia using juliaup (as user)
+echo "Setting up Julia..."
+sudo -u ${USERNAME} bash <<EOF
+juliaup add release
+juliaup default release
+EOF
+
+# Install Korean IME (nimf) and fonts
+echo "Installing Korean fonts and input method..."
+cd /tmp
+
+# Install Korean fonts from AUR
+FONT_PACKAGES=(
+    "spoqa-han-sans"
+    "ttf-d2coding"
+    "ttf-nanum"
+    "ttf-nanumgothic_coding"
+    "ttf-kopub"
+    "ttf-kopubworld"
+)
+
+for font in "${FONT_PACKAGES[@]}"; do
+    echo "Installing $font..."
+    sudo -u ${USERNAME} git clone https://aur.archlinux.org/${font}.git
     cd ${font}
     sudo -u ${USERNAME} makepkg -si --noconfirm
     cd ..
 done
 
-# Install nimf
+# Install nimf from source
+echo "Installing nimf..."
 wget https://gitlab.com/nimf-i18n/nimf/-/archive/master/nimf-master.tar.gz
-tar zxf nimf-master.tar.gz
+tar xf nimf-master.tar.gz
 cd nimf-master
 ./autogen.sh --disable-nimf-anthy --disable-nimf-m17n --disable-nimf-rime
 make
 make install
 ldconfig
-KOREAN_SETUP
+
+# Configure input method settings for the user
+sudo -u ${USERNAME} cat > /home/${USERNAME}/.xprofile <<EOF
+export GTK_IM_MODULE=nimf
+export QT4_IM_MODULE="nimf"
+export QT_IM_MODULE=nimf
+export XMODIFIERS="@im=nimf"
+nimf &
+EOF
+
+# Set proper permissions for the .xprofile
+chown ${USERNAME}:${USERNAME} /home/${USERNAME}/.xprofile
+
+# Update font cache
+fc-cache -fv
+
+# Create nimf autostart for the user
+sudo -u ${USERNAME} mkdir -p /home/${USERNAME}/.config/autostart
+sudo -u ${USERNAME} cat > /home/${USERNAME}/.config/autostart/nimf.desktop <<EOF
+[Desktop Entry]
+Type=Application
+Name=Nimf
+Comment=Korean Input Method
+Exec=nimf
+Icon=nimf
+Categories=System;
+X-GNOME-Autostart-Phase=Applications
+X-GNOME-AutoRestart=true
+X-GNOME-Autostart-enabled=true
+EOF
+
+# Create nimf configuration directory
+sudo -u ${USERNAME} mkdir -p /home/${USERNAME}/.config/nimf
+
+# Configure nimf settings
+sudo -u ${USERNAME} cat > /home/${USERNAME}/.config/nimf/nimf.conf <<EOF
+[Nimf]
+hidden-on-launch=false
+xkb-options=
+default-engine=nimf-system-keyboard
+default-locale=ko_KR.UTF-8
+gtk-im-module=nimf
+qt4-im-module=nimf
+qt5-im-module=nimf
+xim-name=nimf
+use-singleton=true
+EOF
+
+CHROOT_COMMANDS
 
 umount -R /mnt
 
@@ -235,11 +233,10 @@ echo "   a. Load BIOS defaults first"
 echo "   b. Disable Secure Boot"
 echo "   c. Set UEFI boot mode (disable CSM/Legacy completely)"
 echo "   d. Set Boot Device Priority:"
-echo "      - First: ${DEVICE}"
+echo "      - First: nvme0n1"
 echo "      - Disable or remove other boot options"
 echo "   e. Save changes and exit"
 echo ""
-echo "After first boot:"
-echo "1. Korean input can be toggled with Shift+Space"
-echo "2. Run 'nimf --debug &' to start nimf with debugging"
-echo "3. Run 'nimf-settings --gapplication-service &' to start the settings service"
+echo "Login credentials:"
+echo "Username: crux"
+echo "Password: 1234"
