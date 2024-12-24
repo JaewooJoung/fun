@@ -68,7 +68,7 @@ pacstrap -K /mnt \
     base-devel intel-ucode \
     networkmanager vim efibootmgr \
     man-db man-pages texinfo \
-    xorg plasma plasma-desktop plasma-wayland-session \
+    xorg plasma plasma-desktop \
     plasma-pa plasma-nm plasma-workspace \
     kde-applications kio-extras \
     dolphin konsole kate \
