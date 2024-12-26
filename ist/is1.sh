@@ -86,12 +86,10 @@ pacstrap -K /mnt \
     base-devel \  # 소프트웨어 컴파일을 위한 필수 개발 도구.
     intel-ucode \  # 인텔 CPU의 마이크로코드 업데이트 (시스템 안정성에 중요).
     networkmanager wireless_tools efibootmgr \  # 네트워킹 도구 및 EFI 부트 관리.
-    sudo \  # 사용자가 root 권한으로 명령을 실행할 수 있도록 허용.
-    #vim nano \  # 설정 및 스크립트를 위한 필수 텍스트 편집기.
+    sudo dosfstools mtools \  # FAT 파일 시스템 관리 도구, 부트 파티션에 유용.
     openssh \  # 원격 관리를 위한 안전한 셸 접근.
     cronie \  # 자동화 작업을 위한 크론 잡 스케줄러.
     man-db man-pages texinfo \  # 명령어 참조를 위한 문서 도구.
-    dosfstools mtools \  # FAT 파일 시스템 관리 도구, 부트 파티션에 유용.
     xorg \  # 그래픽 인터페이스를 위한 X 윈도우 시스템.
     plasma plasma-desktop \  # 현대적인 GUI를 위한 KDE Plasma 데스크탑 환경.
     plasma-workspace plasma-pa plasma-nm \  # Plasma 작업 공간 구성 요소 및 시스템 트레이 앱.
@@ -106,7 +104,9 @@ pacstrap -K /mnt \
     zsh htop wget curl \  # 사용자 셸 및 시스템 모니터링 도구.
     powerdevil \  # KDE의 전원 관리 도구.
     discover packagekit-qt6 flatpak phonon-qt6-vlc \  # 소프트웨어 관리 및 멀티미디어 지원.
-    virtualbox dkms \  # 가상화 및 동적 커널 모듈 지원 도구.
+    virtualbox dkms 
+    #vim nano \  # 설정 및 스크립트를 위한 필수 텍스트 편집기.
+    # 가상화 및 동적 커널 모듈 지원 도구.
    # mesa vlc docker libreoffice-fresh jdk-openjdk \  # 추가 소프트웨어, 멀티미디어 및 생산성 도구.
    # ttf-fira-code \  # 코드 가독성을 위한 프로그래밍 폰트.
 
