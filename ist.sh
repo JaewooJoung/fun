@@ -88,8 +88,8 @@ mkfs.ext4 ${ROOT_PART}
 # Mount partitions
 echo "Mounting partitions..."
 mount ${ROOT_PART} /mnt || exit 1
-mkdir -p /mnt/boot
-mount ${EFI_PART} /mnt/boot || exit 1
+mkdir -p /mnt/boot/efi
+mount ${EFI_PART} /mnt/boot/efi || exit 1
 swapon ${SWAP_PART}
 
 # Check available space
@@ -138,6 +138,7 @@ echo "${USERNAME}:${USER_PASSWORD}" | chpasswd
 echo "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/wheel
 
 # Install and configure bootloader
+mkdir -p /boot/efi/EFI/BOOT
 bootctl --path=/boot install
 
 # Create bootloader configuration
@@ -157,6 +158,14 @@ initrd  /intel-ucode.img
 initrd  /initramfs-linux.img
 options root=PARTUUID=$(blkid -s PARTUUID -o value ${ROOT_PART}) rw
 EOF
+
+# Create fallback EFI boot entry
+cp /boot/vmlinuz-linux /boot/efi/EFI/BOOT/
+cp /boot/initramfs-linux.img /boot/efi/EFI/BOOT/
+cp /boot/intel-ucode.img /boot/efi/EFI/BOOT/
+
+# Create BOOTX64.EFI
+cp /usr/lib/systemd/boot/efi/systemd-bootx64.efi /boot/efi/EFI/BOOT/BOOTX64.EFI
 
 # Install additional packages in smaller groups
 pacman -Sy --noconfirm
