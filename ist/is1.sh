@@ -294,3 +294,5 @@ echo "After first boot:"
 echo "1. Korean input can be toggled with Shift+Space"
 echo "2. Run 'fcitx5-configtool' to configure input method"
 echo "3. Use 'fcitx5 --debug &' if you need to troubleshoot"
+echo "Installation complete!"
+
