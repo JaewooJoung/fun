@@ -201,34 +201,8 @@ systemctl enable vboxservice
 systemctl enable NetworkManager
 systemctl enable sddm
 
-# Install SDDM and required Qt6 dependencies
-yes | pacman -S --noconfirm sddm qt6-5compat qt6-declarative qt6-svg
-
-# Install simple-sddm-2 theme
-cd /tmp
-git clone https://github.com/numixproject/simple-sddm-2.git
-mkdir -p /usr/share/sddm/themes/
-cp -r simple-sddm-2 /usr/share/sddm/themes/
-
-# Configure SDDM theme
-mkdir -p /etc/sddm.conf.d
-cat > /etc/sddm.conf.d/theme.conf.user <<EOF
-[Theme]
-Current=simple-sddm-2
-EOF
-
-# Configure default session
-cat > /etc/sddm.conf.d/default.conf <<EOF
-[General]
-DisplayServer=x11
-
-[Users]
-RememberLastUser=true
-MaximumUid=60000
-MinimumUid=1000
-EOF
-
-# Enable SDDM service
+# Enable services
+systemctl enable NetworkManager
 systemctl enable sddm
 
 # Configure Korean fonts and input method, install VSCode and Julia
@@ -265,7 +239,7 @@ cat > /home/${USERNAME}/.config/autostart/fcitx5.desktop <<EOL
 [Desktop Entry]
 Type=Application
 Name=Fcitx5
-Comment=Korean Input Method Framework
+Comment=Chinese, Japanese and Korean Input Method Framework
 Exec=fcitx5
 Icon=fcitx5
 Categories=InputMethod;
