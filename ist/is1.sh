@@ -201,9 +201,25 @@ systemctl enable vboxservice
 systemctl enable NetworkManager
 systemctl enable sddm
 
-# Enable services
-systemctl enable NetworkManager
+# Enable and configure display manager
 systemctl enable sddm
+mkdir -p /etc/sddm.conf.d
+cat > /etc/sddm.conf.d/conf.d <<EOF
+[General]
+DisplayServer=X11
+
+[Theme]
+Current=breeze
+
+[Users]
+MaximumUid=60000
+MinimumUid=1000
+EOF
+
+# Enable essential services
+systemctl enable NetworkManager
+systemctl enable bluetooth
+systemctl enable cups.service
 
 # Configure Korean fonts and input method, install VSCode and Julia
 cd /tmp
