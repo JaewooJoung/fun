@@ -5,13 +5,6 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-# Initialize pacman
-init_pacman() {
-    pacman-key --init
-    pacman-key --populate archlinux
-    pacman -Sy archlinux-keyring
-}
-
 # 1. Show all hard drives
 echo "Here are all the hard drives in the system:"
 drives=($(lsblk -d -o NAME,SIZE,TYPE | grep disk | nl -w2 -s'. ' | awk '{print $2}'))
@@ -27,25 +20,6 @@ if [[ $choice -gt 0 && $choice -le ${#drives[@]} ]]; then
 else
     echo "Invalid number. Exiting..."
     exit 1
-fi
-
-# Fixed credentials
-USERNAME="crux"
-USER_PASSWORD="1234"
-ROOT_PASSWORD="1234"
-HOSTNAME="lisa"
-
-# Set partition variables based on device type
-if [[ ${DEVICE} == *"nvme"* ]]; then
-    # NVMe drives use 'p' suffix for partitions
-    EFI_PART="${DEVICE}p1"
-    SWAP_PART="${DEVICE}p2"
-    ROOT_PART="${DEVICE}p3"
-else
-    # SATA/IDE drives just append numbers
-    EFI_PART="${DEVICE}1"
-    SWAP_PART="${DEVICE}2"
-    ROOT_PART="${DEVICE}3"
 fi
 
 # Show CPU type selection
@@ -67,6 +41,25 @@ case $cpu_choice in
         ;;
 esac
 
+# Fixed credentials
+USERNAME="crux"
+USER_PASSWORD="1234"
+ROOT_PASSWORD="1234"
+HOSTNAME="lisa"
+
+# Set partition variables based on device type
+if [[ ${DEVICE} == *"nvme"* ]]; then
+    # NVMe drives use 'p' suffix for partitions
+    EFI_PART="${DEVICE}p1"
+    SWAP_PART="${DEVICE}p2"
+    ROOT_PART="${DEVICE}p3"
+else
+    # SATA/IDE drives just append numbers
+    EFI_PART="${DEVICE}1"
+    SWAP_PART="${DEVICE}2"
+    ROOT_PART="${DEVICE}3"
+fi
+
 # Show installation plan
 echo "==========================="
 echo "Installation Plan:"
@@ -83,7 +76,9 @@ echo "Press Ctrl+C within 5 seconds to cancel..."
 sleep 5
 
 # Initialize pacman
-init_pacman
+pacman-key --init
+pacman-key --populate archlinux
+pacman -Sy archlinux-keyring
 
 # Clean disk
 echo "Cleaning disk..."
@@ -118,22 +113,9 @@ mkdir -p /mnt/boot
 mount ${EFI_PART} /mnt/boot || exit 1
 swapon ${SWAP_PART}
 
-# Check if mounted in UEFI mode
-if [ ! -d "/sys/firmware/efi" ]; then
-    echo "Error: Not booted in UEFI mode!"
-    exit 1
-fi
-
-# Check available space
-available_space=$(df -BG --output=avail /mnt | tail -n1 | tr -dc '0-9')
-if [ "$available_space" -lt 15 ]; then
-    echo "Error: Not enough space. Need at least 15GB free."
-    exit 1
-fi
-
 # Install base system
 echo "Installing base system..."
-pacstrap -K /mnt base linux linux-firmware base-devel intel-ucode networkmanager
+pacstrap -K /mnt base linux linux-firmware base-devel ${CPU_UCODE} networkmanager --noconfirm
 
 # Generate fstab
 echo "Generating fstab..."
@@ -190,17 +172,31 @@ initrd  /initramfs-linux.img
 options root=PARTUUID=$(blkid -s PARTUUID -o value ${ROOT_PART}) rw quiet
 EOF
 
+# Install Sublime Text
+curl -O https://download.sublimetext.com/sublimehq-pub.gpg
+pacman-key --add sublimehq-pub.gpg
+pacman-key --lsign-key 8A8F901A
+rm sublimehq-pub.gpg
+
+# Add Sublime Text repository
+echo -e "\n[sublime-text]\nServer = https://download.sublimetext.com/arch/stable/x86_64" | tee -a /etc/pacman.conf
+
 # Install additional packages in smaller groups
 pacman -Sy --noconfirm
-pacman -S --noconfirm xorg plasma plasma-desktop sddm
-pacman -S --noconfirm firefox konsole dolphin
-pacman -S --noconfirm noto-fonts-cjk adobe-source-han-sans-kr-fonts ttf-baekmuk
-pacman -S --noconfirm gtk3 gtk2 qt5-base qt5-tools
-pacman -S --noconfirm libappindicator-gtk3 libhangul anthy fcitx5 fcitx5-configtool fcitx5-hangul fcitx5-gtk fcitx5-qt
-pacman -S --noconfirm efibootmgr sudo dosfstools mtools os-prober
-pacman -S --noconfirm git automake autoconf libtool pkg-config
+yes | pacman -S --noconfirm xorg plasma plasma-desktop sddm
+yes | pacman -S --noconfirm firefox konsole dolphin sublime-text
+yes | pacman -S --noconfirm noto-fonts-cjk adobe-source-han-sans-kr-fonts ttf-baekmuk
+yes | pacman -S --noconfirm gtk3 gtk2 qt5-base qt5-tools qt6-tools
+yes | pacman -S --noconfirm libappindicator-gtk3 libhangul anthy fcitx5 fcitx5-configtool fcitx5-hangul fcitx5-gtk fcitx5-qt
+yes | pacman -S --noconfirm efibootmgr sudo dosfstools mtools os-prober
+yes | pacman -S --noconfirm git automake autoconf libtool pkg-config
+yes | pacman -S --noconfirm zsh htop wget curl
+yes | pacman -S --noconfirm powerdevil
+yes | pacman -S --noconfirm discover packagekit-qt6 flatpak phonon-qt6-vlc
+yes | pacman -S --noconfirm virtualbox virtualbox-host-dkms dkms linux-headers
 
-# Enable services and configure auto-login
+# Enable services
+systemctl enable vboxservice
 systemctl enable NetworkManager
 systemctl enable sddm
 
