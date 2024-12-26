@@ -48,13 +48,19 @@ else
     ROOT_PART="${DEVICE}3"
 fi
 
-# Confirmation
-echo "WARNING: This will COMPLETELY ERASE all data on ${DEVICE}. Are you sure? (y/N)"
-read confirm
-if [ "$confirm" != "y" ]; then
-    echo "Aborted"
-    exit 1
-fi
+# Show installation plan
+echo "==========================="
+echo "Installation Plan:"
+echo "Device: ${DEVICE}"
+echo "EFI: ${EFI_PART}"
+echo "Swap: ${SWAP_PART}"
+echo "Root: ${ROOT_PART}"
+echo "Username: ${USERNAME}"
+echo "Hostname: ${HOSTNAME}"
+echo "==========================="
+echo "WARNING: This will COMPLETELY ERASE the selected drive!"
+echo "Press Ctrl+C within 5 seconds to cancel..."
+sleep 5
 
 # Initialize pacman
 init_pacman
@@ -184,13 +190,13 @@ sudo -u ${USERNAME} bash <<EOF
 # Install AUR fonts
 git clone https://aur.archlinux.org/spoqa-han-sans.git
 cd spoqa-han-sans
-makepkg -si --noconfirm
+yes | makepkg -si --noconfirm
 cd ..
 
 for font in ttf-d2coding ttf-nanum ttf-nanumgothic_coding ttf-kopub ttf-kopubworld; do
     git clone https://aur.archlinux.org/\${font}.git
     cd \${font}
-    makepkg -si --noconfirm
+    yes | makepkg -si --noconfirm
     cd ..
 done
 
