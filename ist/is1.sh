@@ -183,7 +183,8 @@ echo -e "\n[sublime-text]\nServer = https://download.sublimetext.com/arch/stable
 
 # Install additional packages in smaller groups
 pacman -Sy --noconfirm
-yes | pacman -S --noconfirm xorg plasma plasma-desktop sddm
+yes | pacman -S --noconfirm xorg plasma plasma-desktop sddm sddm-kcm
+yes | pacman -S --noconfirm qt5-graphicaleffects qt5-quickcontrols2 qt5-svg
 yes | pacman -S --noconfirm firefox konsole dolphin sublime-text
 yes | pacman -S --noconfirm noto-fonts-cjk adobe-source-han-sans-kr-fonts ttf-baekmuk
 yes | pacman -S --noconfirm gtk3 gtk2 qt5-base qt5-tools qt6-tools
@@ -200,13 +201,19 @@ systemctl enable vboxservice
 systemctl enable NetworkManager
 systemctl enable sddm
 
-# Configure SDDM auto-login
+# Install and configure SDDM Sugar Dark theme
+yes | pacman -S --noconfirm qt5-graphicaleffects qt5-quickcontrols2 qt5-svg
+cd /tmp
+wget https://github.com/MarianArlt/sddm-sugar-dark/archive/refs/heads/master.zip
+unzip master.zip
+mkdir -p /usr/share/sddm/themes/
+cp -r sddm-sugar-dark-master /usr/share/sddm/themes/sugar-dark
+
+# Configure SDDM theme
 mkdir -p /etc/sddm.conf.d
-cat > /etc/sddm.conf.d/autologin.conf <<EOF
-[Autologin]
-User=${USERNAME}
-Session=plasma
-Relogin=false
+cat > /etc/sddm.conf.d/theme.conf <<EOF
+[Theme]
+Current=sugar-dark
 EOF
 
 # Configure Korean fonts and input method, install VSCode and Julia
