@@ -5,38 +5,54 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-# 1. 모든 하드 드라이브 목록 출력
-echo "Here are all the hard drives in the system:"
-drives=($(lsblk -d -o NAME,SIZE,TYPE | grep disk | nl -w2 -s'. ' | awk '{print $2}'))  # 드라이브 이름을 배열에 저장
-lsblk -d -o NAME,SIZE,TYPE | grep disk | nl -w2 -s'. '  # 번호 매기기 출력
+# Initialize pacman
+init_pacman() {
+    pacman-key --init
+    pacman-key --populate archlinux
+    pacman -Sy archlinux-keyring
+}
 
-# 2. 드라이브 선택
+# Check disk space
+check_space() {
+    local required_space=15000  # 15GB in MB
+    local available_space=$(df /mnt --output=avail | tail -n1)
+    available_space=$((available_space/1024))
+    
+    if [ $available_space -lt $required_space ]; then
+        echo "Error: Not enough space. Need at least 15GB free."
+        exit 1
+    fi
+}
+
+# 1. Show all hard drives
+echo "Here are all the hard drives in the system:"
+drives=($(lsblk -d -o NAME,SIZE,TYPE | grep disk | nl -w2 -s'. ' | awk '{print $2}'))
+lsblk -d -o NAME,SIZE,TYPE | grep disk | nl -w2 -s'. '
+
+# 2. Drive selection
 read -p "Please enter the number of the desired hard drive (e.g., 1, 2, etc.): " choice
 
-# 3. 선택한 드라이브 확인 및 출력
+# 3. Validate selection
 if [[ $choice -gt 0 && $choice -le ${#drives[@]} ]]; then
-    DEVICE="/dev/${drives[$choice-1]}"  # 선택한 드라이브를 DEVICE 변수로 설정
+    DEVICE="/dev/${drives[$choice-1]}"
     echo "Selected hard drive: $DEVICE"
 else
     echo "Invalid number. Exiting..."
-    exit 1  # 잘못된 입력 시 스크립트 종료
+    exit 1
 fi
 
-EFI_PART="${DEVICE}p1"
-SWAP_PART="${DEVICE}p2"
-ROOT_PART="${DEVICE}p3"
-
-# 고정된 자격 증명
+# Fixed credentials
 USERNAME="crux"
 USER_PASSWORD="1234"
 ROOT_PASSWORD="1234"
-HOSTNAME="lisa"  # 호스트 이름 추가
+HOSTNAME="lisa"
 
-# 파티션 변수 설정
+# Set partition variables
 EFI_PART="${DEVICE}p1"
 SWAP_PART="${DEVICE}p2"
 ROOT_PART="${DEVICE}p3"
 
+# Confirmation
 echo "WARNING: This will COMPLETELY ERASE all data on ${DEVICE}. Are you sure? (y/N)"
 read confirm
 if [ "$confirm" != "y" ]; then
@@ -44,75 +60,70 @@ if [ "$confirm" != "y" ]; then
     exit 1
 fi
 
-# 디스크 완전 초기화
+# Initialize pacman
+init_pacman
+
+# Clean disk
 echo "Cleaning disk..."
 dd if=/dev/zero of=${DEVICE} bs=1M count=100
 dd if=/dev/zero of=${DEVICE} bs=1M seek=$(( $(blockdev --getsz ${DEVICE}) / 2048 - 100)) count=100
 wipefs -af ${DEVICE}
 sgdisk -Z ${DEVICE}
 
-# 새로운 GPT 생성
+# Create new GPT
 sgdisk -o ${DEVICE}
 
-# 특정 파티션 유형 GUID로 파티션 생성
+# Create partitions
 sgdisk -n 1:0:+1G -t 1:ef00 -c 1:"EFI System Partition" ${DEVICE}
 sgdisk -n 2:0:+8G -t 2:8200 -c 2:"Linux swap" ${DEVICE}
 sgdisk -n 3:0:0 -t 3:8300 -c 3:"Linux root" ${DEVICE}
 
-# 커널이 파티션 테이블을 업데이트할 때까지 대기
+# Wait for kernel to update partition table
 sleep 3
 partprobe ${DEVICE}
 sleep 3
 
-# 파티션 포맷
+# Format partitions
 echo "Formatting partitions..."
 mkfs.fat -F 32 ${EFI_PART}
 mkswap ${SWAP_PART}
 mkfs.ext4 ${ROOT_PART}
 
-# 파티션 마운트
+# Mount partitions
 echo "Mounting partitions..."
 mount ${ROOT_PART} /mnt
 mkdir -p /mnt/boot
 mount ${EFI_PART} /mnt/boot
 swapon ${SWAP_PART}
 
-# 필수 패키지 설치
+# Check space before installation
+check_space
+
+# Install base system
 echo "Installing base system..."
-pacstrap -K /mnt base linux linux-firmware \
-    base-devel intel-ucode \
-    networkmanager efibootmgr \
-    base-devel intel-ucode rust \
-    xorg plasma plasma-desktop sddm \
-    firefox konsole dolphin \
-    sudo dosfstools mtools os-prober \
-    noto-fonts-cjk adobe-source-han-sans-kr-fonts ttf-baekmuk \
-    gtk3 gtk2 qt5-base qt5-tools \
-    libappindicator-gtk3 libhangul anthy \
-    git automake autoconf libtool pkg-config
+pacstrap -K /mnt base linux linux-firmware base-devel intel-ucode networkmanager
 
-
-# fstab 생성
+# Generate fstab
 echo "Generating fstab..."
 genfstab -U /mnt >> /mnt/etc/fstab
 
-# 시스템 구성
+# System configuration
 arch-chroot /mnt /bin/bash <<CHROOT_COMMANDS
-# 시간대 설정
+# Set timezone
 ln -sf /usr/share/zoneinfo/Europe/Stockholm /etc/localtime
 hwclock --systohc
 
-# 시간 동기화 활성화
+# Enable time sync
 systemctl enable systemd-timesyncd
 
-# 로케일 설정
+# Set locale
 echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
 echo "sv_SE.UTF-8 UTF-8" >> /etc/locale.gen
 echo "ko_KR.UTF-8 UTF-8" >> /etc/locale.gen
 locale-gen
 echo "LANG=ko_KR.UTF-8" > /etc/locale.conf
 
-# 호스트 이름 설정
+# Set hostname
 echo "${HOSTNAME}" > /etc/hostname
 cat > /etc/hosts <<EOF
 127.0.0.1   localhost
@@ -120,16 +131,16 @@ cat > /etc/hosts <<EOF
 127.0.1.1   ${HOSTNAME}.localdomain ${HOSTNAME}
 EOF
 
-# 비밀번호 설정
+# Set passwords
 echo "root:${ROOT_PASSWORD}" | chpasswd
-# useradd -m -G wheel,docker -s /bin/bash ${USERNAME}  # docker 그룹 추가
+useradd -m -G wheel -s /bin/bash ${USERNAME}
 echo "${USERNAME}:${USER_PASSWORD}" | chpasswd
 echo "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/wheel
 
-# systemd-boot 설치 및 구성
+# Install and configure bootloader
 bootctl --path=/boot install
 
-# 부트 로더 구성 생성
+# Create bootloader configuration
 mkdir -p /boot/loader/entries
 cat > /boot/loader/loader.conf <<EOF
 default arch
@@ -138,7 +149,7 @@ console-mode max
 editor no
 EOF
 
-# arch 부트 항목 생성
+# Create arch boot entry
 cat > /boot/loader/entries/arch.conf <<EOF
 title   Arch Linux
 linux   /vmlinuz-linux
@@ -147,13 +158,24 @@ initrd  /initramfs-linux.img
 options root=PARTUUID=$(blkid -s PARTUUID -o value ${ROOT_PART}) rw
 EOF
 
-# 서비스 활성화
+# Install additional packages in smaller groups
+pacman -Sy --noconfirm
+pacman -S --noconfirm xorg plasma plasma-desktop sddm
+pacman -S --noconfirm firefox konsole dolphin
+pacman -S --noconfirm noto-fonts-cjk adobe-source-han-sans-kr-fonts ttf-baekmuk
+pacman -S --noconfirm gtk3 gtk2 qt5-base qt5-tools
+pacman -S --noconfirm libappindicator-gtk3 libhangul anthy fcitx5 fcitx5-configtool fcitx5-hangul fcitx5-gtk fcitx5-qt
+pacman -S --noconfirm git automake autoconf libtool pkg-config
+pacman -S --noconfirm efibootmgr sudo dosfstools mtools os-prober
+
+# Enable services
 systemctl enable NetworkManager
 systemctl enable sddm
 
-# AUR에서 한국어 폰트 설치
+# Configure Korean fonts and input method
 cd /tmp
 sudo -u ${USERNAME} bash <<EOF
+# Install AUR fonts
 git clone https://aur.archlinux.org/spoqa-han-sans.git
 cd spoqa-han-sans
 makepkg -si --noconfirm
@@ -165,10 +187,8 @@ for font in ttf-d2coding ttf-nanum ttf-nanumgothic_coding ttf-kopub ttf-kopubwor
     makepkg -si --noconfirm
     cd ..
 done
-EOF
 
-# 사용자에 대한 fcitx5 입력기 구성
-sudo -u ${USERNAME} bash <<EOF
+# Configure fcitx5
 mkdir -p /home/${USERNAME}/.config/autostart
 cat > /home/${USERNAME}/.config/autostart/fcitx5.desktop <<EOL
 [Desktop Entry]
@@ -191,10 +211,11 @@ fcitx5 &
 EOL
 EOF
 
-# 초기 ramdisk 생성
+# Generate initramfs
 mkinitcpio -P
 CHROOT_COMMANDS
 
+# Unmount all partitions
 umount -R /mnt
 
 echo "Installation complete!"
