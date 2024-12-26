@@ -87,7 +87,7 @@ pacstrap -K /mnt \
     intel-ucode \  # 인텔 CPU의 마이크로코드 업데이트 (시스템 안정성에 중요).
     networkmanager wireless_tools efibootmgr \  # 네트워킹 도구 및 EFI 부트 관리.
     sudo \  # 사용자가 root 권한으로 명령을 실행할 수 있도록 허용.
-    vim nano \  # 설정 및 스크립트를 위한 필수 텍스트 편집기.
+    #vim nano \  # 설정 및 스크립트를 위한 필수 텍스트 편집기.
     openssh \  # 원격 관리를 위한 안전한 셸 접근.
     cronie \  # 자동화 작업을 위한 크론 잡 스케줄러.
     man-db man-pages texinfo \  # 명령어 참조를 위한 문서 도구.
