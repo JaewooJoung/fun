@@ -15,6 +15,7 @@ ROOT_PART="${DEVICE}p3"
 USERNAME="crux"
 USER_PASSWORD="1234"
 ROOT_PASSWORD="1234"
+HOSTNAME="lisa"  # 호스트 이름 추가
 
 # Set partition variables
 EFI_PART="${DEVICE}p1"
@@ -64,24 +65,26 @@ swapon ${SWAP_PART}
 # Install essential packages
 echo "Installing base system..."
 pacstrap -K /mnt \
-    base linux linux-firmware \
+    base linux-zen linux-zen-headers linux-firmware \
     base-devel intel-ucode \
-    networkmanager vim efibootmgr \
+    networkmanager wireless_tools efibootmgr \
     man-db man-pages texinfo \
     xorg plasma plasma-desktop \
     plasma-pa plasma-nm plasma-workspace \
+    plasma-wayland-protocols plasma-wayland-session plasma-integration xdg-desktop-portal-kde \
     kde-applications kio-extras \
-    dolphin konsole kate \
-    firefox \
+    dolphin konsole kate nano \
+    firefox openssh cronie vim \
     sudo dosfstools mtools \
-    noto-fonts-cjk adobe-source-han-sans-kr-fonts ttf-baekmuk \
     gtk3 gtk2 qt6-base qt5-base \
     qt6-tools qt5-tools libappindicator-gtk3 \
-    libhangul anthy \
+    noto-fonts-cjk adobe-source-han-sans-kr-fonts ttf-baekmuk \
+    libhangul fcitx5 fcitx5-configtool fcitx5-hangul \
     git automake autoconf libtool pkg-config \
     zsh htop wget curl powerdevil \
     discover packagekit-qt6 flatpak phonon-qt6-vlc \
-    plasma-integration xdg-desktop-portal-kde
+    virtualbox dkms visual-studio-code-bin ttf-fira-code \
+    mesa vlc docker libreoffice-fresh jdk-openjdk
 
 # Generate fstab
 echo "Generating fstab..."
@@ -104,16 +107,16 @@ locale-gen
 echo "LANG=ko_KR.UTF-8" > /etc/locale.conf
 
 # Set hostname
-echo "arch" > /etc/hostname
+echo "${HOSTNAME}" > /etc/hostname
 cat > /etc/hosts <<EOF
 127.0.0.1   localhost
 ::1         localhost
-127.0.1.1   arch.localdomain arch
+127.0.1.1   ${HOSTNAME}.localdomain ${HOSTNAME}
 EOF
 
 # Set passwords
 echo "root:${ROOT_PASSWORD}" | chpasswd
-useradd -m -G wheel -s /bin/bash ${USERNAME}
+useradd -m -G wheel,docker -s /bin/bash ${USERNAME}  # docker 그룹 추가
 echo "${USERNAME}:${USER_PASSWORD}" | chpasswd
 echo "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/wheel
 
@@ -158,37 +161,27 @@ for font in ttf-d2coding ttf-nanum ttf-nanumgothic_coding ttf-kopub ttf-kopubwor
 done
 EOF
 
-# Install nimf input method
-cd /tmp
-wget https://gitlab.com/nimf-i18n/nimf/-/archive/master/nimf-master.tar.gz
-tar xf nimf-master.tar.gz
-cd nimf-master
-./autogen.sh --disable-nimf-anthy --disable-nimf-m17n --disable-nimf-rime
-make
-make install
-ldconfig
-
-# Configure input method for user
+# Configure fcitx5 input method for user
 sudo -u ${USERNAME} bash <<EOF
 mkdir -p /home/${USERNAME}/.config/autostart
-cat > /home/${USERNAME}/.config/autostart/nimf.desktop <<EOL
+cat > /home/${USERNAME}/.config/autostart/fcitx5.desktop <<EOL
 [Desktop Entry]
 Type=Application
-Name=Nimf
-Comment=Korean Input Method
-Exec=nimf
-Icon=nimf
-Categories=System;
+Name=Fcitx5
+Comment=Chinese, Japanese and Korean Input Method Framework
+Exec=fcitx5
+Icon=fcitx5
+Categories=InputMethod;
 X-GNOME-Autostart-Phase=Applications
 X-GNOME-AutoRestart=true
 X-GNOME-Autostart-enabled=true
 EOL
 
 cat > /home/${USERNAME}/.xprofile <<EOL
-export GTK_IM_MODULE=nimf
-export QT_IM_MODULE=nimf
-export XMODIFIERS="@im=nimf"
-nimf &
+export GTK_IM_MODULE=fcitx5
+export QT_IM_MODULE=fcitx5
+export XMODIFIERS="@im=fcitx5"
+fcitx5 &
 EOL
 EOF
 
@@ -211,5 +204,5 @@ echo "   d. Set Boot Device Priority to ${DEVICE}"
 echo ""
 echo "After first boot:"
 echo "1. Korean input can be toggled with Shift+Space"
-echo "2. Run 'nimf-settings' to configure input method"
-echo "3. Use 'nimf --debug &' if you need to troubleshoot"
+echo "2. Run 'fcitx5-configtool' to configure input method"
+echo "3. Use 'fcitx5 --debug &' if you need to troubleshoot"
