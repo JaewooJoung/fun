@@ -87,14 +87,12 @@ pacstrap -K /mnt base linux linux-firmware \
     firefox konsole dolphin \
     sudo dosfstools mtools os-prober \
     gtk3 gtk2 qt6-base qt5-base \  # 애플리케이션을 위한 GUI 툴킷 라이브러리.
-    qt6-tools qt5-tools libappindicator-gtk3 \  # Qt 애플리케이션 개발 도구.
-    noto-fonts-cjk adobe-source-han-sans-kr-fonts ttf-baekmuk \  # 텍스트 렌더링을 위한 폰트.
-    libhangul fcitx5 fcitx5-configtool fcitx5-hangul \  # 한국어 및 기타 언어 입력기 지원.
+    qt5-tools libappindicator-gtk3 \  # Qt 애플리케이션 개발 도구.
+    adobe-source-han-sans-kr-fonts ttf-baekmuk \  # 텍스트 렌더링을 위한 폰트.
+    fcitx5 fcitx5-configtool fcitx5-hangul \  # 한국어 및 기타 언어 입력기 지원.
     git automake autoconf libtool pkg-config \  # 소프트웨어 빌드를 위한 유틸리티.
     zsh htop wget curl \  # 사용자 셸 및 시스템 모니터링 도구.
-    powerdevil \  # KDE의 전원 관리 도구.
-    discover packagekit-qt6 flatpak phonon-qt6-vlc \  # 소프트웨어 관리 및 멀티미디어 지원.
-    virtualbox dkms \ # 가상화 및 동적 커널 모듈 지원 도구.
+    packagekit-qt6 flatpak phonon-qt6-vlc \  # 소프트웨어 관리 및 멀티미디어 지원.
 
 # fstab 생성
 echo "Generating fstab..."
@@ -126,7 +124,7 @@ EOF
 
 # 비밀번호 설정
 echo "root:${ROOT_PASSWORD}" | chpasswd
-useradd -m -G wheel,docker -s /bin/bash ${USERNAME}  # docker 그룹 추가
+# useradd -m -G wheel,docker -s /bin/bash ${USERNAME}  # docker 그룹 추가
 echo "${USERNAME}:${USER_PASSWORD}" | chpasswd
 echo "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/wheel
 
