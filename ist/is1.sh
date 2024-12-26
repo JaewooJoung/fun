@@ -86,7 +86,7 @@ pacstrap -K /mnt \
     man-db man-pages texinfo \
     xorg plasma plasma-desktop \
     plasma-pa plasma-nm plasma-workspace \
-    plasma-wayland-protocols plasma-wayland-session plasma-integration xdg-desktop-portal-kde \
+    plasma-wayland-protocols plasma-integration xdg-desktop-portal-kde \
     kde-applications kio-extras \
     dolphin konsole kate nano \
     firefox openssh cronie vim \
@@ -98,7 +98,7 @@ pacstrap -K /mnt \
     git automake autoconf libtool pkg-config \
     zsh htop wget curl powerdevil \
     discover packagekit-qt6 flatpak phonon-qt6-vlc \
-    virtualbox dkms visual-studio-code-bin ttf-fira-code \
+    virtualbox dkms ttf-fira-code \
     mesa vlc docker libreoffice-fresh jdk-openjdk
 
 # fstab 생성
