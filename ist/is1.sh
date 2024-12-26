@@ -5,132 +5,137 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-# 1. 모든 하드 드라이브 목록 출력
-echo "Here are all the hard drives in the system:"
-drives=($(lsblk -d -o NAME,SIZE,TYPE | grep disk | nl -w2 -s'. ' | awk '{print $2}'))  # 드라이브 이름을 배열에 저장
-lsblk -d -o NAME,SIZE,TYPE | grep disk | nl -w2 -s'. '  # 번호 매기기 출력
+# Initialize pacman
+init_pacman() {
+    pacman-key --init
+    pacman-key --populate archlinux
+    pacman -Sy archlinux-keyring
+}
 
-# 2. 드라이브 선택
+# 1. Show all hard drives
+echo "Here are all the hard drives in the system:"
+drives=($(lsblk -d -o NAME,SIZE,TYPE | grep disk | nl -w2 -s'. ' | awk '{print $2}'))
+lsblk -d -o NAME,SIZE,TYPE | grep disk | nl -w2 -s'. '
+
+# 2. Drive selection
 read -p "Please enter the number of the desired hard drive (e.g., 1, 2, etc.): " choice
 
-# 3. 선택한 드라이브 확인 및 출력
+# 3. Validate selection
 if [[ $choice -gt 0 && $choice -le ${#drives[@]} ]]; then
-    DEVICE="/dev/${drives[$choice-1]}"  # 선택한 드라이브를 DEVICE 변수로 설정
+    DEVICE="/dev/${drives[$choice-1]}"
     echo "Selected hard drive: $DEVICE"
 else
     echo "Invalid number. Exiting..."
-    exit 1  # 잘못된 입력 시 스크립트 종료
-fi
-
-EFI_PART="${DEVICE}p1"
-SWAP_PART="${DEVICE}p2"
-ROOT_PART="${DEVICE}p3"
-
-# 고정된 자격 증명
-USERNAME="crux"
-USER_PASSWORD="1234"
-ROOT_PASSWORD="1234"
-HOSTNAME="lisa"  # 호스트 이름 추가
-
-# 파티션 변수 설정
-EFI_PART="${DEVICE}p1"
-SWAP_PART="${DEVICE}p2"
-ROOT_PART="${DEVICE}p3"
-
-echo "WARNING: This will COMPLETELY ERASE all data on ${DEVICE}. Are you sure? (y/N)"
-read confirm
-if [ "$confirm" != "y" ]; then
-    echo "Aborted"
     exit 1
 fi
 
-# 디스크 완전 초기화
+# Fixed credentials
+USERNAME="crux"
+USER_PASSWORD="1234"
+ROOT_PASSWORD="1234"
+HOSTNAME="lisa"
+
+# Set partition variables based on device type
+if [[ ${DEVICE} == *"nvme"* ]]; then
+    # NVMe drives use 'p' suffix for partitions
+    EFI_PART="${DEVICE}p1"
+    SWAP_PART="${DEVICE}p2"
+    ROOT_PART="${DEVICE}p3"
+else
+    # SATA/IDE drives just append numbers
+    EFI_PART="${DEVICE}1"
+    SWAP_PART="${DEVICE}2"
+    ROOT_PART="${DEVICE}3"
+fi
+
+# Show installation plan
+echo "==========================="
+echo "Installation Plan:"
+echo "Device: ${DEVICE}"
+echo "EFI: ${EFI_PART}"
+echo "Swap: ${SWAP_PART}"
+echo "Root: ${ROOT_PART}"
+echo "Username: ${USERNAME}"
+echo "Hostname: ${HOSTNAME}"
+echo "==========================="
+echo "WARNING: This will COMPLETELY ERASE the selected drive!"
+echo "Press Ctrl+C within 5 seconds to cancel..."
+sleep 5
+
+# Initialize pacman
+init_pacman
+
+# Clean disk
 echo "Cleaning disk..."
 dd if=/dev/zero of=${DEVICE} bs=1M count=100
 dd if=/dev/zero of=${DEVICE} bs=1M seek=$(( $(blockdev --getsz ${DEVICE}) / 2048 - 100)) count=100
 wipefs -af ${DEVICE}
 sgdisk -Z ${DEVICE}
 
-# 새로운 GPT 생성
+# Create new GPT
 sgdisk -o ${DEVICE}
 
-# 특정 파티션 유형 GUID로 파티션 생성
+# Create partitions
 sgdisk -n 1:0:+1G -t 1:ef00 -c 1:"EFI System Partition" ${DEVICE}
 sgdisk -n 2:0:+8G -t 2:8200 -c 2:"Linux swap" ${DEVICE}
 sgdisk -n 3:0:0 -t 3:8300 -c 3:"Linux root" ${DEVICE}
 
-# 커널이 파티션 테이블을 업데이트할 때까지 대기
+# Wait for kernel to update partition table
 sleep 3
 partprobe ${DEVICE}
 sleep 3
 
-# 파티션 포맷
+# Format partitions
 echo "Formatting partitions..."
 mkfs.fat -F 32 ${EFI_PART}
 mkswap ${SWAP_PART}
 mkfs.ext4 ${ROOT_PART}
 
-# 파티션 마운트
+# Mount partitions
 echo "Mounting partitions..."
-mount ${ROOT_PART} /mnt
+mount ${ROOT_PART} /mnt || exit 1
 mkdir -p /mnt/boot
-mount ${EFI_PART} /mnt/boot
+mount ${EFI_PART} /mnt/boot || exit 1
 swapon ${SWAP_PART}
 
-# 필수 패키지 설치
-echo "Installing base system..."
-pacstrap -K /mnt \
-    base \  # 필수 기본 시스템 패키지 (Arch Linux의 기본).
-    linux-zen linux-zen-headers \  # 성능과 하드웨어 지원을 위한 커널 및 헤더.
-    linux-firmware \  # 다양한 하드웨어 컴포넌트를 위한 펌웨어.
-    base-devel \  # 소프트웨어 컴파일을 위한 필수 개발 도구.
-    intel-ucode \  # 인텔 CPU의 마이크로코드 업데이트 (시스템 안정성에 중요).
-    networkmanager wireless_tools efibootmgr \  # 네트워킹 도구 및 EFI 부트 관리.
-    sudo dosfstools mtools \  # FAT 파일 시스템 관리 도구, 부트 파티션에 유용.
-    openssh \  # 원격 관리를 위한 안전한 셸 접근.
-    cronie \  # 자동화 작업을 위한 크론 잡 스케줄러.
-    man-db man-pages texinfo \  # 명령어 참조를 위한 문서 도구.
-    xorg \  # 그래픽 인터페이스를 위한 X 윈도우 시스템.
-    plasma plasma-desktop \  # 현대적인 GUI를 위한 KDE Plasma 데스크탑 환경.
-    plasma-workspace plasma-pa plasma-nm \  # Plasma 작업 공간 구성 요소 및 시스템 트레이 앱.
-    xdg-desktop-portal-kde \  # 데스크탑 애플리케이션 통합을 위한 모듈.
-    kde-applications kio-extras \  # 필수 KDE 애플리케이션 및 추가 I/O 모듈.
-    firefox \  # 인터넷 접근을 위한 웹 브라우저.
-    gtk3 gtk2 qt6-base qt5-base \  # 애플리케이션을 위한 GUI 툴킷 라이브러리.
-    qt6-tools qt5-tools libappindicator-gtk3 \  # Qt 애플리케이션 개발 도구.
-    noto-fonts-cjk adobe-source-han-sans-kr-fonts ttf-baekmuk \  # 텍스트 렌더링을 위한 폰트.
-    libhangul fcitx5 fcitx5-configtool fcitx5-hangul \  # 한국어 및 기타 언어 입력기 지원.
-    git automake autoconf libtool pkg-config \  # 소프트웨어 빌드를 위한 유틸리티.
-    zsh htop wget curl \  # 사용자 셸 및 시스템 모니터링 도구.
-    powerdevil \  # KDE의 전원 관리 도구.
-    discover packagekit-qt6 flatpak phonon-qt6-vlc \  # 소프트웨어 관리 및 멀티미디어 지원.
-    virtualbox dkms 
-    #vim nano \  # 설정 및 스크립트를 위한 필수 텍스트 편집기.
-    # 가상화 및 동적 커널 모듈 지원 도구.
-   # mesa vlc docker libreoffice-fresh jdk-openjdk \  # 추가 소프트웨어, 멀티미디어 및 생산성 도구.
-   # ttf-fira-code \  # 코드 가독성을 위한 프로그래밍 폰트.
+# Check if mounted in UEFI mode
+if [ ! -d "/sys/firmware/efi" ]; then
+    echo "Error: Not booted in UEFI mode!"
+    exit 1
+fi
 
-# fstab 생성
+# Check available space
+available_space=$(df -BG --output=avail /mnt | tail -n1 | tr -dc '0-9')
+if [ "$available_space" -lt 15 ]; then
+    echo "Error: Not enough space. Need at least 15GB free."
+    exit 1
+fi
+
+# Install base system
+echo "Installing base system..."
+pacstrap -K /mnt base linux linux-firmware base-devel intel-ucode networkmanager
+
+# Generate fstab
 echo "Generating fstab..."
 genfstab -U /mnt >> /mnt/etc/fstab
 
-# 시스템 구성
+# System configuration
 arch-chroot /mnt /bin/bash <<CHROOT_COMMANDS
-# 시간대 설정
+# Set timezone
 ln -sf /usr/share/zoneinfo/Europe/Stockholm /etc/localtime
 hwclock --systohc
 
-# 시간 동기화 활성화
+# Enable time sync
 systemctl enable systemd-timesyncd
 
-# 로케일 설정
+# Set locale
 echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
 echo "sv_SE.UTF-8 UTF-8" >> /etc/locale.gen
 echo "ko_KR.UTF-8 UTF-8" >> /etc/locale.gen
 locale-gen
 echo "LANG=ko_KR.UTF-8" > /etc/locale.conf
 
-# 호스트 이름 설정
+# Set hostname
 echo "${HOSTNAME}" > /etc/hostname
 cat > /etc/hosts <<EOF
 127.0.0.1   localhost
@@ -138,55 +143,73 @@ cat > /etc/hosts <<EOF
 127.0.1.1   ${HOSTNAME}.localdomain ${HOSTNAME}
 EOF
 
-# 비밀번호 설정
+# Set passwords
 echo "root:${ROOT_PASSWORD}" | chpasswd
-useradd -m -G wheel,docker -s /bin/bash ${USERNAME}  # docker 그룹 추가
+useradd -m -G wheel -s /bin/bash ${USERNAME}
 echo "${USERNAME}:${USER_PASSWORD}" | chpasswd
 echo "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/wheel
 
-# systemd-boot 설치 및 구성
-bootctl --path=/boot install
+# Install and configure bootloader
+bootctl install
 
-# 부트 로더 구성 생성
+# Create bootloader configuration
 mkdir -p /boot/loader/entries
 cat > /boot/loader/loader.conf <<EOF
-default arch
-timeout 3
+default arch.conf
+timeout 0
 console-mode max
 editor no
 EOF
 
-# arch 부트 항목 생성
+# Create arch boot entry
 cat > /boot/loader/entries/arch.conf <<EOF
 title   Arch Linux
 linux   /vmlinuz-linux
 initrd  /intel-ucode.img
 initrd  /initramfs-linux.img
-options root=PARTUUID=$(blkid -s PARTUUID -o value ${ROOT_PART}) rw
+options root=PARTUUID=$(blkid -s PARTUUID -o value ${ROOT_PART}) rw quiet
 EOF
 
-# 서비스 활성화
+# Install additional packages in smaller groups
+pacman -Sy --noconfirm
+pacman -S --noconfirm xorg plasma plasma-desktop sddm
+pacman -S --noconfirm firefox konsole dolphin
+pacman -S --noconfirm noto-fonts-cjk adobe-source-han-sans-kr-fonts ttf-baekmuk
+pacman -S --noconfirm gtk3 gtk2 qt5-base qt5-tools
+pacman -S --noconfirm libappindicator-gtk3 libhangul anthy fcitx5 fcitx5-configtool fcitx5-hangul fcitx5-gtk fcitx5-qt
+pacman -S --noconfirm efibootmgr sudo dosfstools mtools os-prober
+pacman -S --noconfirm git automake autoconf libtool pkg-config
+
+# Enable services and configure auto-login
 systemctl enable NetworkManager
 systemctl enable sddm
 
-# AUR에서 한국어 폰트 설치
+# Configure SDDM auto-login
+mkdir -p /etc/sddm.conf.d
+cat > /etc/sddm.conf.d/autologin.conf <<EOF
+[Autologin]
+User=${USERNAME}
+Session=plasma
+Relogin=false
+EOF
+
+# Configure Korean fonts and input method
 cd /tmp
 sudo -u ${USERNAME} bash <<EOF
+# Install AUR fonts
 git clone https://aur.archlinux.org/spoqa-han-sans.git
 cd spoqa-han-sans
-makepkg -si --noconfirm
+yes | makepkg -si --noconfirm
 cd ..
 
 for font in ttf-d2coding ttf-nanum ttf-nanumgothic_coding ttf-kopub ttf-kopubworld; do
     git clone https://aur.archlinux.org/\${font}.git
     cd \${font}
-    makepkg -si --noconfirm
+    yes | makepkg -si --noconfirm
     cd ..
 done
-EOF
 
-# 사용자에 대한 fcitx5 입력기 구성
-sudo -u ${USERNAME} bash <<EOF
+# Configure fcitx5
 mkdir -p /home/${USERNAME}/.config/autostart
 cat > /home/${USERNAME}/.config/autostart/fcitx5.desktop <<EOL
 [Desktop Entry]
@@ -209,10 +232,11 @@ fcitx5 &
 EOL
 EOF
 
-# 초기 ramdisk 생성
+# Generate initramfs
 mkinitcpio -P
 CHROOT_COMMANDS
 
+# Unmount all partitions
 umount -R /mnt
 
 echo "Installation complete!"
