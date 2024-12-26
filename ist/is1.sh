@@ -48,6 +48,25 @@ else
     ROOT_PART="${DEVICE}3"
 fi
 
+# Show CPU type selection
+echo "Select your CPU type:"
+echo "1. Intel"
+echo "2. AMD"
+read -p "Enter your choice (1 or 2): " cpu_choice
+
+case $cpu_choice in
+    1)
+        CPU_UCODE="intel-ucode"
+        ;;
+    2)
+        CPU_UCODE="amd-ucode"
+        ;;
+    *)
+        echo "Invalid choice. Exiting..."
+        exit 1
+        ;;
+esac
+
 # Show installation plan
 echo "==========================="
 echo "Installation Plan:"
@@ -57,6 +76,7 @@ echo "Swap: ${SWAP_PART}"
 echo "Root: ${ROOT_PART}"
 echo "Username: ${USERNAME}"
 echo "Hostname: ${HOSTNAME}"
+echo "CPU Type: ${CPU_UCODE}"
 echo "==========================="
 echo "WARNING: This will COMPLETELY ERASE the selected drive!"
 echo "Press Ctrl+C within 5 seconds to cancel..."
@@ -143,9 +163,9 @@ cat > /etc/hosts <<EOF
 127.0.1.1   ${HOSTNAME}.localdomain ${HOSTNAME}
 EOF
 
-# Set passwords
+# Set passwords and user groups
 echo "root:${ROOT_PASSWORD}" | chpasswd
-useradd -m -G wheel -s /bin/bash ${USERNAME}
+useradd -m -G wheel,vboxusers -s /bin/bash ${USERNAME}
 echo "${USERNAME}:${USER_PASSWORD}" | chpasswd
 echo "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/wheel
 
@@ -165,7 +185,7 @@ EOF
 cat > /boot/loader/entries/arch.conf <<EOF
 title   Arch Linux
 linux   /vmlinuz-linux
-initrd  /intel-ucode.img
+initrd  /${CPU_UCODE}.img
 initrd  /initramfs-linux.img
 options root=PARTUUID=$(blkid -s PARTUUID -o value ${ROOT_PART}) rw quiet
 EOF
@@ -193,12 +213,24 @@ Session=plasma
 Relogin=false
 EOF
 
-# Configure Korean fonts and input method
+# Configure Korean fonts and input method, install VSCode and Julia
 cd /tmp
 sudo -u ${USERNAME} bash <<EOF
 # Install AUR fonts
 git clone https://aur.archlinux.org/spoqa-han-sans.git
 cd spoqa-han-sans
+yes | makepkg -si --noconfirm
+cd ..
+
+# Install Visual Studio Code
+git clone https://aur.archlinux.org/visual-studio-code-bin.git
+cd visual-studio-code-bin
+yes | makepkg -si --noconfirm
+cd ..
+
+# Install Juliaup
+git clone https://aur.archlinux.org/juliaup.git
+cd juliaup
 yes | makepkg -si --noconfirm
 cd ..
 
