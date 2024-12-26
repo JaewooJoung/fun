@@ -49,12 +49,10 @@ HOSTNAME="lisa"
 
 # Set partition variables based on device type
 if [[ ${DEVICE} == *"nvme"* ]]; then
-    # NVMe drives use 'p' suffix for partitions
     EFI_PART="${DEVICE}p1"
     SWAP_PART="${DEVICE}p2"
     ROOT_PART="${DEVICE}p3"
 else
-    # SATA/IDE drives just append numbers
     EFI_PART="${DEVICE}1"
     SWAP_PART="${DEVICE}2"
     ROOT_PART="${DEVICE}3"
@@ -76,50 +74,50 @@ echo "Press Ctrl+C within 5 seconds to cancel..."
 sleep 5
 
 # Initialize pacman
-pacman-key --init || { echo "Failed to initialize pacman-key"; exit 1; }
-pacman-key --populate archlinux || { echo "Failed to populate pacman-key"; exit 1; }
-pacman -Sy archlinux-keyring || { echo "Failed to sync archlinux-keyring"; exit 1; }
+pacman-key --init
+pacman-key --populate archlinux
+pacman -Sy archlinux-keyring
 
 # Clean disk
 echo "Cleaning disk..."
-dd if=/dev/zero of=${DEVICE} bs=1M count=100 || { echo "Failed to clean disk"; exit 1; }
-dd if=/dev/zero of=${DEVICE} bs=1M seek=$(( $(blockdev --getsz ${DEVICE}) / 2048 - 100)) count=100 || { echo "Failed to clean disk"; exit 1; }
-wipefs -af ${DEVICE} || { echo "Failed to wipe filesystem signatures"; exit 1; }
-sgdisk -Z ${DEVICE} || { echo "Failed to zero GPT"; exit 1; }
+dd if=/dev/zero of=${DEVICE} bs=1M count=100
+dd if=/dev/zero of=${DEVICE} bs=1M seek=$(( $(blockdev --getsz ${DEVICE}) / 2048 - 100)) count=100
+wipefs -af ${DEVICE}
+sgdisk -Z ${DEVICE}
 
 # Create new GPT
-sgdisk -o ${DEVICE} || { echo "Failed to create new GPT"; exit 1; }
+sgdisk -o ${DEVICE}
 
 # Create partitions
-sgdisk -n 1:0:+1G -t 1:ef00 -c 1:"EFI System Partition" ${DEVICE} || { echo "Failed to create EFI partition"; exit 1; }
-sgdisk -n 2:0:+8G -t 2:8200 -c 2:"Linux swap" ${DEVICE} || { echo "Failed to create swap partition"; exit 1; }
-sgdisk -n 3:0:0 -t 3:8300 -c 3:"Linux root" ${DEVICE} || { echo "Failed to create root partition"; exit 1; }
+sgdisk -n 1:0:+1G -t 1:ef00 -c 1:"EFI System Partition" ${DEVICE}
+sgdisk -n 2:0:+8G -t 2:8200 -c 2:"Linux swap" ${DEVICE}
+sgdisk -n 3:0:0 -t 3:8300 -c 3:"Linux root" ${DEVICE}
 
 # Wait for kernel to update partition table
 sleep 3
-partprobe ${DEVICE} || { echo "Failed to update partition table"; exit 1; }
+partprobe ${DEVICE}
 sleep 3
 
 # Format partitions
 echo "Formatting partitions..."
-mkfs.fat -F 32 ${EFI_PART} || { echo "Failed to format EFI partition"; exit 1; }
-mkswap ${SWAP_PART} || { echo "Failed to create swap partition"; exit 1; }
-mkfs.ext4 ${ROOT_PART} || { echo "Failed to format root partition"; exit 1; }
+mkfs.fat -F 32 ${EFI_PART}
+mkswap ${SWAP_PART}
+mkfs.ext4 ${ROOT_PART}
 
 # Mount partitions
 echo "Mounting partitions..."
-mount ${ROOT_PART} /mnt || { echo "Failed to mount root partition"; exit 1; }
+mount ${ROOT_PART} /mnt
 mkdir -p /mnt/boot
-mount ${EFI_PART} /mnt/boot || { echo "Failed to mount EFI partition"; exit 1; }
-swapon ${SWAP_PART} || { echo "Failed to enable swap"; exit 1; }
+mount ${EFI_PART} /mnt/boot
+swapon ${SWAP_PART}
 
 # Install base system
 echo "Installing base system..."
-pacstrap -K /mnt base linux linux-firmware base-devel ${CPU_UCODE} networkmanager --noconfirm || { echo "Failed to install base system"; exit 1; }
+pacstrap -K /mnt base linux linux-firmware base-devel ${CPU_UCODE} networkmanager --noconfirm
 
 # Generate fstab
 echo "Generating fstab..."
-genfstab -U /mnt >> /mnt/etc/fstab || { echo "Failed to generate fstab"; exit 1; }
+genfstab -U /mnt >> /mnt/etc/fstab
 
 # System configuration
 arch-chroot /mnt /bin/bash <<CHROOT_COMMANDS
@@ -145,14 +143,14 @@ cat > /etc/hosts <<EOF
 127.0.1.1   ${HOSTNAME}.localdomain ${HOSTNAME}
 EOF
 
-# Set passwords and user groups
+# Create user and set passwords
 echo "root:${ROOT_PASSWORD}" | chpasswd
-useradd -m -G wheel,vboxusers -s /bin/bash ${USERNAME}
+useradd -m -G wheel,audio,video,optical,storage -s /bin/bash ${USERNAME}
 echo "${USERNAME}:${USER_PASSWORD}" | chpasswd
 echo "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/wheel
 
 # Install and configure bootloader
-bootctl install || { echo "Failed to install bootloader"; exit 1; }
+bootctl install
 
 # Create bootloader configuration
 mkdir -p /boot/loader/entries
@@ -172,86 +170,41 @@ initrd  /initramfs-linux.img
 options root=PARTUUID=$(blkid -s PARTUUID -o value ${ROOT_PART}) rw quiet
 EOF
 
-# Install additional packages in smaller groups
-pacman -Sy --noconfirm || { echo "Failed to sync package database"; exit 1; }
-pacman -S --noconfirm xorg plasma plasma-desktop sddm sddm-kcm || { echo "Failed to install desktop environment"; exit 1; }
-pacman -S --noconfirm qt5-graphicaleffects qt5-quickcontrols2 qt5-svg || { echo "Failed to install Qt5 packages"; exit 1; }
-pacman -S --noconfirm firefox konsole dolphin || { echo "Failed to install additional applications"; exit 1; }
-pacman -S --noconfirm noto-fonts-cjk adobe-source-han-sans-kr-fonts ttf-baekmuk || { echo "Failed to install fonts"; exit 1; }
-pacman -S --noconfirm gtk3 gtk2 qt5-base qt5-tools qt6-tools || { echo "Failed to install GUI toolkits"; exit 1; }
-pacman -S --noconfirm libappindicator-gtk3 libhangul anthy fcitx5 fcitx5-configtool fcitx5-hangul fcitx5-gtk fcitx5-qt || { echo "Failed to install input method packages"; exit 1; }
-pacman -S --noconfirm efibootmgr sudo dosfstools mtools os-prober || { echo "Failed to install essential tools"; exit 1; }
-pacman -S --noconfirm git automake autoconf libtool pkg-config || { echo "Failed to install development tools"; exit 1; }
-pacman -S --noconfirm zsh htop wget curl || { echo "Failed to install user utilities"; exit 1; }
-pacman -S --noconfirm powerdevil || { echo "Failed to install power management tool"; exit 1; }
-pacman -S --noconfirm discover packagekit-qt6 flatpak phonon-qt6-vlc || { echo "Failed to install additional software management tools"; exit 1; }
-pacman -S --noconfirm virtualbox virtualbox-host-dkms dkms linux-headers || { echo "Failed to install VirtualBox tools"; exit 1; }
+# Install desktop and essential packages
+pacman -Sy --noconfirm
+pacman -S --noconfirm xorg plasma plasma-desktop sddm
+pacman -S --noconfirm firefox konsole dolphin
+pacman -S --noconfirm noto-fonts-cjk adobe-source-han-sans-kr-fonts ttf-baekmuk
+pacman -S --noconfirm gtk3 gtk2 qt5-base qt5-tools
+pacman -S --noconfirm libappindicator-gtk3 libhangul anthy fcitx5 fcitx5-configtool fcitx5-hangul fcitx5-gtk fcitx5-qt
+pacman -S --noconfirm efibootmgr sudo dosfstools mtools os-prober
+pacman -S --noconfirm git automake autoconf libtool pkg-config
 
-# Enable services
-systemctl enable vboxservice || { echo "Failed to enable VirtualBox service"; exit 1; }
-systemctl enable NetworkManager || { echo "Failed to enable NetworkManager"; exit 1; }
-systemctl enable sddm || { echo "Failed to enable SDDM"; exit 1; }
+# Enable basic services
+systemctl enable NetworkManager
+systemctl enable sddm
 
-# Enable and configure display manager
-mkdir -p /etc/sddm.conf.d
-cat > /etc/sddm.conf.d/conf.d <<EOF
-[General]
-DisplayServer=X11
-
-[Theme]
-Current=breeze
-
-[Users]
-MaximumUid=60000
-MinimumUid=1000
-EOF
-
-# Enable essential services
-systemctl enable bluetooth || { echo "Failed to enable Bluetooth service"; exit 1; }
-systemctl enable cups.service || { echo "Failed to enable CUPS service"; exit 1; }
-
-# Configure Korean fonts and input method, install VSCode and Julia
+# Configure Korean fonts and input method
 cd /tmp
 sudo -u ${USERNAME} bash <<EOF
 # Install AUR fonts
 git clone https://aur.archlinux.org/spoqa-han-sans.git
 cd spoqa-han-sans
-yes | makepkg -si --noconfirm || { echo "Failed to install Spoqa Han Sans"; exit 1; }
-cd ..
-
-# Install Visual Studio Code
-git clone https://aur.archlinux.org/visual-studio-code-bin.git
-cd visual-studio-code-bin
-yes | makepkg -si --noconfirm || { echo "Failed to install Visual Studio Code"; exit 1; }
-cd ..
-
-# Install Juliaup
-git clone https://aur.archlinux.org/juliaup.git
-cd juliaup
-yes | makepkg -si --noconfirm || { echo "Failed to install Juliaup"; exit 1; }
+yes | makepkg -si --noconfirm
 cd ..
 
 for font in ttf-d2coding ttf-nanum ttf-nanumgothic_coding ttf-kopub ttf-kopubworld; do
     git clone https://aur.archlinux.org/\${font}.git
     cd \${font}
-    yes | makepkg -si --noconfirm || { echo "Failed to install font: \${font}"; exit 1; }
+    yes | makepkg -si --noconfirm
     cd ..
 done
+EOF
 
-# Install fcitx5 with all necessary components
-pacman -S --noconfirm \
-    fcitx5 \
-    fcitx5-configtool \
-    fcitx5-gtk \
-    fcitx5-qt \
-    fcitx5-hangul \
-    kcm-fcitx5 \
-    fcitx5-material-color || { echo "Failed to install fcitx5 components"; exit 1; }
-
-# Configure fcitx5 for the user
-sudo -u ${USERNAME} bash <<EOF
+# Configure fcitx5
 mkdir -p /home/${USERNAME}/.config/fcitx5/conf
 mkdir -p /home/${USERNAME}/.config/autostart
+mkdir -p /home/${USERNAME}/.local/share/fcitx5/themes
 
 # Create fcitx5 autostart entry
 cat > /home/${USERNAME}/.config/autostart/fcitx5.desktop <<EOL
@@ -277,42 +230,17 @@ QT_IM_MODULE  DEFAULT=fcitx5
 XMODIFIERS    DEFAULT=\@im=fcitx5
 EOL
 
-# Configure hangul
-cat > /home/${USERNAME}/.config/fcitx5/config <<EOL
-[Hotkey]
-# Enumerate when press trigger key repeatedly
-EnumerateWithTriggerKeys=True
-# Temporally switch between first and current Input Method
-AltTriggerKeys=
-# Enumerate Input Method Forward
-EnumerateForwardKeys=
-# Enumerate Input Method Backward
-EnumerateBackwardKeys=
-# Skip first input method while enumerating
-EnumerateSkipFirst=False
-# Toggle embedded preedit
-TogglePreedit=
-
-[Hotkey/TriggerKeys]
-0=Shift+space
-
-[Hotkey/EnumerateGroupForwardKeys]
-0=Super+space
-
-[Hotkey/EnumerateGroupBackwardKeys]
-0=Shift+Super+space
-EOL
-
+# Set ownership
 chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}/.config
+chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}/.local
 chown ${USERNAME}:${USERNAME} /home/${USERNAME}/.pam_environment
-EOF
-EOF
 
 # Generate initramfs
-mkinitcpio -P || { echo "Failed to generate initramfs"; exit 1; }
+mkinitcpio -P
+CHROOT_COMMANDS
 
 # Unmount all partitions
-umount -R /mnt || { echo "Failed to unmount partitions"; exit 1; }
+umount -R /mnt
 
 echo "Installation complete!"
 echo ""
