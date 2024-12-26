@@ -176,9 +176,9 @@ pacman -S --noconfirm xorg plasma plasma-desktop sddm
 pacman -S --noconfirm firefox konsole dolphin
 pacman -S --noconfirm noto-fonts-cjk adobe-source-han-sans-kr-fonts ttf-baekmuk
 pacman -S --noconfirm gtk3 gtk2 qt5-base qt5-tools
-pacman -S --noconfirm libappindicator-gtk3 libhangul anthy fcitx5 fcitx5-configtool fcitx5-hangul fcitx5-gtk fcitx5-qt
+pacman -S --noconfirm libappindicator-gtk3 libhangul fcitx5 fcitx5-configtool fcitx5-hangul fcitx5-gtk fcitx5-qt
 pacman -S --noconfirm efibootmgr sudo dosfstools mtools os-prober
-pacman -S --noconfirm git automake autoconf libtool pkg-config
+pacman -S --noconfirm git autoconf pkg-config
 
 # Enable basic services
 systemctl enable NetworkManager
