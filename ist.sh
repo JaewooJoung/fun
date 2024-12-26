@@ -86,13 +86,11 @@ pacstrap -K /mnt base linux linux-firmware \
     xorg plasma plasma-desktop sddm \
     firefox konsole dolphin \
     sudo dosfstools mtools os-prober \
-    gtk3 gtk2 qt6-base qt5-base \  # 애플리케이션을 위한 GUI 툴킷 라이브러리.
-    qt5-tools libappindicator-gtk3 \  # Qt 애플리케이션 개발 도구.
-    adobe-source-han-sans-kr-fonts ttf-baekmuk \  # 텍스트 렌더링을 위한 폰트.
-    fcitx5 fcitx5-configtool fcitx5-hangul \  # 한국어 및 기타 언어 입력기 지원.
-    git automake autoconf libtool pkg-config \  # 소프트웨어 빌드를 위한 유틸리티.
-    zsh htop wget curl \  # 사용자 셸 및 시스템 모니터링 도구.
-    packagekit-qt6 flatpak phonon-qt6-vlc \  # 소프트웨어 관리 및 멀티미디어 지원.
+    noto-fonts-cjk adobe-source-han-sans-kr-fonts ttf-baekmuk \
+    gtk3 gtk2 qt5-base qt5-tools \
+    libappindicator-gtk3 libhangul anthy \
+    git automake autoconf libtool pkg-config
+
 
 # fstab 생성
 echo "Generating fstab..."
