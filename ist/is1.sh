@@ -80,26 +80,35 @@ swapon ${SWAP_PART}
 # 필수 패키지 설치
 echo "Installing base system..."
 pacstrap -K /mnt \
-    base linux-zen linux-zen-headers linux-firmware \
-    base-devel intel-ucode \
-    networkmanager wireless_tools efibootmgr \
-    man-db man-pages texinfo \
-    xorg plasma plasma-desktop \
-    plasma-pa plasma-nm plasma-workspace \
-    plasma-wayland-protocols plasma-integration xdg-desktop-portal-kde \
-    kde-applications kio-extras \
-    dolphin konsole kate nano \
-    firefox openssh cronie vim \
-    sudo dosfstools mtools \
-    gtk3 gtk2 qt6-base qt5-base \
-    qt6-tools qt5-tools libappindicator-gtk3 \
-    noto-fonts-cjk adobe-source-han-sans-kr-fonts ttf-baekmuk \
-    libhangul fcitx5 fcitx5-configtool fcitx5-hangul \
-    git automake autoconf libtool pkg-config \
-    zsh htop wget curl powerdevil \
-    discover packagekit-qt6 flatpak phonon-qt6-vlc \
-    virtualbox dkms ttf-fira-code \
-    mesa vlc docker libreoffice-fresh jdk-openjdk
+    base \  # 필수 기본 시스템 패키지 (Arch Linux의 기본).
+    linux-zen linux-zen-headers \  # 성능과 하드웨어 지원을 위한 커널 및 헤더.
+    linux-firmware \  # 다양한 하드웨어 컴포넌트를 위한 펌웨어.
+    base-devel \  # 소프트웨어 컴파일을 위한 필수 개발 도구.
+    intel-ucode \  # 인텔 CPU의 마이크로코드 업데이트 (시스템 안정성에 중요).
+    networkmanager wireless_tools efibootmgr \  # 네트워킹 도구 및 EFI 부트 관리.
+    sudo \  # 사용자가 root 권한으로 명령을 실행할 수 있도록 허용.
+    vim nano \  # 설정 및 스크립트를 위한 필수 텍스트 편집기.
+    openssh \  # 원격 관리를 위한 안전한 셸 접근.
+    cronie \  # 자동화 작업을 위한 크론 잡 스케줄러.
+    man-db man-pages texinfo \  # 명령어 참조를 위한 문서 도구.
+    dosfstools mtools \  # FAT 파일 시스템 관리 도구, 부트 파티션에 유용.
+    xorg \  # 그래픽 인터페이스를 위한 X 윈도우 시스템.
+    plasma plasma-desktop \  # 현대적인 GUI를 위한 KDE Plasma 데스크탑 환경.
+    plasma-workspace plasma-pa plasma-nm \  # Plasma 작업 공간 구성 요소 및 시스템 트레이 앱.
+    xdg-desktop-portal-kde \  # 데스크탑 애플리케이션 통합을 위한 모듈.
+    kde-applications kio-extras \  # 필수 KDE 애플리케이션 및 추가 I/O 모듈.
+    firefox \  # 인터넷 접근을 위한 웹 브라우저.
+    gtk3 gtk2 qt6-base qt5-base \  # 애플리케이션을 위한 GUI 툴킷 라이브러리.
+    qt6-tools qt5-tools libappindicator-gtk3 \  # Qt 애플리케이션 개발 도구.
+    noto-fonts-cjk adobe-source-han-sans-kr-fonts ttf-baekmuk \  # 텍스트 렌더링을 위한 폰트.
+    libhangul fcitx5 fcitx5-configtool fcitx5-hangul \  # 한국어 및 기타 언어 입력기 지원.
+    git automake autoconf libtool pkg-config \  # 소프트웨어 빌드를 위한 유틸리티.
+    zsh htop wget curl \  # 사용자 셸 및 시스템 모니터링 도구.
+    powerdevil \  # KDE의 전원 관리 도구.
+    discover packagekit-qt6 flatpak phonon-qt6-vlc \  # 소프트웨어 관리 및 멀티미디어 지원.
+   # virtualbox dkms \  # 가상화 및 동적 커널 모듈 지원 도구.
+   # mesa vlc docker libreoffice-fresh jdk-openjdk \  # 추가 소프트웨어, 멀티미디어 및 생산성 도구.
+   # ttf-fira-code \  # 코드 가독성을 위한 프로그래밍 폰트.
 
 # fstab 생성
 echo "Generating fstab..."
