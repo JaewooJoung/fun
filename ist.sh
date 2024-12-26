@@ -12,18 +12,6 @@ init_pacman() {
     pacman -Sy archlinux-keyring
 }
 
-# Check disk space
-check_space() {
-    local required_space=15000  # 15GB in MB
-    local available_space=$(df /mnt --output=avail | tail -n1)
-    available_space=$((available_space/1024))
-    
-    if [ $available_space -lt $required_space ]; then
-        echo "Error: Not enough space. Need at least 15GB free."
-        exit 1
-    fi
-}
-
 # 1. Show all hard drives
 echo "Here are all the hard drives in the system:"
 drives=($(lsblk -d -o NAME,SIZE,TYPE | grep disk | nl -w2 -s'. ' | awk '{print $2}'))
@@ -47,10 +35,18 @@ USER_PASSWORD="1234"
 ROOT_PASSWORD="1234"
 HOSTNAME="lisa"
 
-# Set partition variables
-EFI_PART="${DEVICE}p1"
-SWAP_PART="${DEVICE}p2"
-ROOT_PART="${DEVICE}p3"
+# Set partition variables based on device type
+if [[ ${DEVICE} == *"nvme"* ]]; then
+    # NVMe drives use 'p' suffix for partitions
+    EFI_PART="${DEVICE}p1"
+    SWAP_PART="${DEVICE}p2"
+    ROOT_PART="${DEVICE}p3"
+else
+    # SATA/IDE drives just append numbers
+    EFI_PART="${DEVICE}1"
+    SWAP_PART="${DEVICE}2"
+    ROOT_PART="${DEVICE}3"
+fi
 
 # Confirmation
 echo "WARNING: This will COMPLETELY ERASE all data on ${DEVICE}. Are you sure? (y/N)"
@@ -91,13 +87,17 @@ mkfs.ext4 ${ROOT_PART}
 
 # Mount partitions
 echo "Mounting partitions..."
-mount ${ROOT_PART} /mnt
+mount ${ROOT_PART} /mnt || exit 1
 mkdir -p /mnt/boot
-mount ${EFI_PART} /mnt/boot
+mount ${EFI_PART} /mnt/boot || exit 1
 swapon ${SWAP_PART}
 
-# Check space before installation
-check_space
+# Check available space
+available_space=$(df -BG --output=avail /mnt | tail -n1 | tr -dc '0-9')
+if [ "$available_space" -lt 15 ]; then
+    echo "Error: Not enough space. Need at least 15GB free."
+    exit 1
+fi
 
 # Install base system
 echo "Installing base system..."
@@ -165,8 +165,8 @@ pacman -S --noconfirm firefox konsole dolphin
 pacman -S --noconfirm noto-fonts-cjk adobe-source-han-sans-kr-fonts ttf-baekmuk
 pacman -S --noconfirm gtk3 gtk2 qt5-base qt5-tools
 pacman -S --noconfirm libappindicator-gtk3 libhangul anthy fcitx5 fcitx5-configtool fcitx5-hangul fcitx5-gtk fcitx5-qt
-pacman -S --noconfirm git automake autoconf libtool pkg-config
 pacman -S --noconfirm efibootmgr sudo dosfstools mtools os-prober
+pacman -S --noconfirm git automake autoconf libtool pkg-config
 
 # Enable services
 systemctl enable NetworkManager
