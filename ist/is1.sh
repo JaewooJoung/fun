@@ -106,7 +106,7 @@ pacstrap -K /mnt \
     zsh htop wget curl \  # 사용자 셸 및 시스템 모니터링 도구.
     powerdevil \  # KDE의 전원 관리 도구.
     discover packagekit-qt6 flatpak phonon-qt6-vlc \  # 소프트웨어 관리 및 멀티미디어 지원.
-   # virtualbox dkms \  # 가상화 및 동적 커널 모듈 지원 도구.
+    virtualbox dkms \  # 가상화 및 동적 커널 모듈 지원 도구.
    # mesa vlc docker libreoffice-fresh jdk-openjdk \  # 추가 소프트웨어, 멀티미디어 및 생산성 도구.
    # ttf-fira-code \  # 코드 가독성을 위한 프로그래밍 폰트.
 
