@@ -138,34 +138,15 @@ echo "${USERNAME}:${USER_PASSWORD}" | chpasswd
 echo "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/wheel
 
 # Install and configure bootloader
+pacman -S --noconfirm grub efibootmgr
+mkdir -p /boot/efi
+mount ${EFI_PART} /boot/efi
+grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB
+grub-mkconfig -o /boot/grub/grub.cfg
+
+# Create fallback directory
 mkdir -p /boot/efi/EFI/BOOT
-bootctl --path=/boot install
-
-# Create bootloader configuration
-mkdir -p /boot/loader/entries
-cat > /boot/loader/loader.conf <<EOF
-default arch
-timeout 3
-console-mode max
-editor no
-EOF
-
-# Create arch boot entry
-cat > /boot/loader/entries/arch.conf <<EOF
-title   Arch Linux
-linux   /vmlinuz-linux
-initrd  /intel-ucode.img
-initrd  /initramfs-linux.img
-options root=PARTUUID=$(blkid -s PARTUUID -o value ${ROOT_PART}) rw
-EOF
-
-# Create fallback EFI boot entry
-cp /boot/vmlinuz-linux /boot/efi/EFI/BOOT/
-cp /boot/initramfs-linux.img /boot/efi/EFI/BOOT/
-cp /boot/intel-ucode.img /boot/efi/EFI/BOOT/
-
-# Create BOOTX64.EFI
-cp /usr/lib/systemd/boot/efi/systemd-bootx64.efi /boot/efi/EFI/BOOT/BOOTX64.EFI
+cp /boot/efi/EFI/GRUB/grubx64.efi /boot/efi/EFI/BOOT/BOOTX64.EFI
 
 # Install additional packages in smaller groups
 pacman -Sy --noconfirm
