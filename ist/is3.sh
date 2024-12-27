@@ -222,7 +222,8 @@ pacman -S --noconfirm \
     firefox thunderbird thunderbird-i18n-ko \
     libreoffice-fresh libreoffice-fresh-ko \
     flatpak remmina \
-    describeimage fortunecraft llm-manager ollama ollama-docs
+    describeimage fortunecraft llm-manager ollama ollama-docs \
+    zsh zsh-autosuggestions zsh-completions zsh-doc zsh-history-substring-search zsh-lovers zsh-syntax-highlighting zshdb
 
 # System Configuration
 pacman -S --noconfirm \
