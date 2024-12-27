@@ -114,12 +114,14 @@ swapon ${SWAP_PART}
 # Install base system
 echo "Installing base system..."
 pacstrap -K /mnt base linux linux-firmware base-devel ${CPU_UCODE} \
-    networkmanager terminus-font \
+    networkmanager terminus-font vim efibootmgr \
     pipewire pipewire-alsa pipewire-pulse pipewire-jack \
     reflector dhcpcd bash-completion \
     sudo btrfs-progs htop pacman-contrib pkgfile less \
-    git curl wget zsh openssh man-db --noconfirm
-
+    git curl wget zsh openssh man-db \
+    xorg plasma plasma-desktop sddm \
+    firefox konsole dolphin dosfstools mtools os-prober --noconfirm
+    
 # Generate fstab
 echo "Generating fstab..."
 genfstab -U /mnt >> /mnt/etc/fstab
@@ -261,7 +263,8 @@ pacman -S --noconfirm \
     gtk3 gtk2 qt5-base qt5-tools qt5-connectivity qt5-sensors\
     sddm sddm-kcm \
     hwloc hwdata lshw ethtool jitterentropy \
-    blendr blueberry bluedevil blueman bluetui bluez
+    blendr blueberry bluedevil blueman bluetui bluez \
+    zsh zsh-autosuggestions zsh-completions zsh-doc zsh-history-substring-search zsh-lovers zsh-syntax-highlighting 
 
 # ----------------------------------------------------------------------------
 # Enable basic services
