@@ -113,8 +113,7 @@ swapon ${SWAP_PART}
 
 # Install base system
 echo "Installing base system..."
-pacstrap -K /mnt base linux linux-firmware lvm2 base-devel ${CPU_UCODE} networkmanager terminus-font pipewire pipewire-alsa pipewire-pulse pipewire-jack reflector dhcpcd bash-completion xorg plasma plasma-wayland-session kde-applications xdg-user-dirs xdg-utils imagemagick ttf-lato libreoffice rsync noto-fonts-emoji inotify-tools krita fastfetch cups cups-pdf nss-mdns powerline-fonts vim git curl wget zsh openssh man-db flatpak thunderbird thunderbird-i18n-ko libreoffice-fresh libreoffice-fresh-ko libhangul tectonic texlive-basic texlive-bibtexextra texlive-bin texlive-binextra texlive-context texlive-doc texlive-fontsextra texlive-fontsrecommended texlive-fontutils texlive-formatsextra texlive-games texlive-humanities texlive-langchinese texlive-langcjk texlive-langkorean gimp gimp-help-ko sudo btrfs-progs htop pacman-contrib pkgfile less amd-ucode remmina firefox btop tmux sddm nerd-fonts kitty --noconfirm
-
+pacstrap -K /mnt base linux linux-firmware lvm2 base-devel ${CPU_UCODE} networkmanager terminus-font pipewire pipewire-alsa pipewire-pulse pipewire-jack reflector dhcpcd bash-completion xorg plasma kde-applications xdg-user-dirs xdg-utils imagemagick ttf-lato rsync noto-fonts-emoji inotify-tools krita fastfetch cups cups-pdf nss-mdns powerline-fonts vim git curl wget zsh openssh man-db flatpak thunderbird thunderbird-i18n-ko libreoffice-fresh libreoffice-fresh-ko libhangul tectonic texlive-basic texlive-bibtexextra texlive-bin texlive-binextra texlive-context texlive-doc texlive-fontsextra texlive-fontsrecommended texlive-fontutils texlive-formatsextra texlive-games texlive-humanities texlive-langchinese texlive-langcjk texlive-langkorean gimp gimp-help-ko sudo btrfs-progs htop pacman-contrib pkgfile less amd-ucode remmina firefox btop tmux sddm nerd-fonts kitty --noconfirm
 # Generate fstab
 echo "Generating fstab..."
 genfstab -U /mnt >> /mnt/etc/fstab
@@ -172,7 +171,7 @@ EOF
 
 # Install desktop and essential packages
 pacman -Sy --noconfirm
-pacman -S --noconfirm xorg plasma plasma-desktop sddm
+pacman -S --noconfirm xorg plasma plasma-desktop plasma-wayland-protocols sddm
 pacman -S --noconfirm firefox konsole dolphin
 pacman -S --noconfirm noto-fonts-cjk adobe-source-han-sans-kr-fonts ttf-baekmuk
 pacman -S --noconfirm gtk3 gtk2 qt5-base qt5-tools
