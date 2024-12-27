@@ -113,8 +113,7 @@ swapon ${SWAP_PART}
 
 # Install base system
 echo "Installing base system..."
-pacstrap -K /mnt \
-    base linux linux-firmware lvm2 base-devel ${CPU_UCODE} \
+pacstrap -K /mnt base linux linux-firmware base-devel ${CPU_UCODE} \
     networkmanager terminus-font \
     pipewire pipewire-alsa pipewire-pulse pipewire-jack \
     reflector dhcpcd bash-completion \
@@ -126,7 +125,7 @@ echo "Generating fstab..."
 genfstab -U /mnt >> /mnt/etc/fstab
 
 # System configuration
-arch-chroot /mnt /bin/bash <<'CHROOT_COMMANDS'
+arch-chroot /mnt /bin/bash <<CHROOT_COMMANDS
 # Set timezone
 ln -sf /usr/share/zoneinfo/Europe/Stockholm /etc/localtime
 hwclock --systohc
@@ -176,22 +175,8 @@ initrd  /initramfs-linux.img
 options root=PARTUUID=$(blkid -s PARTUUID -o value ${ROOT_PART}) rw quiet
 EOF
 
-# Install base system
-echo "Installing base system..."
-pacstrap -K /mnt \
-    base linux linux-firmware lvm2 base-devel ${CPU_UCODE} \
-    networkmanager terminus-font \
-    pipewire pipewire-alsa pipewire-pulse pipewire-jack \
-    reflector dhcpcd bash-completion \
-    sudo btrfs-progs htop pacman-contrib pkgfile less \
-    git curl wget zsh openssh man-db --noconfirm
-
-# Install desktop environment and applications
-arch-chroot /mnt /bin/bash <<CHROOT_COMMANDS
-
-# Install desktop and additional packages
+# Install desktop and essential packages
 pacman -Sy --noconfirm
-
 # Desktop Environment
 pacman -S --noconfirm \
     xorg xorg-xwayland \
@@ -233,7 +218,7 @@ pacman -S --noconfirm \
     firefox thunderbird thunderbird-i18n-ko \
     libreoffice-fresh libreoffice-fresh-ko \
     flatpak remmina \
-    describeimage fortunecraft llm-manager ollama ollama-docs \
+    describeimage fortunecraft llm-manager ollama ollama-docs
     
 
 # System Configuration
@@ -241,6 +226,7 @@ pacman -S --noconfirm \
     xdg-user-dirs xdg-utils \
     cups cups-pdf nss-mdns \
     gtk3 gtk2 qt5-base qt5-tools
+
 
 # Enable basic services
 systemctl enable NetworkManager
@@ -297,27 +283,6 @@ chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}/.config
 chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}/.local
 chown ${USERNAME}:${USERNAME} /home/${USERNAME}/.pam_environment
 
-
-# Enable services
-systemctl enable NetworkManager
-systemctl enable sddm
-systemctl enable bluetooth
-systemctl enable cups.service
-
-# Configure for the user
-mkdir -p /etc/sddm.conf.d
-cat > /etc/sddm.conf.d/default.conf <<EOF
-[General]
-DisplayServer=x11
-
-[Theme]
-Current=breeze
-
-[Users]
-MaximumUid=60000
-MinimumUid=1000
-EOF
-
 # Generate initramfs
 mkinitcpio -P
 CHROOT_COMMANDS
@@ -340,3 +305,4 @@ echo "After first boot:"
 echo "1. Korean input can be toggled with Shift+Space"
 echo "2. Run 'fcitx5-configtool' to configure input method"
 echo "3. Use 'fcitx5 --debug &' if you need to troubleshoot"
+
