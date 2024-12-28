@@ -27,9 +27,9 @@ add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(
 echo "패키지 목록을 업데이트합니다..."
 apt update
 
-# Docker 설치
+# Docker 설치 (docker.io 패키지)
 echo "Docker를 설치합니다..."
-apt install -y docker-ce
+apt install -y docker.io
 
 # Docker 서비스 시작 및 활성화
 echo "Docker 서비스를 시작하고 활성화합니다..."
