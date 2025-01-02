@@ -377,22 +377,179 @@ pacman -S --noconfirm \
 systemctl enable NetworkManager
 systemctl enable sddm
 
-# Configure Korean fonts and input method
-cd /tmp
-sudo -u ${USERNAME} bash <<EOF
-# Install AUR fonts
-git clone https://aur.archlinux.org/spoqa-han-sans.git
-cd spoqa-han-sans
-yes | makepkg -si --noconfirm
-cd ..
+# ------ post install
+# Create directory for Korean setup scripts
+mkdir -p /home/${USERNAME}/korean_install_script
+cd /home/${USERNAME}/korean_install_script
 
-for font in ttf-d2coding ttf-nanum ttf-nanumgothic_coding ttf-kopub ttf-kopubworld; do
-    git clone https://aur.archlinux.org/\${font}.git
-    cd \${font}
-    yes | makepkg -si --noconfirm
-    cd ..
-done
+# Set proper ownership
+chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}/korean_install_script
+
+# Create the main installation script
+cat > install_korean.sh << 'EOF'
+#!/bin/bash
+
+echo "==============================================="
+echo "한국어 폰트 및 입력기 설치 스크립트"
+echo "Korean Fonts and Input Method Installation"
+echo "==============================================="
+
+# Function to install yay if not present
+install_yay() {
+    if ! command -v yay &> /dev/null; then
+        echo "Installing yay..."
+        cd /tmp
+        git clone https://aur.archlinux.org/yay.git
+        cd yay
+        makepkg -si --noconfirm
+        cd ~
+    fi
+}
+
+# Function to install official fonts
+install_official_fonts() {
+    echo "Installing official Korean fonts..."
+    sudo pacman -S --noconfirm \
+        noto-fonts-cjk \
+        adobe-source-han-sans-kr-fonts \
+        adobe-source-han-serif-kr-fonts \
+        noto-fonts \
+        ttf-dejavu
+}
+
+# Function to install AUR fonts
+install_aur_fonts() {
+    echo "Installing AUR Korean fonts..."
+    yay -S --noconfirm \
+        spoqa-han-sans \
+        ttf-d2coding \
+        ttf-nanum \
+        ttf-nanumgothic_coding \
+        ttf-kopub \
+        ttf-kopubworld
+}
+
+# Function to install Korean input methods
+install_input_methods() {
+    echo "Installing Korean input methods..."
+    sudo pacman -S --noconfirm \
+        fcitx5 \
+        fcitx5-gtk \
+        fcitx5-qt \
+        fcitx5-hangul \
+        fcitx5-configtool
+
+    # Create fcitx5 configuration directory
+    mkdir -p ~/.config/fcitx5/conf
+    mkdir -p ~/.config/environment.d
+
+    # Add input method configuration
+    echo "Input Method configuration..."
+    cat > ~/.config/environment.d/envvars.conf << 'END'
+GTK_IM_MODULE=fcitx
+QT_IM_MODULE=fcitx
+XMODIFIERS=@im=fcitx
+END
+
+    # Configure fcitx5 to use Hangul
+    cat > ~/.config/fcitx5/profile << 'END'
+[Groups/0]
+# Group Name
+Name=Default
+# Layout
+Default Layout=us
+# Default Input Method
+DefaultIM=hangul
+
+[Groups/0/Items/0]
+# Name
+Name=keyboard-us
+# Layout
+Layout=
+
+[Groups/0/Items/1]
+# Name
+Name=hangul
+# Layout
+Layout=
+
+[GroupOrder]
+0=Default
+END
+}
+
+# Function to set up Korean locale
+setup_locale() {
+    echo "Setting up Korean locale..."
+    sudo sed -i 's/#ko_KR.UTF-8/ko_KR.UTF-8/' /etc/locale.gen
+    sudo locale-gen
+}
+
+# Main installation process
+echo "Starting Korean language support installation..."
+
+# Install base-devel and git if not present
+sudo pacman -S --needed --noconfirm base-devel git
+
+# Install yay
+install_yay
+
+# Install components
+install_official_fonts
+install_aur_fonts
+install_input_methods
+setup_locale
+
+echo "==============================================="
+echo "Installation completed!"
+echo "Please log out and log back in for changes to take effect."
+echo "After logging back in, run 'fcitx5' to start the input method."
+echo "You can switch between English and Korean using Ctrl+Space"
+echo "==============================================="
 EOF
+
+# Create uninstall script
+cat > uninstall_korean.sh << 'EOF'
+#!/bin/bash
+
+echo "Uninstalling Korean language support..."
+
+# Remove AUR fonts
+yay -Rns --noconfirm \
+    spoqa-han-sans \
+    ttf-d2coding \
+    ttf-nanum \
+    ttf-nanumgothic_coding \
+    ttf-kopub \
+    ttf-kopubworld
+
+# Remove official packages
+sudo pacman -Rns --noconfirm \
+    fcitx5 \
+    fcitx5-gtk \
+    fcitx5-qt \
+    fcitx5-hangul \
+    fcitx5-configtool \
+    noto-fonts-cjk \
+    adobe-source-han-sans-kr-fonts \
+    adobe-source-han-serif-kr-fonts
+
+# Remove configuration files
+rm -rf ~/.config/fcitx5
+rm -f ~/.config/environment.d/envvars.conf
+
+echo "Korean language support has been removed."
+EOF
+
+# Make scripts executable
+chmod +x install_korean.sh uninstall_korean.sh
+chown ${USERNAME}:${USERNAME} install_korean.sh uninstall_korean.sh
+
+echo "Korean installation scripts have been created in /home/${USERNAME}/korean_install_script/"
+echo "To install Korean support, run: ./install_korean.sh"
+echo "To uninstall Korean support, run: ./uninstall_korean.sh"
+
+# ------
 
 # Configure fcitx5
 mkdir -p /home/${USERNAME}/.config/fcitx5/conf
