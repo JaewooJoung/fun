@@ -292,6 +292,8 @@ options root=PARTUUID=$(blkid -s PARTUUID -o value ${ROOT_PART}) rw quiet
 EOF
 
 # ----------------------------------------------------------------------------
+clear
+echo "ALL YOUR CHOICE OF PACKAGES ..."
 # 데스크탑 및 필수 패키지 설치
 pacman -Sy --noconfirm
 
