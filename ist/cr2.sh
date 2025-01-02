@@ -145,7 +145,7 @@ CINNAMON_PACKAGES="cinnamon metacity gnome-shell"
 
 DWM_PACKAGES="base-devel libx11 libxft libxinerama freetype2 kitty thunar xorg"
 
-GNOME_PACKAGES="gnome gnome-extra"
+GNOME_PACKAGES="gnome gnome-shell gnome-extra"
 
 HYPRLAND_PACKAGES="adobe-source-code-pro-fonts brightnessctl dunst ffmpeg \
     ffmpegthumbnailer grimblast-git hyprland hyprpicker-git \
