@@ -158,8 +158,10 @@ KDE_PACKAGES="appstream-qt ark audiocd-kio bluedevil breeze breeze-gtk \
     sddm spectacle systemsettings xdg-desktop-portal-kde \
     xorg-xwayland zeroconf-ioslave"
 
-GNOME_PACKAGES="gnome gnome-shell gnome-extra gnome-tweak-tool gdm"
+# Glitch fixs
+GNOME_PACKAGES="gnome gnome-shell gnome-terminal gnome-control-center gnome-tweaks gnome-extra gnome-tweak-tool gdm"
 
+# GOOD
 XFCE_PACKAGES="xfce4 xfce4-goodies lightdm lightdm-gtk-greeter network-manager-applet"
 
 MATE_PACKAGES="mate mate-extra network-manager-applet"
@@ -213,7 +215,7 @@ clear
 # 기본 패키지 설치 (Install base system)
 echo "Installing base system and selected desktop environment (${DE_NAME})..."
 pacstrap -K /mnt base linux linux-firmware base-devel ${CPU_UCODE} \
-    networkmanager vim efibootmgr ${DE_PACKAGES} \
+    networkmanager vim efibootmgr \
     pipewire pipewire-alsa pipewire-pulse pipewire-jack \
     reflector dhcpcd bash-completion \
     sudo btrfs-progs htop pacman-contrib pkgfile less \
@@ -222,6 +224,8 @@ pacstrap -K /mnt base linux linux-firmware base-devel ${CPU_UCODE} \
     mesa libx11 libxft libxinerama freetype2 noto-fonts-emoji usbutils xdg-user-dirs \
     konsole --noconfirm
 
+
+
 # fstab 생성 (Generate fstab)
 clear
 echo "Generating fstab..."
@@ -229,6 +233,7 @@ genfstab -U /mnt >> /mnt/etc/fstab
 
 # 시스템 설정
 arch-chroot /mnt /bin/bash <<CHROOT_COMMANDS
+
 # 시간대 설정
 ln -sf /usr/share/zoneinfo/Europe/Stockholm /etc/localtime
 hwclock --systohc
@@ -264,7 +269,7 @@ mkdir -p /boot/loader/entries
 cat > /boot/loader/loader.conf <<EOF
 default arch.conf
 timeout 0
-console-mode max
+console-mode maxcirl
 editor no
 EOF
 
@@ -276,13 +281,19 @@ initrd  /initramfs-linux.img
 options root=PARTUUID=$(blkid -s PARTUUID -o value ${ROOT_PART}) rw quiet
 EOF
 
+
+# 데스크탑 및 필수 패키지 설치
+pacman -Sy --noconfirm
+
 # 한국어 환경 설정
-pacman -Sy --noconfirm \
+pacman -S --noconfirm \
     noto-fonts-cjk noto-fonts-emoji \
     adobe-source-han-sans-kr-fonts adobe-source-han-serif-kr-fonts \
     fcitx5 fcitx5-configtool fcitx5-gtk fcitx5-qt fcitx5-hangul \
     firefox-i18n-ko thunderbird-i18n-ko \
     libreoffice-fresh libreoffice-fresh-ko
+
+pacman -S --noconfirm ${DE_PACKAGES} 
 
 # 기본 서비스 활성화
 systemctl enable NetworkManager
