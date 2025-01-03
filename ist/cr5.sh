@@ -1,26 +1,30 @@
 #!/bin/bash
 
-# 설치 스크립트 제목 출력 (Display installation script title)
+# Installation script title
 clear
 echo "==============================================="
 echo "     Arch Linux Korean Installation Script"
 echo "==============================================="
 
-# root 권한 확인 (Check root privileges)
+# Logging setup
+exec > >(tee -i install.log)
+exec 2>&1
+
+# Check root privileges
 if [ "$EUID" -ne 0 ]; then 
-    echo "Please run as root"
+    echo "This script must be run as root. Please use 'sudo' or log in as the root user."
     exit 1
 fi
 
-# 디스크 목록 표시 (Display disk list)
+# Display disk list
 echo "Here are all the disks in the system:"
 drives=($(lsblk -d -o NAME,SIZE,TYPE | grep disk | nl -w2 -s'. ' | awk '{print $2}'))
 lsblk -d -o NAME,SIZE,TYPE | grep disk | nl -w2 -s'. '
 
-# 디스크 선택 (Disk selection)
+# Disk selection
 read -p "Enter the disk number to install (e.g., 1, 2): " choice
 
-# 선택 검증 (Validate selection)
+# Validate selection
 if [[ $choice -gt 0 && $choice -le ${#drives[@]} ]]; then
     DEVICE="/dev/${drives[$choice-1]}"
     echo "Selected disk: $DEVICE"
@@ -29,7 +33,7 @@ else
     exit 1
 fi
 
-# CPU 종류 선택 (CPU type selection)
+# CPU type selection
 clear
 echo "Select CPU type:"
 echo "1. Intel"
@@ -44,18 +48,18 @@ case $cpu_choice in
         CPU_UCODE="amd-ucode"
         ;;
     *)
-        echo "잘못된 선택입니다. 종료합니다..."
-        exit 1
+        echo "Invalid choice. Defaulting to no microcode."
+        CPU_UCODE=""
         ;;
 esac
 
-# 기본 설정
+# Basic configuration
 USERNAME="crux"
 USER_PASSWORD="1234"
 ROOT_PASSWORD="1234"
 HOSTNAME="lia"
 
-# 파티션 변수 설정
+# Partition variables
 if [[ ${DEVICE} == *"nvme"* ]]; then
     EFI_PART="${DEVICE}p1"
     SWAP_PART="${DEVICE}p2"
@@ -66,7 +70,7 @@ else
     ROOT_PART="${DEVICE}3"
 fi
 
-# 설치 계획 표시 (Display installation plan)
+# Display installation plan
 clear
 echo "==========================="
 echo "Installation Plan:"
@@ -82,47 +86,45 @@ echo "WARNING: All data on the selected disk will be erased!"
 echo "Press Ctrl+C within 5 seconds to cancel..."
 sleep 5
 
-# pacman 초기화 (Initialize pacman)
+# Initialize pacman
+echo "Initializing pacman..."
 pacman-key --init
 pacman-key --populate archlinux
-pacman -Sy archlinux-keyring
+pacman -Sy archlinux-keyring --noconfirm
 
-# 디스크 초기화 (Initialize disk)
-clear
-echo "Starting installation process..."
+# Initialize disk
 echo "Initializing disk..."
 dd if=/dev/zero of=${DEVICE} bs=1M count=100
 dd if=/dev/zero of=${DEVICE} bs=1M seek=$(( $(blockdev --getsz ${DEVICE}) / 2048 - 100)) count=100
 wipefs -af ${DEVICE}
 sgdisk -Z ${DEVICE}
 
-# GPT 생성
+# Create GPT and partitions
+echo "Creating partitions..."
 sgdisk -o ${DEVICE}
-
-# 파티션 생성
 sgdisk -n 1:0:+1G -t 1:ef00 -c 1:"EFI System Partition" ${DEVICE}
 sgdisk -n 2:0:+8G -t 2:8200 -c 2:"Linux swap" ${DEVICE}
 sgdisk -n 3:0:0 -t 3:8300 -c 3:"Linux root" ${DEVICE}
 
-# 커널이 파티션 테이블을 인식하도록 대기
+# Wait for kernel to update partition table
 sleep 3
 partprobe ${DEVICE}
 sleep 3
 
-# 파티션 포맷 (Format partitions)
+# Format partitions
 echo "Formatting partitions..."
 mkfs.fat -F 32 ${EFI_PART}
 mkswap ${SWAP_PART}
 mkfs.ext4 ${ROOT_PART}
 
-# 파티션 마운트 (Mount partitions)
+# Mount partitions
 echo "Mounting partitions..."
 mount ${ROOT_PART} /mnt
 mkdir -p /mnt/boot
 mount ${EFI_PART} /mnt/boot
 swapon ${SWAP_PART}
 
-# 데스크톱 환경 패키지 정의
+# Desktop environment packages
 AWESOME_PACKAGES="awesome lightdm lightdm-gtk-greeter thunar lxsession rxvt-unicode alsa-utils pulseaudio pulseaudio-alsa wireless_tools zsh dunst rofi feh lightdm-webkit2-greeter lightdm-webkit-theme-litarvan lxappearance qt5ct gsimplecal xautolock xclip scrot thunar-archive-plugin thunar-volman thunar-media-tags-plugin tumbler jq w3m geany nano viewnior pavucontrol parcellite neofetch htop picom gtk2-perl xfce4-power-manager imagemagick playerctl xsettingsd obconf"
 
 CINNAMON_PACKAGES="cinnamon metacity gnome-shell gnome-terminal gnome-control-center gnome-tweaks"
@@ -148,15 +150,13 @@ KDE_PACKAGES="plasma plasma-desktop plasma-wayland-session kde-applications apps
     deepin-qt6platform-plugins deepin-qt6integration qt6-xcb-private-headers \
     plasma5support futuresql libportal-qt6 qcoro-qt6 qmltermwidget-qt6"
 
-# Glitch fixs
 GNOME_PACKAGES="gnome gnome-shell gnome-terminal gnome-control-center gnome-tweaks gnome-extra gnome-tweak-tool gdm"
 
-# GOOD
 XFCE_PACKAGES="xfce4 xfce4-goodies lightdm lightdm-gtk-greeter network-manager-applet"
 
 MATE_PACKAGES="mate mate-extra network-manager-applet"
 
-# 데스크톱 환경 선택 메뉴 표시 (Display desktop environment selection menu)
+# Desktop environment selection
 clear
 echo "==================================="
 echo "Select Desktop Environment:"
@@ -201,8 +201,7 @@ case $DE_CHOICE in
        ;;
 esac
 
-clear
-# 기본 패키지 설치 (Install base system)
+# Install base system and desktop environment
 echo "Installing base system and selected desktop environment (${DE_NAME})..."
 pacstrap -K /mnt base linux linux-firmware base-devel ${CPU_UCODE} \
     networkmanager vim efibootmgr \
@@ -214,30 +213,28 @@ pacstrap -K /mnt base linux linux-firmware base-devel ${CPU_UCODE} \
     mesa libx11 libxft libxinerama freetype2 noto-fonts-emoji usbutils xdg-user-dirs \
     konsole ${DE_PACKAGES} --noconfirm
 
-
-# fstab 생성 (Generate fstab)
-clear
+# Generate fstab
 echo "Generating fstab..."
 genfstab -U /mnt >> /mnt/etc/fstab
 
-# 시스템 설정
+# System configuration
 arch-chroot /mnt /bin/bash <<CHROOT_COMMANDS
 
-# 시간대 설정
+# Set timezone
 ln -sf /usr/share/zoneinfo/Europe/Stockholm /etc/localtime
 hwclock --systohc
 
-# 시간 동기화 활성화
+# Enable time sync
 systemctl enable systemd-timesyncd
 
-# 로케일 설정
+# Set locale
 echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
 echo "sv_SE.UTF-8 UTF-8" >> /etc/locale.gen
 echo "ko_KR.UTF-8 UTF-8" >> /etc/locale.gen
 locale-gen
 echo "LANG=ko_KR.UTF-8" > /etc/locale.conf
 
-# 호스트명 설정
+# Set hostname
 echo "${HOSTNAME}" > /etc/hostname
 cat > /etc/hosts <<EOF
 127.0.0.1   localhost
@@ -245,20 +242,20 @@ cat > /etc/hosts <<EOF
 127.0.1.1   ${HOSTNAME}.localdomain ${HOSTNAME}
 EOF
 
-# 사용자 생성 및 비밀번호 설정
+# Create user and set passwords
 echo "root:${ROOT_PASSWORD}" | chpasswd
 useradd -m -G wheel,audio,video,optical,storage -s /bin/bash ${USERNAME}
 echo "${USERNAME}:${USER_PASSWORD}" | chpasswd
 echo "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/wheel
 
-# 부트로더 설치 및 설정
+# Install and configure bootloader
 bootctl install
 
 mkdir -p /boot/loader/entries
 cat > /boot/loader/loader.conf <<EOF
 default arch.conf
 timeout 0
-console-mode maxcirl
+console-mode max
 editor no
 EOF
 
@@ -270,40 +267,26 @@ initrd  /initramfs-linux.img
 options root=PARTUUID=$(blkid -s PARTUUID -o value ${ROOT_PART}) rw quiet
 EOF
 
-
-# update
+# Update system
 pacman -Sy --noconfirm
 
-# 글꼴 및 한국어 지원
+# Install additional packages
 pacman -S --noconfirm \
     noto-fonts-cjk noto-fonts-emoji \
     adobe-source-han-sans-kr-fonts adobe-source-han-serif-kr-fonts ttf-baekmuk \
     powerline-fonts nerd-fonts \
-    ttf-lato
-
-# 한국어 입력 및 개발 도구
-pacman -S --noconfirm \
-    libhangul fcitx5 fcitx5-configtool fcitx5-hangul fcitx5-gtk fcitx5-qt
-
-# 시스템 도구
-pacman -S --noconfirm \
+    ttf-lato \
+    libhangul fcitx5 fcitx5-configtool fcitx5-hangul fcitx5-gtk fcitx5-qt \
     efibootmgr dosfstools mtools os-prober \
     zsh zsh-autosuggestions zsh-completions zsh-doc zsh-history-substring-search zsh-lovers zsh-syntax-highlighting zshdb \
-    rsync inotify-tools btop tmux kitty
-
-# 개발 및 그래픽 도구
-pacman -S --noconfirm \
+    rsync inotify-tools btop tmux kitty \
     vim git autoconf pkg-config \
     imagemagick krita gimp gimp-help-ko \
     tectonic texlive-basic texlive-bibtexextra texlive-bin \
     texlive-binextra texlive-context texlive-doc texlive-fontsextra \
     texlive-fontsrecommended texlive-fontutils texlive-formatsextra \
     texlive-games texlive-humanities texlive-langchinese \
-    texlive-langcjk texlive-langkorean texstudio
-
-
-# 프로그래밍 언어 및 도구
-pacman -S --noconfirm \
+    texlive-langcjk texlive-langkorean texstudio \
     julia llvm-julia llvm-julia-libs \
     kotlin lua-stdlib \
     ruby neko \
@@ -314,36 +297,27 @@ pacman -S --noconfirm \
     rust rust-analyzer rust-bindgen rust-kanban rust-musl rust-script rust-wasm rustic rustlings rustscan rustup \
     rustypaste rustypaste-cli \
     gcc gcc-libs gcc-ada gcc-fortran gcc-objc gcc-go lib32-gcc-libs libgccjit gcc-d gcc-m2 gcc-rust \
-    code vscode-css-languageserver vscode-html-languageserver vscode-json-languageserver
-
-# 데이터베이스 관련 패키지
-pacman -S --noconfirm \
-	mariadb mariadb-clients mariadb-libs mariadb-lts mariadb-lts-clients mariadb-lts-libs \
-	sqlite sqlite-analyzer sqlite-doc sqlite-tcl sqlitebrowser vsqlite++ wxsqlite3 ruby-sqlite3 php-sqlite \
-	cowsql
-
-# 응용 프로그램
-pacman -S --noconfirm \
+    code vscode-css-languageserver vscode-html-languageserver vscode-json-languageserver \
+    mariadb mariadb-clients mariadb-libs mariadb-lts mariadb-lts-clients mariadb-lts-libs \
+    sqlite sqlite-analyzer sqlite-doc sqlite-tcl sqlitebrowser vsqlite++ wxsqlite3 ruby-sqlite3 php-sqlite \
+    cowsql \
     firefox thunderbird thunderbird-i18n-ko \
     libreoffice-fresh libreoffice-fresh-ko \
     flatpak remmina opentofu chromium \
-    describeimage fortunecraft llm-manager ollama ollama-docs
-
-# 시스템 설정
-pacman -S --noconfirm \
+    describeimage fortunecraft llm-manager ollama ollama-docs \
     xdg-user-dirs xdg-utils \
     cups cups-pdf nss-mdns \
-    gtk3 gtk2 qt5-base qt5-tools qt5-connectivity qt5-sensors\
+    gtk3 gtk2 qt5-base qt5-tools qt5-connectivity qt5-sensors \
     sddm sddm-kcm \
     hwloc hwdata lshw ethtool jitterentropy \
     blendr blueberry bluedevil blueman bluetui bluez \
-    zsh zsh-autosuggestions zsh-completions zsh-doc zsh-history-substring-search zsh-lovers zsh-syntax-highlighting 
+    zsh zsh-autosuggestions zsh-completions zsh-doc zsh-history-substring-search zsh-lovers zsh-syntax-highlighting
 
-# 기본 서비스 활성화
+# Enable basic services
 systemctl enable NetworkManager
 systemctl enable ${DM_SERVICE}
 
-# fcitx5 설정
+# Configure fcitx5
 mkdir -p /home/${USERNAME}/.config/fcitx5/conf
 mkdir -p /home/${USERNAME}/.config/environment.d
 
@@ -373,13 +347,14 @@ EOF
 
 chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}/.config
 
-# initramfs 생성
+# Generate initramfs
 mkinitcpio -P
 CHROOT_COMMANDS
 
-# 파티션 언마운트
+# Unmount partitions
 umount -R /mnt
 
+# Final message
 clear
 echo "Installation completed!"
 echo ""
@@ -393,6 +368,6 @@ echo "   c. Set UEFI boot mode (disable CSM/Legacy completely)"
 echo "   d. Set Boot Device Priority to ${DEVICE}"
 echo ""
 echo "After first boot:"
-echo "1. Korean input can be toggled with Shift+Space"
-echo "2. Configure input method with 'fcitx5-configtool'"
-echo "3. For troubleshooting, run 'fcitx5 --debug &'"
+echo "1. Set a password for the user '${USERNAME}' using the 'passwd' command."
+echo "2. Korean input can be toggled with Shift+Space."
+echo "3. Configure input method with 'fcitx5-configtool'."
