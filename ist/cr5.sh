@@ -50,10 +50,10 @@ case $cpu_choice in
 esac
 
 # 기본 설정
-USERNAME="user"
+USERNAME="crux"
 USER_PASSWORD="1234"
 ROOT_PASSWORD="1234"
-HOSTNAME="archlinux"
+HOSTNAME="lia"
 
 # 파티션 변수 설정
 if [[ ${DEVICE} == *"nvme"* ]]; then
