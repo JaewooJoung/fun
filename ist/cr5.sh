@@ -146,27 +146,8 @@ KDE_PACKAGES="plasma plasma-desktop plasma-wayland-session kde-applications apps
     qt6-graphs phonon-qt6 phonon-qt6-vlc libqaccessibilityclient-qt6 \
     kdsoap-qt6 qtpbfimageplugin-qt6 doublecmd-qt6 lazarus-qt6 qt6pas \
     deepin-qt6platform-plugins deepin-qt6integration qt6-xcb-private-headers \
-    plasma5support futuresql libportal-qt6 qcoro \
-    julia llvm-julia llvm-julia-libs kotlin lua-stdlib ruby neko \
-    go go-tools perl latex2html \
-    nodejs nodejs-emojione nodejs-lts-hydrogen nodejs-lts-iron \
-    nodejs-material-design-icons nodejs-nopt nodejs-source-map \
-    nodejs-yaml npm npm-check-updates \
-    rust rust-analyzer rust-bindgen rust-kanban rust-musl rust-script \
-    rust-wasm rustic rustlings rustscan rustup rustypaste rustypaste-cli \
-    gcc gcc-libs gcc-ada gcc-fortran gcc-objc gcc-go lib32-gcc-libs \
-    libgccjit gcc-d gcc-m2 gcc-rust \
-    mariadb mariadb-clients mariadb-libs mariadb-lts mariadb-lts-clients \
-    mariadb-lts-libs sqlite sqlite-analyzer sqlite-doc sqlite-tcl \
-    sqlitebrowser vsqlite++ wxsqlite3 ruby-sqlite3 php-sqlite cowsql \
-    describeimage fortunecraft llm-manager ollama ollama-docs \
-    flatpak remmina opentofu \
-    tectonic texlive-basic texlive-bibtexextra texlive-bin \
-    texlive-binextra texlive-context texlive-doc texlive-fontsextra \
-    texlive-fontsrecommended texlive-fontutils texlive-formatsextra \
-    texlive-games texlive-humanities texlive-langchinese \
-    texlive-langcjk texlive-langkorean texstudio"
-    
+    plasma5support futuresql libportal-qt6 qcoro-qt6 qmltermwidget-qt6"
+
 # Glitch fixs
 GNOME_PACKAGES="gnome gnome-shell gnome-terminal gnome-control-center gnome-tweaks gnome-extra gnome-tweak-tool gdm"
 
@@ -231,7 +212,7 @@ pacstrap -K /mnt base linux linux-firmware base-devel ${CPU_UCODE} \
     git curl wget zsh openssh man-db \
     xorg xorg-server xorg-apps xorg-drivers xorg-xkill xorg-xinit xterm \
     mesa libx11 libxft libxinerama freetype2 noto-fonts-emoji usbutils xdg-user-dirs \
-    konsole --noconfirm
+    konsole ${DE_PACKAGES} --noconfirm
 
 
 # fstab 생성 (Generate fstab)
@@ -290,17 +271,73 @@ options root=PARTUUID=$(blkid -s PARTUUID -o value ${ROOT_PART}) rw quiet
 EOF
 
 
-# 데스크탑 및 필수 패키지 설치
-pacman -Sy --noconfirm \
-    ${DE_PACKAGES} 
+# update
+pacman -Sy --noconfirm
 
-# 한국어 환경 설정
+# 글꼴 및 한국어 지원
 pacman -S --noconfirm \
     noto-fonts-cjk noto-fonts-emoji \
-    adobe-source-han-sans-kr-fonts adobe-source-han-serif-kr-fonts \
-    fcitx5 fcitx5-configtool fcitx5-gtk fcitx5-qt fcitx5-hangul \
-    firefox-i18n-ko thunderbird-i18n-ko \
-    libreoffice-fresh libreoffice-fresh-ko
+    adobe-source-han-sans-kr-fonts adobe-source-han-serif-kr-fonts ttf-baekmuk \
+    powerline-fonts nerd-fonts \
+    ttf-lato
+
+# 한국어 입력 및 개발 도구
+pacman -S --noconfirm \
+    libhangul fcitx5 fcitx5-configtool fcitx5-hangul fcitx5-gtk fcitx5-qt
+
+# 시스템 도구
+pacman -S --noconfirm \
+    efibootmgr dosfstools mtools os-prober \
+    zsh zsh-autosuggestions zsh-completions zsh-doc zsh-history-substring-search zsh-lovers zsh-syntax-highlighting zshdb \
+    rsync inotify-tools btop tmux kitty
+
+# 개발 및 그래픽 도구
+pacman -S --noconfirm \
+    vim git autoconf pkg-config \
+    imagemagick krita gimp gimp-help-ko \
+    tectonic texlive-basic texlive-bibtexextra texlive-bin \
+    texlive-binextra texlive-context texlive-doc texlive-fontsextra \
+    texlive-fontsrecommended texlive-fontutils texlive-formatsextra \
+    texlive-games texlive-humanities texlive-langchinese \
+    texlive-langcjk texlive-langkorean texstudio
+
+
+# 프로그래밍 언어 및 도구
+pacman -S --noconfirm \
+    julia llvm-julia llvm-julia-libs \
+    kotlin lua-stdlib \
+    ruby neko \
+    go go-tools \
+    perl latex2html \
+    nodejs nodejs-emojione nodejs-lts-hydrogen nodejs-lts-iron nodejs-material-design-icons nodejs-nopt \
+    nodejs-source-map nodejs-yaml npm npm-check-updates \
+    rust rust-analyzer rust-bindgen rust-kanban rust-musl rust-script rust-wasm rustic rustlings rustscan rustup \
+    rustypaste rustypaste-cli \
+    gcc gcc-libs gcc-ada gcc-fortran gcc-objc gcc-go lib32-gcc-libs libgccjit gcc-d gcc-m2 gcc-rust \
+    code vscode-css-languageserver vscode-html-languageserver vscode-json-languageserver
+
+# 데이터베이스 관련 패키지
+pacman -S --noconfirm \
+	mariadb mariadb-clients mariadb-libs mariadb-lts mariadb-lts-clients mariadb-lts-libs \
+	sqlite sqlite-analyzer sqlite-doc sqlite-tcl sqlitebrowser vsqlite++ wxsqlite3 ruby-sqlite3 php-sqlite \
+	cowsql
+
+# 응용 프로그램
+pacman -S --noconfirm \
+    firefox thunderbird thunderbird-i18n-ko \
+    libreoffice-fresh libreoffice-fresh-ko \
+    flatpak remmina opentofu chromium \
+    describeimage fortunecraft llm-manager ollama ollama-docs
+
+# 시스템 설정
+pacman -S --noconfirm \
+    xdg-user-dirs xdg-utils \
+    cups cups-pdf nss-mdns \
+    gtk3 gtk2 qt5-base qt5-tools qt5-connectivity qt5-sensors\
+    sddm sddm-kcm \
+    hwloc hwdata lshw ethtool jitterentropy \
+    blendr blueberry bluedevil blueman bluetui bluez \
+    zsh zsh-autosuggestions zsh-completions zsh-doc zsh-history-substring-search zsh-lovers zsh-syntax-highlighting 
 
 # 기본 서비스 활성화
 systemctl enable NetworkManager
