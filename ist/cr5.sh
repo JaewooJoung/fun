@@ -254,7 +254,8 @@ EOF
 
 
 # 데스크탑 및 필수 패키지 설치
-pacman -Sy --noconfirm
+pacman -Sy --noconfirm \
+    ${DE_PACKAGES} 
 
 # 한국어 환경 설정
 pacman -S --noconfirm \
@@ -263,8 +264,6 @@ pacman -S --noconfirm \
     fcitx5 fcitx5-configtool fcitx5-gtk fcitx5-qt fcitx5-hangul \
     firefox-i18n-ko thunderbird-i18n-ko \
     libreoffice-fresh libreoffice-fresh-ko
-
-pacman -S --noconfirm ${DE_PACKAGES} 
 
 # 기본 서비스 활성화
 systemctl enable NetworkManager
