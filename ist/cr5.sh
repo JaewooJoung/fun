@@ -127,8 +127,46 @@ AWESOME_PACKAGES="awesome lightdm lightdm-gtk-greeter thunar lxsession rxvt-unic
 
 CINNAMON_PACKAGES="cinnamon metacity gnome-shell gnome-terminal gnome-control-center gnome-tweaks"
 
-KDE_PACKAGES="plasma plasma-desktop plasma-wayland-session kde-applications appstream-qt qt6-doc qt6-examples qt6-translations qt6-5compat qt6-base qt6-declarative qt6-quick3d qt6-quicktimeline qt6-shadertools qt6-svg qt6-tools qt6-wayland qt6-imageformats qt6-3d qt6-networkauth pyside6 poppler-qt6 kde-applications sddm konsole dolphin ark gwenview kate okular plasma-pa plasma-nm plasma-wayland-protocols discover packagekit-qt6 "
-
+KDE_PACKAGES="plasma plasma-desktop plasma-wayland-session kde-applications appstream-qt \
+    qt6-doc qt6-examples qt6-translations qt6-5compat qt6-base qt6-declarative \
+    qt6-quick3d qt6-quicktimeline qt6-shadertools qt6-svg qt6-tools qt6-wayland \
+    qt6-imageformats qt6-3d qt6-networkauth pyside6 poppler-qt6 kde-applications \
+    sddm konsole dolphin ark gwenview kate okular plasma-pa plasma-nm \
+    plasma-wayland-protocols discover packagekit-qt6 \
+    qgpgme-qt6 qt6-charts qt6-datavis3d qt6-lottie qt6-scxml qt6-virtualkeyboard \
+    qt6-connectivity qt6-multimedia qt6-remoteobjects qt6-sensors \
+    qt6-serialbus qt6-serialport qt6-webchannel qt6-webengine \
+    qt6-websockets qt6-webview qt6-positioning qt6-languageserver \
+    qt6-httpserver qt6-multimedia-ffmpeg qt6-multimedia-gstreamer \
+    qt6-quick3dphysics qt6-speech qt6-grpc qt6-location qt6-quickeffectmaker \
+    python-pyqt6 python-pyqt6-networkauth python-pyqt6-3d python-pyqt6-sip \
+    python-qscintilla-qt6 qscintilla-qt6 python-pyqt6-charts \
+    python-pyqt6-datavisualization python-pyqt6-webengine \
+    kvantum libfm-qt libqtxdg qt6ct qxlsx-qt6 qxmpp-qt6 polkit-qt6 \
+    qt6-graphs phonon-qt6 phonon-qt6-vlc libqaccessibilityclient-qt6 \
+    kdsoap-qt6 qtpbfimageplugin-qt6 doublecmd-qt6 lazarus-qt6 qt6pas \
+    deepin-qt6platform-plugins deepin-qt6integration qt6-xcb-private-headers \
+    plasma5support futuresql libportal-qt6 qcoro \
+    julia llvm-julia llvm-julia-libs kotlin lua-stdlib ruby neko \
+    go go-tools perl latex2html \
+    nodejs nodejs-emojione nodejs-lts-hydrogen nodejs-lts-iron \
+    nodejs-material-design-icons nodejs-nopt nodejs-source-map \
+    nodejs-yaml npm npm-check-updates \
+    rust rust-analyzer rust-bindgen rust-kanban rust-musl rust-script \
+    rust-wasm rustic rustlings rustscan rustup rustypaste rustypaste-cli \
+    gcc gcc-libs gcc-ada gcc-fortran gcc-objc gcc-go lib32-gcc-libs \
+    libgccjit gcc-d gcc-m2 gcc-rust \
+    mariadb mariadb-clients mariadb-libs mariadb-lts mariadb-lts-clients \
+    mariadb-lts-libs sqlite sqlite-analyzer sqlite-doc sqlite-tcl \
+    sqlitebrowser vsqlite++ wxsqlite3 ruby-sqlite3 php-sqlite cowsql \
+    describeimage fortunecraft llm-manager ollama ollama-docs \
+    flatpak remmina opentofu \
+    tectonic texlive-basic texlive-bibtexextra texlive-bin \
+    texlive-binextra texlive-context texlive-doc texlive-fontsextra \
+    texlive-fontsrecommended texlive-fontutils texlive-formatsextra \
+    texlive-games texlive-humanities texlive-langchinese \
+    texlive-langcjk texlive-langkorean texstudio"
+    
 # Glitch fixs
 GNOME_PACKAGES="gnome gnome-shell gnome-terminal gnome-control-center gnome-tweaks gnome-extra gnome-tweak-tool gdm"
 
@@ -194,7 +232,6 @@ pacstrap -K /mnt base linux linux-firmware base-devel ${CPU_UCODE} \
     xorg xorg-server xorg-apps xorg-drivers xorg-xkill xorg-xinit xterm \
     mesa libx11 libxft libxinerama freetype2 noto-fonts-emoji usbutils xdg-user-dirs \
     konsole --noconfirm
-
 
 
 # fstab 생성 (Generate fstab)
