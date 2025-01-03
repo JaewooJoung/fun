@@ -1,41 +1,30 @@
 #!/bin/bash
 
-# Installation script title
-clear
-echo "==============================================="
-echo "     Arch Linux Korean Installation Script"
-echo "==============================================="
-
-# Logging setup
-exec > >(tee -i install.log)
-exec 2>&1
-
 # Check root privileges
 if [ "$EUID" -ne 0 ]; then 
-    echo "This script must be run as root. Please use 'sudo' or log in as the root user."
+    echo "Please run as root"
     exit 1
 fi
 
-# Display disk list
-echo "Here are all the disks in the system:"
+# Show all hard drives
+echo "Here are all the hard drives in the system:"
 drives=($(lsblk -d -o NAME,SIZE,TYPE | grep disk | nl -w2 -s'. ' | awk '{print $2}'))
 lsblk -d -o NAME,SIZE,TYPE | grep disk | nl -w2 -s'. '
 
-# Disk selection
-read -p "Enter the disk number to install (e.g., 1, 2): " choice
+# Drive selection
+read -p "Please enter the number of the desired hard drive (e.g., 1, 2, etc.): " choice
 
 # Validate selection
 if [[ $choice -gt 0 && $choice -le ${#drives[@]} ]]; then
     DEVICE="/dev/${drives[$choice-1]}"
-    echo "Selected disk: $DEVICE"
+    echo "Selected hard drive: $DEVICE"
 else
-    echo "Invalid selection. Exiting..."
+    echo "Invalid number. Exiting..."
     exit 1
 fi
 
-# CPU type selection
-clear
-echo "Select CPU type:"
+# Show CPU type selection
+echo "Select your CPU type:"
 echo "1. Intel"
 echo "2. AMD"
 read -p "Enter your choice (1 or 2): " cpu_choice
@@ -48,18 +37,18 @@ case $cpu_choice in
         CPU_UCODE="amd-ucode"
         ;;
     *)
-        echo "Invalid choice. Defaulting to no microcode."
-        CPU_UCODE=""
+        echo "Invalid choice. Exiting..."
+        exit 1
         ;;
 esac
 
-# Basic configuration
+# Fixed credentials
 USERNAME="crux"
 USER_PASSWORD="1234"
 ROOT_PASSWORD="1234"
 HOSTNAME="lia"
 
-# Partition variables
+# Set partition variables based on device type
 if [[ ${DEVICE} == *"nvme"* ]]; then
     EFI_PART="${DEVICE}p1"
     SWAP_PART="${DEVICE}p2"
@@ -70,8 +59,7 @@ else
     ROOT_PART="${DEVICE}3"
 fi
 
-# Display installation plan
-clear
+# Show installation plan
 echo "==========================="
 echo "Installation Plan:"
 echo "Device: ${DEVICE}"
@@ -82,26 +70,26 @@ echo "Username: ${USERNAME}"
 echo "Hostname: ${HOSTNAME}"
 echo "CPU Type: ${CPU_UCODE}"
 echo "==========================="
-echo "WARNING: All data on the selected disk will be erased!"
+echo "WARNING: This will COMPLETELY ERASE the selected drive!"
 echo "Press Ctrl+C within 5 seconds to cancel..."
 sleep 5
 
 # Initialize pacman
-echo "Initializing pacman..."
 pacman-key --init
 pacman-key --populate archlinux
-pacman -Sy archlinux-keyring --noconfirm
+pacman -Sy archlinux-keyring
 
-# Initialize disk
-echo "Initializing disk..."
+# Clean disk
+echo "Cleaning disk..."
 dd if=/dev/zero of=${DEVICE} bs=1M count=100
 dd if=/dev/zero of=${DEVICE} bs=1M seek=$(( $(blockdev --getsz ${DEVICE}) / 2048 - 100)) count=100
 wipefs -af ${DEVICE}
 sgdisk -Z ${DEVICE}
 
-# Create GPT and partitions
-echo "Creating partitions..."
+# Create new GPT
 sgdisk -o ${DEVICE}
+
+# Create partitions
 sgdisk -n 1:0:+1G -t 1:ef00 -c 1:"EFI System Partition" ${DEVICE}
 sgdisk -n 2:0:+8G -t 2:8200 -c 2:"Linux swap" ${DEVICE}
 sgdisk -n 3:0:0 -t 3:8300 -c 3:"Linux root" ${DEVICE}
@@ -113,16 +101,16 @@ sleep 3
 
 # Format partitions
 echo "Formatting partitions..."
-mkfs.fat -F 32 ${EFI_PART} || { echo "Failed to format EFI partition. Exiting..."; exit 1; }
-mkswap ${SWAP_PART} || { echo "Failed to create swap. Exiting..."; exit 1; }
-mkfs.ext4 ${ROOT_PART} || { echo "Failed to format root partition. Exiting..."; exit 1; }
+mkfs.fat -F 32 ${EFI_PART}
+mkswap ${SWAP_PART}
+mkfs.ext4 ${ROOT_PART}
 
 # Mount partitions
 echo "Mounting partitions..."
-mount ${ROOT_PART} /mnt || { echo "Failed to mount root partition. Exiting..."; exit 1; }
-mkdir -p /mnt/boot || { echo "Failed to create /mnt/boot. Exiting..."; exit 1; }
-mount ${EFI_PART} /mnt/boot || { echo "Failed to mount EFI partition. Exiting..."; exit 1; }
-swapon ${SWAP_PART} || { echo "Failed to enable swap. Exiting..."; exit 1; }
+mount ${ROOT_PART} /mnt
+mkdir -p /mnt/boot
+mount ${EFI_PART} /mnt/boot
+swapon ${SWAP_PART}
 
 # Install base system
 echo "Installing base system..."
@@ -134,17 +122,14 @@ pacstrap -K /mnt base linux linux-firmware base-devel ${CPU_UCODE} \
     git curl wget zsh openssh man-db \
     xorg xorg-server xorg-apps xorg-drivers xorg-xkill xorg-xinit xterm \
     mesa libx11 libxft libxinerama freetype2 noto-fonts-emoji usbutils xdg-user-dirs \
-    konsole --noconfirm || { echo "Failed to install base system. Exiting..."; exit 1; }
+    konsole --noconfirm
 
 # Generate fstab
 echo "Generating fstab..."
-genfstab -U /mnt >> /mnt/etc/fstab || { echo "Failed to generate fstab. Exiting..."; exit 1; }
+genfstab -U /mnt >> /mnt/etc/fstab
 
 # Desktop environment selection
-clear
-echo "==================================="
-echo "Select Desktop Environment:"
-echo "==================================="
+echo "Select your desktop environment:"
 echo "1) KDE Plasma"
 echo "2) GNOME"
 echo "3) XFCE"
@@ -152,11 +137,9 @@ echo "4) Awesome WM"
 echo "5) DWM"
 echo "6) Cinnamon"
 echo "7) Hyprland"
-echo "==================================="
-read -p "Enter your choice (1-7): " DE_CHOICE
+read -p "Enter your choice (1-7): " de_choice
 
-# Define packages for each desktop environment
-case $DE_CHOICE in
+case $de_choice in
     1)  # KDE Plasma
         DE_PACKAGES="plasma plasma-desktop plasma-wayland-protocols kde-applications sddm"
         DM_SERVICE="sddm"
@@ -174,8 +157,8 @@ case $DE_CHOICE in
         DM_SERVICE="lightdm"
         ;;
     5)  # DWM
-        DE_PACKAGES="dwm st dmenu"
-        DM_SERVICE="none"  # DWM does not use a display manager
+        DE_PACKAGES="dwm st dmenu kitty thunar"
+        DM_SERVICE="none"
         ;;
     6)  # Cinnamon
         DE_PACKAGES="cinnamon lightdm lightdm-gtk-greeter"
@@ -183,7 +166,7 @@ case $DE_CHOICE in
         ;;
     7)  # Hyprland
         DE_PACKAGES="hyprland waybar swaybg swaylock swayidle wlogout mako grim slurp wl-clipboard"
-        DM_SERVICE="none"  # Hyprland does not use a display manager
+        DM_SERVICE="none"
         ;;
     *)
         echo "Invalid choice. Exiting..."
@@ -202,7 +185,6 @@ fi
 
 # System configuration
 arch-chroot /mnt /bin/bash <<CHROOT_COMMANDS
-
 # Set timezone
 ln -sf /usr/share/zoneinfo/Europe/Stockholm /etc/localtime
 hwclock --systohc
@@ -298,8 +280,6 @@ CHROOT_COMMANDS
 # Unmount partitions
 umount -R /mnt
 
-# Final message
-clear
 echo "Installation complete!"
 echo ""
 echo "IMPORTANT POST-INSTALLATION STEPS:"
