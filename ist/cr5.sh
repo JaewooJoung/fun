@@ -123,7 +123,7 @@ mount ${EFI_PART} /mnt/boot
 swapon ${SWAP_PART}
 
 # 데스크톱 환경 패키지 정의
-AWESOME_PACKAGES="alsa-utils awesome dunst feh geany gsimplecal gtk2-perl htop imagemagick jq lightdm lightdm-gtk-greeter lxappearance lxsession nano neofetch obconf parcellite pavucontrol picom playerctl pulseaudio pulseaudio-alsa qt5ct rofi rxvt-unicode scrot thunar thunar-archive-plugin thunar-media-tags-plugin thunar-volman tumbler viewnior w3m wireless_tools xautolock xclip xfce4-power-manager xsettingsd"
+AWESOME_PACKAGES="awesome lightdm lightdm-gtk-greeter thunar lxsession rxvt-unicode alsa-utils pulseaudio pulseaudio-alsa wireless_tools zsh dunst rofi feh lightdm-webkit2-greeter lightdm-webkit-theme-litarvan lxappearance qt5ct gsimplecal xautolock xclip scrot thunar-archive-plugin thunar-volman thunar-media-tags-plugin tumbler jq w3m geany nano viewnior pavucontrol parcellite neofetch htop picom gtk2-perl xfce4-power-manager imagemagick playerctl xsettingsd obconf"
 
 CINNAMON_PACKAGES="cinnamon metacity gnome-shell gnome-terminal gnome-control-center gnome-tweaks"
 
