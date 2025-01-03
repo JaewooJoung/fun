@@ -113,109 +113,92 @@ sleep 3
 
 # Format partitions
 echo "Formatting partitions..."
-mkfs.fat -F 32 ${EFI_PART}
-mkswap ${SWAP_PART}
-mkfs.ext4 ${ROOT_PART}
+mkfs.fat -F 32 ${EFI_PART} || { echo "Failed to format EFI partition. Exiting..."; exit 1; }
+mkswap ${SWAP_PART} || { echo "Failed to create swap. Exiting..."; exit 1; }
+mkfs.ext4 ${ROOT_PART} || { echo "Failed to format root partition. Exiting..."; exit 1; }
 
 # Mount partitions
 echo "Mounting partitions..."
-mount ${ROOT_PART} /mnt
-mkdir -p /mnt/boot
-mount ${EFI_PART} /mnt/boot
-swapon ${SWAP_PART}
+mount ${ROOT_PART} /mnt || { echo "Failed to mount root partition. Exiting..."; exit 1; }
+mkdir -p /mnt/boot || { echo "Failed to create /mnt/boot. Exiting..."; exit 1; }
+mount ${EFI_PART} /mnt/boot || { echo "Failed to mount EFI partition. Exiting..."; exit 1; }
+swapon ${SWAP_PART} || { echo "Failed to enable swap. Exiting..."; exit 1; }
 
-# Desktop environment packages
-AWESOME_PACKAGES="awesome lightdm lightdm-gtk-greeter thunar lxsession rxvt-unicode alsa-utils pulseaudio pulseaudio-alsa wireless_tools zsh dunst rofi feh lightdm-webkit2-greeter lightdm-webkit-theme-litarvan lxappearance qt5ct gsimplecal xautolock xclip scrot thunar-archive-plugin thunar-volman thunar-media-tags-plugin tumbler jq w3m geany nano viewnior pavucontrol parcellite neofetch htop picom gtk2-perl xfce4-power-manager imagemagick playerctl xsettingsd obconf"
-
-CINNAMON_PACKAGES="cinnamon metacity gnome-shell gnome-terminal gnome-control-center gnome-tweaks"
-
-KDE_PACKAGES="plasma plasma-desktop plasma-wayland-session kde-applications appstream-qt \
-    qt6-doc qt6-examples qt6-translations qt6-5compat qt6-base qt6-declarative \
-    qt6-quick3d qt6-quicktimeline qt6-shadertools qt6-svg qt6-tools qt6-wayland \
-    qt6-imageformats qt6-3d qt6-networkauth pyside6 poppler-qt6 kde-applications \
-    sddm konsole dolphin ark gwenview kate okular plasma-pa plasma-nm \
-    plasma-wayland-protocols discover packagekit-qt6 \
-    qgpgme-qt6 qt6-charts qt6-datavis3d qt6-lottie qt6-scxml qt6-virtualkeyboard \
-    qt6-connectivity qt6-multimedia qt6-remoteobjects qt6-sensors \
-    qt6-serialbus qt6-serialport qt6-webchannel qt6-webengine \
-    qt6-websockets qt6-webview qt6-positioning qt6-languageserver \
-    qt6-httpserver qt6-multimedia-ffmpeg qt6-multimedia-gstreamer \
-    qt6-quick3dphysics qt6-speech qt6-grpc qt6-location qt6-quickeffectmaker \
-    python-pyqt6 python-pyqt6-networkauth python-pyqt6-3d python-pyqt6-sip \
-    python-qscintilla-qt6 qscintilla-qt6 python-pyqt6-charts \
-    python-pyqt6-datavisualization python-pyqt6-webengine \
-    kvantum libfm-qt libqtxdg qt6ct qxlsx-qt6 qxmpp-qt6 polkit-qt6 \
-    qt6-graphs phonon-qt6 phonon-qt6-vlc libqaccessibilityclient-qt6 \
-    kdsoap-qt6 qtpbfimageplugin-qt6 doublecmd-qt6 lazarus-qt6 qt6pas \
-    deepin-qt6platform-plugins deepin-qt6integration qt6-xcb-private-headers \
-    plasma5support futuresql libportal-qt6 qcoro-qt6 qmltermwidget-qt6"
-
-GNOME_PACKAGES="gnome gnome-shell gnome-terminal gnome-control-center gnome-tweaks gnome-extra gnome-tweak-tool gdm"
-
-XFCE_PACKAGES="xfce4 xfce4-goodies lightdm lightdm-gtk-greeter network-manager-applet"
-
-MATE_PACKAGES="mate mate-extra network-manager-applet"
-
-# Desktop environment selection
-clear
-echo "==================================="
-echo "Select Desktop Environment:"
-echo "==================================="
-echo "1) Awesome WM (Lightweight Window Manager)"
-echo "2) Cinnamon (Modern & Clean)"
-echo "3) KDE Plasma (Feature Rich)"
-echo "4) GNOME (Intuitive)"
-echo "5) XFCE (Light & Stable)"
-echo "6) MATE (Traditional)"
-echo "==================================="
-
-read -p "Enter your choice (1-6): " DE_CHOICE
-
-case $DE_CHOICE in
-    1) DE_PACKAGES="$AWESOME_PACKAGES"
-       DE_NAME="awesome"
-       DM_SERVICE="lightdm"
-       ;;
-    2) DE_PACKAGES="$CINNAMON_PACKAGES"
-       DE_NAME="cinnamon"
-       DM_SERVICE="lightdm"
-       ;;
-    3) DE_PACKAGES="$KDE_PACKAGES"
-       DE_NAME="plasma"
-       DM_SERVICE="sddm"
-       ;;
-    4) DE_PACKAGES="$GNOME_PACKAGES"
-       DE_NAME="gnome"
-       DM_SERVICE="gdm"
-       ;;
-    5) DE_PACKAGES="$XFCE_PACKAGES"
-       DE_NAME="xfce"
-       DM_SERVICE="lightdm"
-       ;;
-    6) DE_PACKAGES="$MATE_PACKAGES"
-       DE_NAME="mate"
-       DM_SERVICE="lightdm"
-       ;;
-    *) echo "Invalid selection. Exiting..."
-       exit 1
-       ;;
-esac
-
-# Install base system and desktop environment
-echo "Installing base system and selected desktop environment (${DE_NAME})..."
+# Install base system
+echo "Installing base system..."
 pacstrap -K /mnt base linux linux-firmware base-devel ${CPU_UCODE} \
-    networkmanager vim efibootmgr \
+    networkmanager terminus-font vim efibootmgr \
     pipewire pipewire-alsa pipewire-pulse pipewire-jack \
     reflector dhcpcd bash-completion \
     sudo btrfs-progs htop pacman-contrib pkgfile less \
     git curl wget zsh openssh man-db \
     xorg xorg-server xorg-apps xorg-drivers xorg-xkill xorg-xinit xterm \
     mesa libx11 libxft libxinerama freetype2 noto-fonts-emoji usbutils xdg-user-dirs \
-    konsole ${DE_PACKAGES} --noconfirm
+    konsole --noconfirm || { echo "Failed to install base system. Exiting..."; exit 1; }
 
 # Generate fstab
 echo "Generating fstab..."
-genfstab -U /mnt >> /mnt/etc/fstab
+genfstab -U /mnt >> /mnt/etc/fstab || { echo "Failed to generate fstab. Exiting..."; exit 1; }
+
+# Desktop environment selection
+clear
+echo "==================================="
+echo "Select Desktop Environment:"
+echo "==================================="
+echo "1) KDE Plasma"
+echo "2) GNOME"
+echo "3) XFCE"
+echo "4) Awesome WM"
+echo "5) DWM"
+echo "6) Cinnamon"
+echo "7) Hyprland"
+echo "==================================="
+read -p "Enter your choice (1-7): " DE_CHOICE
+
+# Define packages for each desktop environment
+case $DE_CHOICE in
+    1)  # KDE Plasma
+        DE_PACKAGES="plasma plasma-desktop plasma-wayland-protocols kde-applications sddm"
+        DM_SERVICE="sddm"
+        ;;
+    2)  # GNOME
+        DE_PACKAGES="gnome gnome-extra gdm"
+        DM_SERVICE="gdm"
+        ;;
+    3)  # XFCE
+        DE_PACKAGES="xfce4 xfce4-goodies lightdm lightdm-gtk-greeter"
+        DM_SERVICE="lightdm"
+        ;;
+    4)  # Awesome WM
+        DE_PACKAGES="awesome lightdm lightdm-gtk-greeter"
+        DM_SERVICE="lightdm"
+        ;;
+    5)  # DWM
+        DE_PACKAGES="dwm st dmenu"
+        DM_SERVICE="none"  # DWM does not use a display manager
+        ;;
+    6)  # Cinnamon
+        DE_PACKAGES="cinnamon lightdm lightdm-gtk-greeter"
+        DM_SERVICE="lightdm"
+        ;;
+    7)  # Hyprland
+        DE_PACKAGES="hyprland waybar swaybg swaylock swayidle wlogout mako grim slurp wl-clipboard"
+        DM_SERVICE="none"  # Hyprland does not use a display manager
+        ;;
+    *)
+        echo "Invalid choice. Exiting..."
+        exit 1
+        ;;
+esac
+
+# Install selected desktop environment
+echo "Installing selected desktop environment..."
+arch-chroot /mnt pacman -S --noconfirm ${DE_PACKAGES}
+
+# Enable display manager if applicable
+if [[ $DM_SERVICE != "none" ]]; then
+    arch-chroot /mnt systemctl enable ${DM_SERVICE}
+fi
 
 # System configuration
 arch-chroot /mnt /bin/bash <<CHROOT_COMMANDS
@@ -267,55 +250,16 @@ initrd  /initramfs-linux.img
 options root=PARTUUID=$(blkid -s PARTUUID -o value ${ROOT_PART}) rw quiet
 EOF
 
-# Update system
+# Install additional packages
 pacman -Sy --noconfirm
 
-# Install additional packages
+# Install Korean fonts and input method
 pacman -S --noconfirm \
     noto-fonts-cjk noto-fonts-emoji \
     adobe-source-han-sans-kr-fonts adobe-source-han-serif-kr-fonts ttf-baekmuk \
     powerline-fonts nerd-fonts \
     ttf-lato \
-    libhangul fcitx5 fcitx5-configtool fcitx5-hangul fcitx5-gtk fcitx5-qt \
-    efibootmgr dosfstools mtools os-prober \
-    zsh zsh-autosuggestions zsh-completions zsh-doc zsh-history-substring-search zsh-lovers zsh-syntax-highlighting zshdb \
-    rsync inotify-tools btop tmux kitty \
-    vim git autoconf pkg-config \
-    imagemagick krita gimp gimp-help-ko \
-    tectonic texlive-basic texlive-bibtexextra texlive-bin \
-    texlive-binextra texlive-context texlive-doc texlive-fontsextra \
-    texlive-fontsrecommended texlive-fontutils texlive-formatsextra \
-    texlive-games texlive-humanities texlive-langchinese \
-    texlive-langcjk texlive-langkorean texstudio \
-    julia llvm-julia llvm-julia-libs \
-    kotlin lua-stdlib \
-    ruby neko \
-    go go-tools \
-    perl latex2html \
-    nodejs nodejs-emojione nodejs-lts-hydrogen nodejs-lts-iron nodejs-material-design-icons nodejs-nopt \
-    nodejs-source-map nodejs-yaml npm npm-check-updates \
-    rust rust-analyzer rust-bindgen rust-kanban rust-musl rust-script rust-wasm rustic rustlings rustscan rustup \
-    rustypaste rustypaste-cli \
-    gcc gcc-libs gcc-ada gcc-fortran gcc-objc gcc-go lib32-gcc-libs libgccjit gcc-d gcc-m2 gcc-rust \
-    code vscode-css-languageserver vscode-html-languageserver vscode-json-languageserver \
-    mariadb mariadb-clients mariadb-libs mariadb-lts mariadb-lts-clients mariadb-lts-libs \
-    sqlite sqlite-analyzer sqlite-doc sqlite-tcl sqlitebrowser vsqlite++ wxsqlite3 ruby-sqlite3 php-sqlite \
-    cowsql \
-    firefox thunderbird thunderbird-i18n-ko \
-    libreoffice-fresh libreoffice-fresh-ko \
-    flatpak remmina opentofu chromium \
-    describeimage fortunecraft llm-manager ollama ollama-docs \
-    xdg-user-dirs xdg-utils \
-    cups cups-pdf nss-mdns \
-    gtk3 gtk2 qt5-base qt5-tools qt5-connectivity qt5-sensors \
-    sddm sddm-kcm \
-    hwloc hwdata lshw ethtool jitterentropy \
-    blendr blueberry bluedevil blueman bluetui bluez \
-    zsh zsh-autosuggestions zsh-completions zsh-doc zsh-history-substring-search zsh-lovers zsh-syntax-highlighting
-
-# Enable basic services
-systemctl enable NetworkManager
-systemctl enable ${DM_SERVICE}
+    libhangul fcitx5 fcitx5-configtool fcitx5-hangul fcitx5-gtk fcitx5-qt
 
 # Configure fcitx5
 mkdir -p /home/${USERNAME}/.config/fcitx5/conf
@@ -356,9 +300,9 @@ umount -R /mnt
 
 # Final message
 clear
-echo "Installation completed!"
+echo "Installation complete!"
 echo ""
-echo "Important post-installation steps:"
+echo "IMPORTANT POST-INSTALLATION STEPS:"
 echo "1. Power off the computer completely (not reboot)"
 echo "2. Remove the USB drive"
 echo "3. Enter BIOS setup and make these changes:"
@@ -368,6 +312,6 @@ echo "   c. Set UEFI boot mode (disable CSM/Legacy completely)"
 echo "   d. Set Boot Device Priority to ${DEVICE}"
 echo ""
 echo "After first boot:"
-echo "1. Set a password for the user '${USERNAME}' using the 'passwd' command."
-echo "2. Korean input can be toggled with Shift+Space."
-echo "3. Configure input method with 'fcitx5-configtool'."
+echo "1. Korean input can be toggled with Shift+Space"
+echo "2. Run 'fcitx5-configtool' to configure input method"
+echo "3. Use 'fcitx5 --debug &' if you need to troubleshoot"
