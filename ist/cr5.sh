@@ -127,7 +127,7 @@ AWESOME_PACKAGES="awesome lightdm lightdm-gtk-greeter thunar lxsession rxvt-unic
 
 CINNAMON_PACKAGES="cinnamon metacity gnome-shell gnome-terminal gnome-control-center gnome-tweaks"
 
-KDE_PACKAGES="plasma plasma-desktop plasma-wayland-session kde-applications sddm konsole dolphin ark gwenview kate okular plasma-pa plasma-nm plasma-wayland-protocols discover packagekit-qt6"
+KDE_PACKAGES="plasma plasma-desktop plasma-wayland-session kde-applications appstream-qt qt6-doc qt6-examples qt6-translations qt6-5compat qt6-base qt6-declarative qt6-quick3d qt6-quicktimeline qt6-shadertools qt6-svg qt6-tools qt6-wayland qt6-imageformats qt6-3d qt6-networkauth pyside6 poppler-qt6 kde-applications sddm konsole dolphin ark gwenview kate okular plasma-pa plasma-nm plasma-wayland-protocols discover packagekit-qt6 "
 
 # Glitch fixs
 GNOME_PACKAGES="gnome gnome-shell gnome-terminal gnome-control-center gnome-tweaks gnome-extra gnome-tweak-tool gdm"
