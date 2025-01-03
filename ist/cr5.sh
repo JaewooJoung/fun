@@ -127,7 +127,36 @@ AWESOME_PACKAGES="awesome lightdm lightdm-gtk-greeter thunar lxsession rxvt-unic
 
 CINNAMON_PACKAGES="cinnamon metacity gnome-shell gnome-terminal gnome-control-center gnome-tweaks"
 
-KDE_PACKAGES="plasma plasma-desktop plasma-wayland-session kde-applications sddm konsole dolphin ark gwenview kate okular plasma-pa plasma-nm plasma-wayland-protocols discover packagekit-qt6"
+KDE_PACKAGES="appstream-qt ark audiocd-kio bluedevil breeze breeze-gtk \
+    deepin-qt6integration deepin-qt6platform-plugins discover doublecmd-qt6 \
+    extra-cmake-modules fcitx-qt6 fcitx5-qt filelight futuresql \
+    firefox dolphin gwenview kate \
+    kate kde-applications kde-gtk-config kcodecs kcoreaddons \
+    kdeplasma-addons kdsoap-qt6 kgamma5 kgpg kinfocenter konsole \
+    kscreen kvantum kvantum-qt6 kwalletmanager kwayland-integration \
+    layer-shell-qt lazarus-qt6 libfm-qt libportal-qt6 \
+    libqaccessibilityclient-qt6 libqtxdg milou okular oxygen \
+    packagekit-qt6 phonon-qt6 phonon-qt6-vlc plasma plasma-desktop \
+    plasma-nm plasma-pa plasma-wayland-protocols plasma-wayland-session \
+    plasma5support polkit-qt6 poppler-qt6 powerdevil print-manager \
+    pulseaudio-bluetooth pyside6 python-pyqt6 python-pyqt6-3d \
+    python-pyqt6-charts python-pyqt6-datavisualization python-pyqt6-graphs \
+    python-pyqt6-networkauth python-pyqt6-sip python-pyqt6-webengine \
+    python-qscintilla-qt6 qca-qt6 qcoro qgpgme-qt6 \
+    qscintilla-qt6 qt6-3d qt6-5compat qt6-base qt6-charts \
+    qt6-connectivity qt6-datavis3d qt6-declarative qt6-doc \
+    qt6-examples qt6-graphs qt6-grpc qt6-httpserver qt6-imageformats \
+    qt6-languageserver qt6-location qt6-lottie qt6-multimedia \
+    qt6-multimedia-ffmpeg qt6-multimedia-gstreamer qt6-networkauth \
+    qt6-positioning qt6-quick3d qt6-quick3dphysics qt6-quickeffectmaker \
+    qt6-quicktimeline qt6-remoteobjects qt6-scxml qt6-sensors \
+    qt6-serialbus qt6-serialport qt6-shadertools qt6-speech \
+    qt6-svg qt6-tools qt6-translations qt6-virtualkeyboard \
+    qt6-wayland qt6-webchannel qt6-webengine qt6-websockets \
+    qt6-webview qt6-xcb-private-headers qt6ct qtpbfimageplugin-qt6 \
+    qtkeychain-qt6 quazip-qt6 qxlsx-qt6 qxmpp-qt6 \
+    sddm spectacle systemsettings xdg-desktop-portal-kde \
+    xorg-xwayland zeroconf-ioslave"
 
 GNOME_PACKAGES="gnome gnome-shell gnome-extra gnome-tweak-tool gdm"
 
