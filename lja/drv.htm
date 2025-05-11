@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Question Loader</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.3.4/vue.global.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 0 20px; }
+        .question { border: 1px solid #ddd; padding: 20px; margin: 20px 0; border-radius: 8px; }
+        .option { padding: 10px; margin: 5px 0; cursor: pointer; border: 1px solid #eee; border-radius: 4px; }
+        .option:hover { background-color: #f5f5f5; }
+        .option.selected { background-color: #007bff; color: white; }
+        button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        input { padding: 8px; margin-right: 10px; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div>
+            <input type="number" v-model="chapterId" placeholder="Enter chapter ID">
+            <button @click="loadQuestions">Load Questions</button>
+        </div>
+
+        <div v-for="(question, index) in questions" :key="index" class="question">
+            <h3>Question {{ index + 1 }}</h3>
+            <p>{{ question.text }}</p>
+            <div 
+                v-for="(option, optIndex) in question.options" 
+                :key="optIndex" 
+                class="option"
+                :class="{ selected: answers[index] === optIndex }"
+                @click="selectAnswer(index, optIndex)"
+            >
+                {{ option }}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue
+
+        createApp({
+            data() {
+                return {
+                    chapterId: '',
+                    questions: [],
+                    answers: []
+                }
+            },
+            methods: {
+                loadQuestions() {
+                    // Generate sample questions based on chapter ID
+                    const numQuestions = 5;
+                    this.questions = [];
+                    this.answers = [];
+
+                    for (let i = 0; i < numQuestions; i++) {
+                        this.questions.push({
+                            text: `Question about traffic rules for chapter ${this.chapterId} (#${i + 1})`,
+                            options: [
+                                "Follow traffic signs and signals",
+                                "Yield to emergency vehicles",
+                                "Maintain safe distance",
+                                "All of the above"
+                            ]
+                        });
+                    }
+                    this.answers = new Array(this.questions.length).fill(null);
+                },
+                selectAnswer(questionIndex, optionIndex) {
+                    Vue.set(this.answers, questionIndex, optionIndex);
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>

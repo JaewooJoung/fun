@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    .container { max-width: 1000px; margin: 20px auto; font-family: Arial, sans-serif; }
+    .controls { margin-bottom: 20px; }
+    select { padding: 8px; margin-right: 15px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { 
+      border: 1px solid #000; 
+      padding: 12px; 
+      text-align: center;
+    }
+    th { background-color: white; font-weight: bold; }
+    .highlighted { 
+      border: 2px solid red !important;
+    }
+    .qm { background-color: #e8f5e9; }
+    .a { background-color: #fff9c4; }
+    .b { background-color: #ffe0b2; }
+    .c { background-color: #ffcdd2; }
+    .d { background-color: #ff8a80; }
+    .severity-header {
+      font-size: 1.2em;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="controls">
+      <select id="severity">
+        <option value="S0">S₀ No injuries</option>
+        <option value="S1">S₁ Light to moderate injuries</option>
+        <option value="S2">S₂ Severe to life-threatening</option>
+        <option value="S3">S₃ Life-threatening to fatal</option>
+      </select>
+      <select id="exposure">
+        <option value="E1">E₁ Very low probability</option>
+        <option value="E2">E₂ Low probability</option>
+        <option value="E3">E₃ Medium probability</option>
+        <option value="E4">E₄ High probability</option>
+      </select>
+      <select id="controllability">
+        <option value="C1">C₁ No injuries</option>
+        <option value="C2">C₂ Normally controllable</option>
+        <option value="C3">C₃ Difficult to control</option>
+      </select>
+    </div>
+
+    <table id="riskMatrix">
+      <tr>
+        <th>Controllability</th>
+        <th>Exposure</th>
+        <th colspan="4" class="severity-header">Severity</th>
+      </tr>
+      <tr>
+        <th></th>
+        <th></th>
+        <th>S0</th>
+        <th>S1</th>
+        <th>S2</th>
+        <th>S3</th>
+      </tr>
+    </table>
+  </div>
+
+  <script>
+    const riskMatrix = {
+      C1: {
+        E1: { S0: 'QM', S1: 'QM', S2: 'QM', S3: 'QM' },
+        E2: { S0: 'QM', S1: 'QM', S2: 'QM', S3: 'QM' },
+        E3: { S0: 'QM', S1: 'QM', S2: 'QM', S3: 'A' },
+        E4: { S0: 'QM', S1: 'QM', S2: 'A', S3: 'B' }
+      },
+      C2: {
+        E1: { S0: 'QM', S1: 'QM', S2: 'QM', S3: 'QM' },
+        E2: { S0: 'QM', S1: 'QM', S2: 'QM', S3: 'A' },
+        E3: { S0: 'QM', S1: 'QM', S2: 'A', S3: 'B' },
+        E4: { S0: 'QM', S1: 'A', S2: 'B', S3: 'C' }
+      },
+      C3: {
+        E1: { S0: 'QM', S1: 'QM', S2: 'QM', S3: 'A' },
+        E2: { S0: 'QM', S1: 'QM', S2: 'A', S3: 'B' },
+        E3: { S0: 'QM', S1: 'A', S2: 'B', S3: 'C' },
+        E4: { S0: 'QM', S1: 'B', S2: 'C', S3: 'D' }
+      }
+    };
+
+    function updateMatrix() {
+      const table = document.getElementById('riskMatrix');
+      // Keep the header rows
+      table.innerHTML = `
+        <tr>
+          <th>Controllability</th>
+          <th>Exposure</th>
+          <th colspan="4" class="severity-header">Severity</th>
+        </tr>
+        <tr>
+          <th></th>
+          <th></th>
+          <th>S0</th>
+          <th>S1</th>
+          <th>S2</th>
+          <th>S3</th>
+        </tr>
+      `;
+
+      const selectedC = document.getElementById('controllability').value;
+      const selectedE = document.getElementById('exposure').value;
+      const selectedS = document.getElementById('severity').value;
+
+      for (const [controllability, exposures] of Object.entries(riskMatrix)) {
+        let firstRow = true;
+        for (const [exposure, severities] of Object.entries(exposures)) {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${firstRow ? controllability : ''}</td>
+            <td>${exposure}</td>
+            ${Object.entries(severities).map(([severity, value]) => `
+              <td class="${value.toLowerCase()} ${exposure === selectedE && severity === selectedS && controllability === selectedC ? 'highlighted' : ''}">${value}</td>
+            `).join('')}
+          `;
+          table.appendChild(row);
+          firstRow = false;
+        }
+      }
+    }
+
+    document.getElementById('severity').addEventListener('change', updateMatrix);
+    document.getElementById('exposure').addEventListener('change', updateMatrix);
+    document.getElementById('controllability').addEventListener('change', updateMatrix);
+
+    // Initial matrix update
+    updateMatrix();
+  </script>
+</body>
+</html>
