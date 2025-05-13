@@ -36,6 +36,15 @@
         font-family: monospace;
         white-space: pre-wrap;
     }
+    .summary-text {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-left: 4px solid #27ae60;
+        margin-bottom: 20px;
+        font-family: monospace;
+        white-space: pre-line;
+        font-size: 14px;
+    }
     .chart {
         max-width: 100%;
         height: auto;
@@ -122,7 +131,56 @@
 </head>
 <body>
     <h1>Stock Analysis Report: MSFT</h1>
-    <p>Report generated on 2025-05-13 08:45:31</p>
+    <p>Report generated on 2025-05-13 09:35:13</p>
+    
+    <div class="container">
+        <h2>Stock Analysis Summary</h2>
+        <div class="summary-text">=== Stock Analysis Summary for MSFT ===
+Period: 3mo
+Date Range: 2025-02-13T14:30:00 to 2025-05-12T20:00:00
+
+Latest Information:
+- Current Price: 449.26
+- Date: 2025-05-12T20:00:00
+- RSI(14): 75.21
+- MACD: 16.1057, Signal: 10.5795
+- ATR(14): 11.67
+
+Recent Signals (Last 30 days):
+- Buy Signals: 9
+- Sell Signals: 10
+
+Strategy Suggestion: BEARISH - More sell signals than buy signals in the recent period.
+
+Recent Buy Signal Dates (Last 10):
+- 2025-04-25T13:30:00
+- 2025-04-24T13:30:00
+- 2025-04-15T13:30:00
+- 2025-04-10T13:30:00
+- 2025-04-08T13:30:00
+- 2025-04-07T13:30:00
+- 2025-04-04T13:30:00
+- 2025-04-03T13:30:00
+- 2025-03-31T13:30:00
+- 2025-03-28T13:30:00
+
+Recent Sell Signal Dates (Last 10):
+- 2025-05-12T20:00:00
+- 2025-05-09T13:30:00
+- 2025-05-08T13:30:00
+- 2025-05-07T13:30:00
+- 2025-05-06T13:30:00
+- 2025-05-05T13:30:00
+- 2025-05-02T13:30:00
+- 2025-05-01T13:30:00
+- 2025-04-21T13:30:00
+- 2025-03-31T13:30:00
+
+Financial Metrics:
+- P/B Ratio: 13.13
+- P/E Ratio: 38.73
+</div>
+    </div>
     
     <div class="container">
         <h2>Current Strategy: <span class="sell">BEARISH</span></h2>
@@ -145,21 +203,6 @@
                 <div class="metric-value">38.73</div>
             </div>
         </div>
-        
-        <div class="summary">Stock Analysis Summary for MSFT
-Period: 3mo
-Date Range: 2025-02-13T14:30:00 to 2025-05-12T20:00:00
-
-Latest Price: 449.26
-RSI(14): 75.21
-MACD: 16.1057, Signal: 10.5795
-
-Recent Signals (Last 30 days):
-Buy Signals: 9
-Sell Signals: 10
-
-Strategy: BEARISH
-</div>
         
         <h3>Signals (Last 30 Days)</h3>
         <table>
@@ -249,14 +292,14 @@ Strategy: BEARISH
             </div>
         </div>
         
-        <!-- All-Time Highs Chart -->
+        <!-- ATR Chart (replaced All-Time Highs) -->
         <div class="chart-container">
-            <div class="chart-title">All-Time Highs Analysis</div>
-            <img class="chart" src="plots/MSFT_ath_20250513.png" alt="All-Time Highs Chart">
+            <div class="chart-title">Average True Range (ATR)</div>
+            <img class="chart" src="plots/MSFT_atr_20250513.png" alt="ATR Chart">
             <div class="chart-description">
-                This chart marks points where the price reached all-time highs within a specified lookback window.
-                All-time high points often act as psychological resistance levels and may signal potential trend 
-                strength or market euphoria.
+                ATR measures the volatility of a stock by calculating the average of true ranges over a given period.
+                Higher ATR values indicate higher volatility, while lower values suggest consolidation. This helps
+                in setting stop-losses and determining position sizes.
             </div>
         </div>
         
@@ -271,29 +314,29 @@ Strategy: BEARISH
             </div>
         </div>
         
-        <!-- Volume Analysis Chart -->
+        <!-- Volume Candlesticks Chart (updated description) -->
         <div class="chart-container">
-            <div class="chart-title">Volume Analysis</div>
-            <img class="chart" src="plots/MSFT_volume_20250513.png" alt="Volume Analysis Chart">
+            <div class="chart-title">Volume Candlesticks Analysis</div>
+            <img class="chart" src="plots/MSFT_volume_candlesticks_20250513.png" alt="Volume Candlesticks Chart">
             <div class="chart-description">
-                Volume analysis examines the number of shares traded over time. High volume often confirms price movements,
-                while price changes on low volume may be less reliable. Volume spikes can indicate potential reversal
-                points or trend confirmations.
+                Volume candlesticks display trading volume with color coding based on price direction - green for up days
+                and red for down days. This visualization helps identify buying and selling pressure, with higher volume
+                often confirming price movements. The chart also shows volume moving average for context.
             </div>
         </div>
     </div>
     
     <div class="container">
-        <h2>Recent Signal Dates</h2>
+        <h2>Recent Signal Dates (Last 10)</h2>
         
         <h3>Buy Signals</h3>
         <div class="buy">
-            2025-04-25T13:30:00<br>2025-04-24T13:30:00<br>2025-04-15T13:30:00<br>2025-04-10T13:30:00<br>2025-04-08T13:30:00
+            2025-04-25T13:30:00<br>2025-04-24T13:30:00<br>2025-04-15T13:30:00<br>2025-04-10T13:30:00<br>2025-04-08T13:30:00<br>2025-04-07T13:30:00<br>2025-04-04T13:30:00<br>2025-04-03T13:30:00<br>2025-03-31T13:30:00<br>2025-03-28T13:30:00
         </div>
         
         <h3>Sell Signals</h3>
         <div class="sell">
-            2025-05-12T20:00:00<br>2025-05-09T13:30:00<br>2025-05-08T13:30:00<br>2025-05-07T13:30:00<br>2025-05-06T13:30:00
+            2025-05-12T20:00:00<br>2025-05-09T13:30:00<br>2025-05-08T13:30:00<br>2025-05-07T13:30:00<br>2025-05-06T13:30:00<br>2025-05-05T13:30:00<br>2025-05-02T13:30:00<br>2025-05-01T13:30:00<br>2025-04-21T13:30:00<br>2025-03-31T13:30:00
         </div>
     </div>
     
