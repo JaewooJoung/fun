@@ -96,32 +96,6 @@
         color: #2c3e50;
     }
     
-    /* Enhanced table design */
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin: 20px 0;
-        background: white;
-        border-radius: 8px;
-        overflow: hidden;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    th, td {
-        padding: 15px;
-        text-align: left;
-        border-bottom: 1px solid #e0e0e0;
-    }
-    th {
-        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-        color: white;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    tr:hover {
-        background-color: #f8f9fa;
-    }
-    
     /* Two-column signal table */
     .signals-table {
         display: grid;
@@ -215,24 +189,24 @@
 <body>
     <h1>📈 Stock Analysis Report: MSFT</h1>
     <p style="text-align: center; color: #7f8c8d; margin-bottom: 30px;">
-        Report generated on 2025-05-13 @ 15:05:607
+        Report generated on 2025-05-13 @ 16:05:528
     </p>
 
     <div class="container">
         <h2>📊 Stock Analysis Summary</h2>
         <div class="summary">=== Stock Analysis Summary for MSFT ===
 Period: 3mo
-Date Range: 2025-02-13T14:30:00 to 2025-05-12T13:30:00
+Date Range: 2025-02-13T14:30:00 to 2025-05-13T14:17:57
 
 Latest Information:
-- Current Price: 449.26
-- Date: 2025-05-12T13:30:00
-- RSI(14): 75.21
-- MACD: 16.1057, Signal: 10.5795
-- ATR(14): 11.68
+- Current Price: 450.1
+- Date: 2025-05-13T14:17:57
+- RSI(14): 75.46
+- MACD: 16.9898, Signal: 11.8616
+- ATR(14): 11.22
 
 Recent Signals (Last 30 days):
-- Buy Signals: 9
+- Buy Signals: 8
 - Sell Signals: 10
 
 Strategy Suggestion: BEARISH - More sell signals than buy signals in the recent period.
@@ -250,6 +224,7 @@ Recent Buy Signal Dates (Last 10):
 - 2025-03-28T13:30:00
 
 Recent Sell Signal Dates (Last 10):
+- 2025-05-13T14:17:57
 - 2025-05-12T13:30:00
 - 2025-05-09T13:30:00
 - 2025-05-08T13:30:00
@@ -259,7 +234,6 @@ Recent Sell Signal Dates (Last 10):
 - 2025-05-02T13:30:00
 - 2025-05-01T13:30:00
 - 2025-04-21T13:30:00
-- 2025-03-31T13:30:00
 
 Financial Metrics:
 - P/B Ratio: 13.13
@@ -273,15 +247,15 @@ Financial Metrics:
         <div class="metrics">
             <div class="metric-card">
                 <div class="metric-title">💰 Current Price</div>
-                <div class="metric-value">449.26</div>
+                <div class="metric-value">450.1</div>
             </div>
             <div class="metric-card">
                 <div class="metric-title">📈 RSI(14)</div>
-                <div class="metric-value">75.21</div>
+                <div class="metric-value">75.46</div>
             </div>
             <div class="metric-card">
                 <div class="metric-title">📊 MACD</div>
-                <div class="metric-value">16.1057</div>
+                <div class="metric-value">16.9898</div>
             </div>
             <div class="metric-card">
                 <div class="metric-title">💹 P/E Ratio</div>
@@ -293,7 +267,7 @@ Financial Metrics:
         <div class="signals-table">
             <div class="signal-column">
                 <div class="signal-header buy-header">
-                    🟢 Buy Signals (9)
+                    🟢 Buy Signals (8)
                 </div>
                 <div class="signal-content buy">
                     2025-04-25T13:30:00<br>2025-04-24T13:30:00<br>2025-04-15T13:30:00<br>2025-04-10T13:30:00<br>2025-04-08T13:30:00<br>2025-04-07T13:30:00<br>2025-04-04T13:30:00<br>2025-04-03T13:30:00<br>2025-03-31T13:30:00<br>2025-03-28T13:30:00
@@ -304,7 +278,7 @@ Financial Metrics:
                     🔴 Sell Signals (10)
                 </div>
                 <div class="signal-content sell">
-                    2025-05-12T13:30:00<br>2025-05-09T13:30:00<br>2025-05-08T13:30:00<br>2025-05-07T13:30:00<br>2025-05-06T13:30:00<br>2025-05-05T13:30:00<br>2025-05-02T13:30:00<br>2025-05-01T13:30:00<br>2025-04-21T13:30:00<br>2025-03-31T13:30:00
+                    2025-05-13T14:17:57<br>2025-05-12T13:30:00<br>2025-05-09T13:30:00<br>2025-05-08T13:30:00<br>2025-05-07T13:30:00<br>2025-05-06T13:30:00<br>2025-05-05T13:30:00<br>2025-05-02T13:30:00<br>2025-05-01T13:30:00<br>2025-04-21T13:30:00
                 </div>
             </div>
         </div>
@@ -314,6 +288,9 @@ Financial Metrics:
     <div class="chart-container">
         <div class="chart-title">📈 Combined Technical Analysis</div>
         <img class="chart" src="plots/MSFT_combined.png" alt="Combined Technical Analysis Chart">
+        <div class="chart-description">
+            📊 This combined chart shows the price movement, RSI, and MACD indicators together for a comprehensive view of the stock's technical condition.
+        </div>
     </div>
 
     <!-- Price Chart with Buy/Sell Signals -->
@@ -322,50 +299,13 @@ Financial Metrics:
         <img class="chart" src="plots/MSFT_price.png" alt="Price Chart with Buy/Sell Signals">
         <div class="chart-description">
             📍 The price chart shows the stock's price movement over time with buy signals (green circles) and
-            sell signals (red crosses). Moving averages help identify the overall trend.
+            sell signals (red circles). Moving averages help identify the overall trend.
         </div>
     </div>
 
     <!-- Technical Indicators -->
     <div class="container">
         <h2>🔧 Technical Indicators</h2>
-
-        <!-- RSI Chart -->
-        <div class="chart-container">
-            <div class="chart-title">📊 Relative Strength Index (RSI)</div>
-            <img class="chart" src="plots/MSFT_rsi.png" alt="RSI Chart">
-            <div class="chart-description">
-                📈 RSI measures the speed and change of price movements. Values above 70 indicate overbought conditions
-                (potential sell signal), while values below 30 indicate oversold conditions (potential buy signal).
-            </div>
-        </div>
-
-        <!-- MACD Chart -->
-        <div class="chart-container">
-            <div class="chart-title">〰️ Moving Average Convergence Divergence (MACD)</div>
-            <img class="chart" src="plots/MSFT_macd.png" alt="MACD Chart">
-            <div class="chart-description">
-                📉 MACD shows the relationship between two moving averages of a security's price.
-                The MACD line crossing above the signal line is bullish, while crossing below is bearish.
-                The histogram shows the difference between MACD and signal line.
-            </div>
-        </div>
-
-        <!-- Bollinger Bands Chart -->
-        <div class="chart-container">
-            <div class="chart-title">📏 Bollinger Bands</div>
-            <img class="chart" src="plots/MSFT_bb.png" alt="Bollinger Bands Chart">
-            <div class="chart-description">
-                📊 Bollinger Bands consist of a middle band (20-day SMA) with an upper and lower band.
-                Price reaching the upper band may indicate overbought conditions, while reaching the lower band may indicate
-                oversold conditions. The width of the bands indicates volatility.
-            </div>
-        </div>
-    </div>
-
-    <!-- Advanced Technical Analysis -->
-    <div class="container">
-        <h2>🚀 Advanced Technical Analysis</h2>
 
         <!-- Fibonacci Retracement Chart -->
         <div class="chart-container">
@@ -400,14 +340,14 @@ Financial Metrics:
             </div>
         </div>
 
-        <!-- Volume Candlesticks Chart -->
+        <!-- Volume Analysis Chart -->
         <div class="chart-container">
-            <div class="chart-title">📊 Volume Candlesticks Analysis</div>
-            <img class="chart" src="plots/MSFT_volume_candlesticks.png" alt="Volume Candlesticks Chart">
+            <div class="chart-title">📊 Volume Analysis</div>
+            <img class="chart" src="plots/MSFT_volume_candles.png" alt="Volume Analysis Chart">
             <div class="chart-description">
-                📈 Volume candlesticks display trading volume with color coding based on price direction - green for up days
+                📈 Volume analysis shows trading volume with color coding based on price direction - green for up days
                 and red for down days. This visualization helps identify buying and selling pressure, with higher volume
-                often confirming price movements. The chart also shows volume moving average for context.
+                often confirming price movements.
             </div>
         </div>
     </div>
