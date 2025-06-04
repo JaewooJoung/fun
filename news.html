@@ -195,27 +195,37 @@ let itemsPerPage = 9;
 
 // Initialize the page
 function init() {
-  // Check if news.js is loaded
-  if (typeof allNews !== 'undefined' && allNews.length > 0) {
-    console.log(`뉴스 데이터 로드됨: 총 ${allNews.length}개 뉴스`);
-    displayNews();
-    updateCategoryCount();
-  } else {
-    // Fallback sample data if news.js is not loaded
-    console.warn('news.js 파일이 로드되지 않았습니다. 샘플 데이터를 사용합니다.');
-    window.allNews = [
-      {
-        title: "news.js 파일을 로드해주세요",
-        url: "#",
-        description: "Julia 스크립트를 실행하여 news.js 파일을 생성하고, HTML과 같은 폴더에 저장해주세요.",
-        press: "시스템",
-        date: new Date().toISOString().slice(0, 19).replace('T', ' '),
-        image: "https://via.placeholder.com/400x200/FF5722/white?text=news.js+필요",
-        category: "헤드라인"
-      }
-    ];
-    displayNews();
-  }
+  // Try to load news from GitHub first
+  loadNewsFromGitHub().then(() => {
+    // Check if news.js is loaded
+    if (typeof allNews !== 'undefined' && allNews.length > 0) {
+      console.log(`뉴스 데이터 로드됨: 총 ${allNews.length}개 뉴스`);
+      displayNews();
+      updateCategoryCount();
+    } else {
+      showFallbackData();
+    }
+  }).catch(error => {
+    console.warn('GitHub에서 뉴스 로드 실패, 샘플 데이터 사용:', error);
+    showFallbackData();
+  });
+}
+
+// Show fallback data when news.js cannot be loaded
+function showFallbackData() {
+  console.warn('news.js 파일이 로드되지 않았습니다. 샘플 데이터를 사용합니다.');
+  window.allNews = [
+    {
+      title: "GitHub에서 뉴스 데이터를 불러오는 중...",
+      url: "https://jaewoojoung.github.io/fun/news.js",
+      description: "Julia 스크립트를 실행하여 news.js 파일을 생성하고, GitHub Pages에 업로드해주세요. 새로고침 버튼을 눌러 다시 시도할 수 있습니다.",
+      press: "시스템",
+      date: new Date().toISOString().slice(0, 19).replace('T', ' '),
+      image: "https://via.placeholder.com/400x200/2196F3/white?text=GitHub+연결중",
+      category: "헤드라인"
+    }
+  ];
+  displayNews();
 }
 
 // Update category count display
@@ -351,27 +361,56 @@ function openNews(url) {
   window.open(url, '_blank');
 }
 
-// Refresh news (placeholder function)
+// Refresh news from GitHub Pages
 function refreshNews() {
   const container = document.getElementById('newsContainer');
   container.innerHTML = '<div class="loading"><i class="fa fa-spinner fa-spin fa-3x"></i><p>뉴스를 새로 불러오는 중...</p></div>';
   
-  // Try to reload the news.js file
-  const script = document.createElement('script');
-  script.src = 'news.js?t=' + new Date().getTime(); // Add timestamp to force reload
-  script.onload = function() {
+  // Load news data from GitHub Pages
+  loadNewsFromGitHub().then(() => {
     setTimeout(() => {
       displayNews();
       updateCategoryCount();
-      console.log('뉴스 데이터가 새로고침되었습니다.');
+      console.log('뉴스 데이터가 GitHub에서 새로고침되었습니다.');
     }, 1000);
-  };
-  script.onerror = function() {
+  }).catch(error => {
     setTimeout(() => {
-      container.innerHTML = '<div class="w3-container w3-center w3-text-red"><p><i class="fa fa-exclamation-triangle"></i> news.js 파일을 찾을 수 없습니다.<br>Julia 스크립트를 실행하여 뉴스 데이터를 생성해주세요.</p></div>';
+      container.innerHTML = '<div class="w3-container w3-center w3-text-red"><p><i class="fa fa-exclamation-triangle"></i> 뉴스 데이터를 불러올 수 없습니다.<br>네트워크 연결을 확인해주세요.</p></div>';
+      console.error('Error loading news:', error);
     }, 1000);
-  };
-  document.head.appendChild(script);
+  });
+}
+
+// Function to load news data from GitHub Pages
+async function loadNewsFromGitHub() {
+  const newsUrl = 'https://jaewoojoung.github.io/fun/news.js';
+  
+  try {
+    // Remove any existing news script
+    const existingScript = document.getElementById('news-script');
+    if (existingScript) {
+      existingScript.remove();
+    }
+    
+    // Create new script element
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.id = 'news-script';
+      script.src = newsUrl + '?t=' + new Date().getTime(); // Add timestamp to prevent caching
+      script.onload = () => {
+        console.log('뉴스 데이터가 GitHub에서 로드되었습니다.');
+        resolve();
+      };
+      script.onerror = () => {
+        console.error('GitHub에서 뉴스 데이터 로드 실패');
+        reject(new Error('Failed to load news from GitHub'));
+      };
+      document.head.appendChild(script);
+    });
+  } catch (error) {
+    console.error('Error loading news from GitHub:', error);
+    throw error;
+  }
 }
 
 // Script to open and close sidebar
@@ -390,8 +429,20 @@ window.onload = init;
 
 </script>
 
-<!-- Load the news data from news.js -->
-<script src="news.js"></script>
+<!-- Load the news data from GitHub Pages -->
+<script>
+// Try to load news.js from GitHub on initial page load
+(function() {
+  const script = document.createElement('script');
+  script.id = 'initial-news-script';
+  script.src = 'https://jaewoojoung.github.io/fun/news.js?t=' + new Date().getTime();
+  script.async = true;
+  script.onerror = function() {
+    console.warn('Initial load from GitHub failed, will try again in init()');
+  };
+  document.head.appendChild(script);
+})();
+</script>
 
 </body>
 </html>
