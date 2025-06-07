@@ -1,0 +1,34 @@
+{
+    "6mo": {
+        "price": 263.1000061035156,
+        "macd": -2.1340738800832355,
+        "signal": -1.1554150152318512,
+        "rsi": 44.56906643389457,
+        "bb_position": "Within Bands",
+        "trend": "Neutral"
+    },
+    "1mo": {
+        "price": 263.1000061035156,
+        "macd": -0.7315217546067174,
+        "signal": 0.8606622409942735,
+        "rsi": 50.24555900136691,
+        "bb_position": "Within Bands",
+        "trend": "Neutral"
+    },
+    "1y": {
+        "price": 263.1000061035156,
+        "macd": -2.1327969851078024,
+        "signal": -1.153537277085998,
+        "rsi": 44.57617568822879,
+        "bb_position": "Within Bands",
+        "trend": "Bearish"
+    },
+    "3mo": {
+        "price": 263.1000061035156,
+        "macd": -2.2368123462400717,
+        "signal": -1.3062117104030282,
+        "rsi": 43.909981622517705,
+        "bb_position": "Within Bands",
+        "trend": "Neutral"
+    }
+}
