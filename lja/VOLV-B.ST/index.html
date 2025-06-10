@@ -755,7 +755,7 @@
                 backtestMetrics.appendChild(card);
             });
             
-            // Check if earnings data exists
+            // Update earnings table - only if data exists
             if (summary.eps && summary.eps.quarter && summary.eps.quarter.length > 0) {
                 const earningsTable = document.getElementById('earnings-table').querySelector('tbody');
                 earningsTable.innerHTML = '';
@@ -775,6 +775,8 @@
                     `;
                     earningsTable.appendChild(row);
                 });
+            } else {
+                document.getElementById('earnings-table').style.display = 'none';
             }
         }
 
@@ -963,9 +965,9 @@
                 }
             });
 
-            // Initialize Recommendations Chart (placeholder since no data)
-            const recommendationsCtx = document.getElementById('recommendationsChart').getContext('2d');
-            recommendationsChart = new Chart(recommendationsCtx, {
+           // Only initialize recommendations chart if data exists
+            if (latestRecs && latestRecs.strongbuy) {
+                recommendationsChart = new Chart(recommendationsCtx, {
                 type: 'bar',
                 data: {
                     labels: ['Strong Buy', 'Buy', 'Hold', 'Sell', 'Strong Sell'],
@@ -1021,7 +1023,10 @@
                     }
                 }
             });
+        } else {
+            document.getElementById('recommendationsChart').style.display = 'none';
         }
+    }
 
         function getChartOptions(yAxisLabel) {
             return {
