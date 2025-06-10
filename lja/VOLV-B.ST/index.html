@@ -1091,7 +1091,7 @@
         }
 
         // Tab switching functionality
-        function showSection(sectionId) {
+       function showSection(sectionId, event) {
             // Remove active class from all tabs and sections
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
