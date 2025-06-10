@@ -629,12 +629,9 @@
         let priceChart, rsiChart, macdChart, signalsChart, backtestChart, recommendationsChart;
         
         // Load JSON data
-        async function loadData() {
+       async function loadData() {
             try {
-                // Show loading state
-                document.getElementById('main-title').textContent = 'Loading Analysis...';
-                
-                // Fetch all JSON files
+                // Replace window.fs.readFile with fetch
                 const [
                     tradingSignals,
                     rsi,
@@ -657,6 +654,7 @@
                     fetch('analysis_summary.json').then(res => res.json())
                 ]);
 
+                // Rest of your code remains the same
                 const data = {
                     tradingSignals,
                     rsi,
@@ -674,15 +672,7 @@
 
             } catch (error) {
                 console.error('Error loading data:', error);
-                document.getElementById('main-title').innerHTML = `
-                    <div class="error-message">
-                        Error loading data files. Please ensure all JSON files are in the same directory as index.html.
-                        <br><br>
-                        Required files: trading_signals.json, rsi.json, multiple_timeframes.json, 
-                        moving_averages.json, macd.json, comprehensive_technical_analysis.json, 
-                        bollinger_bands.json, backtest_results.json, analysis_summary.json
-                    </div>
-                `;
+                document.getElementById('main-title').textContent = 'Technical Analysis Dashboard';
             }
         }
 
@@ -966,67 +956,81 @@
             });
 
            // Only initialize recommendations chart if data exists
-            if (latestRecs && latestRecs.strongbuy) {
-                recommendationsChart = new Chart(recommendationsCtx, {
-                type: 'bar',
-                data: {
-                    labels: ['Strong Buy', 'Buy', 'Hold', 'Sell', 'Strong Sell'],
-                    datasets: [{
-                        label: 'Analyst Recommendations',
-                        data: [0, 0, 0, 0, 0],
-                        backgroundColor: [
-                            'rgba(40, 167, 69, 0.8)',
-                            'rgba(40, 167, 69, 0.6)',
-                            'rgba(255, 193, 7, 0.8)',
-                            'rgba(220, 53, 69, 0.6)',
-                            'rgba(220, 53, 69, 0.8)'
-                        ],
-                        borderColor: [
-                            'rgba(40, 167, 69, 1)',
-                            'rgba(40, 167, 69, 1)',
-                            'rgba(255, 193, 7, 1)',
-                            'rgba(220, 53, 69, 1)',
-                            'rgba(220, 53, 69, 1)'
-                        ],
-                        borderWidth: 2
-                    }]
+    // Initialize Recommendations Chart
+    const recommendationsCtx = document.getElementById('recommendationsChart').getContext('2d');
+
+    // Check if we have recommendations data in analysisSummary
+    if (data.analysisSummary && data.analysisSummary.analyst_recommendations) {
+        const recs = data.analysisSummary.analyst_recommendations;
+
+        recommendationsChart = new Chart(recommendationsCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Strong Buy', 'Buy', 'Hold', 'Sell', 'Strong Sell'],
+                datasets: [{
+                    label: 'Analyst Recommendations',
+                    data: [
+                        recs.strongbuy || 0,
+                        recs.buy || 0,
+                        recs.hold || 0,
+                        recs.sell || 0,
+                        recs.strongsell || 0
+                    ],
+                    backgroundColor: [
+                        'rgba(40, 167, 69, 0.8)',
+                        'rgba(40, 167, 69, 0.6)',
+                        'rgba(255, 193, 7, 0.8)',
+                        'rgba(220, 53, 69, 0.6)',
+                        'rgba(220, 53, 69, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(40, 167, 69, 1)',
+                        'rgba(40, 167, 69, 1)',
+                        'rgba(255, 193, 7, 1)',
+                        'rgba(220, 53, 69, 1)',
+                        'rgba(220, 53, 69, 1)'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        titleColor: '#4cc9f0',
+                        bodyColor: '#e0e0e0',
+                        borderColor: '#4cc9f0',
+                        borderWidth: 1,
+                        padding: 10
+                    }
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: 'rgba(0,0,0,0.8)',
-                            titleColor: '#4cc9f0',
-                            bodyColor: '#e0e0e0',
-                            borderColor: '#4cc9f0',
-                            borderWidth: 1,
-                            padding: 10
-                        }
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(255,255,255,0.05)' }
                     },
-                    scales: {
-                        x: {
-                            grid: { color: 'rgba(255,255,255,0.05)' }
-                        },
-                        y: {
-                            position: 'left',
-                            grid: { color: 'rgba(255,255,255,0.05)' },
-                            ticks: { stepSize: 1 },
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'No recommendation data available',
-                                color: '#888'
-                            }
+                    y: {
+                        position: 'left',
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { stepSize: 1 },
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Analysts',
+                            color: '#e0e0e0'
                         }
                     }
                 }
-            });
-        } else {
-            document.getElementById('recommendationsChart').style.display = 'none';
-        }
+            }
+        });
+    } else {
+        // Hide the chart container if no data
+        document.getElementById('recommendationsChart').style.display = 'none';
+        console.warn('No analyst recommendations data available');
     }
+}
 
         function getChartOptions(yAxisLabel) {
             return {
