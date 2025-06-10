@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analysis Report </title>
+    <title>Analysis Report</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-adapter-moment/1.0.1/chartjs-adapter-moment.min.js"></script>
@@ -134,6 +134,18 @@
             border: 1px solid #dc3545;
         }
         
+        .signal-strong-sell { 
+            background: rgba(220, 53, 69, 0.2); 
+            color: #dc3545;
+            border: 1px solid #dc3545;
+        }
+        
+        .signal-strong-buy { 
+            background: rgba(40, 167, 69, 0.2); 
+            color: #28a745;
+            border: 1px solid #28a745;
+        }
+        
         .chart-container {
             background: #1a1a2e;
             padding: 25px;
@@ -258,6 +270,12 @@
         }
         
         .status-overbought {
+            background: rgba(220, 53, 69, 0.2);
+            color: #dc3545;
+            border: 1px solid #dc3545;
+        }
+        
+        .status-sell {
             background: rgba(220, 53, 69, 0.2);
             color: #dc3545;
             border: 1px solid #dc3545;
@@ -432,6 +450,16 @@
             80%, 100% { content: '...'; }
         }
         
+        .error-message {
+            background: rgba(220, 53, 69, 0.2);
+            border: 1px solid #dc3545;
+            color: #dc3545;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 1.8em;
@@ -480,9 +508,9 @@
 
         <div class="tabs">
             <div class="tab active" onclick="showSection('signals', event)">Trading Signals</div>
-            <div class="tab" onclick="showSection('technical')">Technical Analysis</div>
-            <div class="tab" onclick="showSection('financials')">Financials</div>
-            <div class="tab" onclick="showSection('backtest')">Backtest Results</div>
+            <div class="tab" onclick="showSection('technical', event)">Technical Analysis</div>
+            <div class="tab" onclick="showSection('financials', event)">Financials</div>
+            <div class="tab" onclick="showSection('backtest', event)">Backtest Results</div>
         </div>
 
         <div id="signals" class="content-section active">
@@ -561,7 +589,9 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Will be populated dynamically -->
+                            <tr>
+                                <td colspan="4" style="text-align: center; color: #888;">No earnings data available</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -599,9 +629,12 @@
         let priceChart, rsiChart, macdChart, signalsChart, backtestChart, recommendationsChart;
         
         // Load JSON data
-       async function loadData() {
+        async function loadData() {
             try {
-                // Replace window.fs.readFile with fetch
+                // Show loading state
+                document.getElementById('main-title').textContent = 'Loading Analysis...';
+                
+                // Fetch all JSON files
                 const [
                     tradingSignals,
                     rsi,
@@ -624,7 +657,6 @@
                     fetch('analysis_summary.json').then(res => res.json())
                 ]);
 
-                // Rest of your code remains the same
                 const data = {
                     tradingSignals,
                     rsi,
@@ -642,7 +674,15 @@
 
             } catch (error) {
                 console.error('Error loading data:', error);
-                document.getElementById('main-title').textContent = 'Analysis Report ';
+                document.getElementById('main-title').innerHTML = `
+                    <div class="error-message">
+                        Error loading data files. Please ensure all JSON files are in the same directory as index.html.
+                        <br><br>
+                        Required files: trading_signals.json, rsi.json, multiple_timeframes.json, 
+                        moving_averages.json, macd.json, comprehensive_technical_analysis.json, 
+                        bollinger_bands.json, backtest_results.json, analysis_summary.json
+                    </div>
+                `;
             }
         }
 
@@ -650,7 +690,7 @@
             const summary = data.analysisSummary;
             
             // Update header
-            document.getElementById('main-title').textContent = `${summary.basic_info.shortname} Analysis Report `;
+            document.getElementById('main-title').textContent = `${summary.basic_info.shortname} Analysis Report`;
             document.getElementById('symbol-value').textContent = summary.symbol;
             document.getElementById('price-value').textContent = `${summary.latest_price.toFixed(2)} SEK`;
             
@@ -665,16 +705,17 @@
             // Update indicators
             document.getElementById('rsi-value').textContent = summary.latest_indicators.rsi.value.toFixed(2);
             document.getElementById('rsi-status').textContent = summary.latest_indicators.rsi.signal;
+            document.getElementById('rsi-status').className = `indicator-status status-${summary.latest_indicators.rsi.signal.toLowerCase()}`;
             
-            document.getElementById('macd-value').textContent = summary.latest_indicators.macd.value.toFixed(2);
-            document.getElementById('macd-signal').textContent = `Signal: ${summary.latest_indicators.macd.signal_line.toFixed(2)}`;
+            document.getElementById('macd-value').textContent = summary.latest_indicators.macd.value.toFixed(4);
+            document.getElementById('macd-signal').textContent = `Signal: ${summary.latest_indicators.macd.signal_line.toFixed(4)}`;
             
             document.getElementById('bb-position').textContent = summary.latest_indicators.bollinger_bands.position;
             document.getElementById('bb-middle').textContent = `Middle: ${summary.latest_indicators.bollinger_bands.middle.toFixed(2)}`;
             
             const ma50 = summary.latest_indicators.moving_averages.ma_50;
             document.getElementById('ma50-value').textContent = ma50 ? ma50.toFixed(2) : 'N/A';
-            document.getElementById('ma-position').textContent = ma50 && summary.latest_price < ma50 ? 'Price Below MA' : 'Price Above MA';
+            document.getElementById('ma-position').textContent = ma50 && summary.latest_price > ma50 ? 'Price Above MA' : 'Price Below MA';
             
             // Update multiple timeframes
             const timeframesGrid = document.getElementById('timeframes-grid');
@@ -696,12 +737,12 @@
             backtestMetrics.innerHTML = '';
             
             const metrics = [
-                { label: 'Total Return', value: `${data.backtest.performance.total_return.toFixed(2)}%`, isNegative: data.backtest.performance.total_return < 0 },
-                { label: 'Win Rate', value: `${data.backtest.performance.win_rate.toFixed(2)}%`, isNegative: data.backtest.performance.win_rate < 50 },
-                { label: 'Total Trades', value: data.backtest.performance.n_trades, isNegative: false },
-                { label: 'Sharpe Ratio', value: data.backtest.performance.sharpe_ratio.toFixed(2), isNegative: data.backtest.performance.sharpe_ratio < 0 },
-                { label: 'Max Drawdown', value: `${data.backtest.performance.max_drawdown.toFixed(2)}%`, isNegative: true },
-                { label: 'Profit Factor', value: data.backtest.performance.profit_factor.toFixed(2), isNegative: data.backtest.performance.profit_factor < 1 }
+                { label: 'Total Return', value: `${data.backtest.performance.total_return.toFixed(2)}%`, isPositive: data.backtest.performance.total_return > 0 },
+                { label: 'Win Rate', value: `${data.backtest.performance.win_rate.toFixed(2)}%`, isPositive: data.backtest.performance.win_rate > 50 },
+                { label: 'Total Trades', value: data.backtest.performance.n_trades, isPositive: true },
+                { label: 'Sharpe Ratio', value: data.backtest.performance.sharpe_ratio.toFixed(2), isPositive: data.backtest.performance.sharpe_ratio > 0 },
+                { label: 'Max Drawdown', value: `${data.backtest.performance.max_drawdown.toFixed(2)}%`, isPositive: false },
+                { label: 'Profit Factor', value: data.backtest.performance.profit_factor.toFixed(2), isPositive: data.backtest.performance.profit_factor > 1 }
             ];
             
             metrics.forEach(metric => {
@@ -709,37 +750,39 @@
                 card.className = 'metric-card';
                 card.innerHTML = `
                     <div class="metric-label">${metric.label}</div>
-                    <div class="metric-value ${metric.isNegative ? 'negative' : 'positive'}">${metric.value}</div>
+                    <div class="metric-value ${metric.isPositive ? 'positive' : 'negative'}">${metric.value}</div>
                 `;
                 backtestMetrics.appendChild(card);
             });
             
-            // Update earnings table
-            const earningsTable = document.getElementById('earnings-table').querySelector('tbody');
-            earningsTable.innerHTML = '';
-            
-            summary.eps.quarter.forEach((quarter, index) => {
-                const row = document.createElement('tr');
-                const quarterDate = new Date(quarter);
-                const quarterText = `Q${Math.ceil((quarterDate.getMonth() + 1) / 3)} ${quarterDate.getFullYear()}`;
+            // Check if earnings data exists
+            if (summary.eps && summary.eps.quarter && summary.eps.quarter.length > 0) {
+                const earningsTable = document.getElementById('earnings-table').querySelector('tbody');
+                earningsTable.innerHTML = '';
                 
-                row.innerHTML = `
-                    <td>${quarterText}</td>
-                    <td>${summary.eps.estimate[index].toFixed(2)}</td>
-                    <td>${summary.eps.actual[index].toFixed(2)}</td>
-                    <td class="${summary.eps.surprise[index] >= 0 ? 'positive' : 'negative'}">
-                        ${summary.eps.surprise[index] >= 0 ? '+' : ''}${summary.eps.surprise[index].toFixed(2)}
-                    </td>
-                `;
-                earningsTable.appendChild(row);
-            });
+                summary.eps.quarter.forEach((quarter, index) => {
+                    const row = document.createElement('tr');
+                    const quarterDate = new Date(quarter);
+                    const quarterText = `Q${Math.ceil((quarterDate.getMonth() + 1) / 3)} ${quarterDate.getFullYear()}`;
+                    
+                    row.innerHTML = `
+                        <td>${quarterText}</td>
+                        <td>${summary.eps.estimate[index].toFixed(2)}</td>
+                        <td>${summary.eps.actual[index].toFixed(2)}</td>
+                        <td class="${summary.eps.surprise[index] >= 0 ? 'positive' : 'negative'}">
+                            ${summary.eps.surprise[index] >= 0 ? '+' : ''}${summary.eps.surprise[index].toFixed(2)}
+                        </td>
+                    `;
+                    earningsTable.appendChild(row);
+                });
+            }
         }
 
         function initializeCharts(data) {
             const dates = data.comprehensive.dates.map(d => d.split(' ')[0]);
             const prices = data.comprehensive.prices;
 
-            // Initialize Price Chart
+            // Initialize Price Chart with Bollinger Bands
             const priceCtx = document.getElementById('priceChart').getContext('2d');
             priceChart = new Chart(priceCtx, {
                 type: 'line',
@@ -810,7 +853,7 @@
 
             // Initialize MACD Chart
             const macdCtx = document.getElementById('macdChart').getContext('2d');
-            const histogram = data.macd.macd_line.map((val, i) => val - data.macd.signal_line[i]);
+            const histogram = data.macd.histogram;
             
             macdChart = new Chart(macdCtx, {
                 type: 'line',
@@ -920,23 +963,15 @@
                 }
             });
 
-            // Initialize Recommendations Chart
+            // Initialize Recommendations Chart (placeholder since no data)
             const recommendationsCtx = document.getElementById('recommendationsChart').getContext('2d');
-            const latestRecs = data.analysisSummary.recommendations;
-            
             recommendationsChart = new Chart(recommendationsCtx, {
                 type: 'bar',
                 data: {
                     labels: ['Strong Buy', 'Buy', 'Hold', 'Sell', 'Strong Sell'],
                     datasets: [{
-                        label: 'Current Month',
-                        data: [
-                            latestRecs.strongbuy[0],
-                            latestRecs.buy[0],
-                            latestRecs.hold[0],
-                            latestRecs.sell[0],
-                            latestRecs.strongsell[0]
-                        ],
+                        label: 'Analyst Recommendations',
+                        data: [0, 0, 0, 0, 0],
                         backgroundColor: [
                             'rgba(40, 167, 69, 0.8)',
                             'rgba(40, 167, 69, 0.6)',
@@ -975,7 +1010,13 @@
                         y: {
                             position: 'left',
                             grid: { color: 'rgba(255,255,255,0.05)' },
-                            ticks: { stepSize: 2 }
+                            ticks: { stepSize: 1 },
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'No recommendation data available',
+                                color: '#888'
+                            }
                         }
                     }
                 }
@@ -1044,8 +1085,12 @@
                         grid: { color: 'rgba(255,255,255,0.05)' },
                         ticks: {
                             callback: function(value) {
-                                return value + (yAxisLabel ? ' ' + yAxisLabel : '');
+                                return value.toFixed(2);
                             }
+                        },
+                        title: {
+                            display: yAxisLabel ? true : false,
+                            text: yAxisLabel
                         }
                     }
                 }
@@ -1054,9 +1099,9 @@
 
         function getRSIChartOptions() {
             return {
-                ...getChartOptions(''),
+                ...getChartOptions('RSI'),
                 plugins: {
-                    ...getChartOptions('').plugins,
+                    ...getChartOptions('RSI').plugins,
                     legend: { display: false },
                     annotation: {
                         annotations: {
@@ -1066,7 +1111,12 @@
                                 yMax: 30,
                                 borderColor: 'rgba(40, 167, 69, 0.5)',
                                 borderWidth: 2,
-                                borderDash: [5, 5]
+                                borderDash: [5, 5],
+                                label: {
+                                    content: 'Oversold (30)',
+                                    enabled: true,
+                                    position: 'end'
+                                }
                             },
                             overbought: {
                                 type: 'line',
@@ -1074,15 +1124,20 @@
                                 yMax: 70,
                                 borderColor: 'rgba(220, 53, 69, 0.5)',
                                 borderWidth: 2,
-                                borderDash: [5, 5]
+                                borderDash: [5, 5],
+                                label: {
+                                    content: 'Overbought (70)',
+                                    enabled: true,
+                                    position: 'end'
+                                }
                             }
                         }
                     }
                 },
                 scales: {
-                    ...getChartOptions('').scales,
+                    ...getChartOptions('RSI').scales,
                     y: {
-                        ...getChartOptions('').scales.y,
+                        ...getChartOptions('RSI').scales.y,
                         min: 0,
                         max: 100
                     }
@@ -1091,7 +1146,7 @@
         }
 
         // Tab switching functionality
-       function showSection(sectionId, event) {
+        function showSection(sectionId, event) {
             // Remove active class from all tabs and sections
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
@@ -1136,6 +1191,19 @@
         // Initialize on page load
         window.addEventListener('load', () => {
             loadData();
+        });
+
+        // Add some animation to the header on load
+        window.addEventListener('load', () => {
+            const header = document.querySelector('.header');
+            header.style.opacity = '0';
+            header.style.transform = 'translateY(-20px)';
+            
+            setTimeout(() => {
+                header.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                header.style.opacity = '1';
+                header.style.transform = 'translateY(0)';
+            }, 100);
         });
     </script>
 </body>
