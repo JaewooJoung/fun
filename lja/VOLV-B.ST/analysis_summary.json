@@ -1,0 +1,47 @@
+{
+    "eps": {},
+    "latest_indicators": {
+        "bollinger_bands": {
+            "position": "Above Upper Band",
+            "middle": 2.4089999914169313,
+            "upper": 4.294812877007281,
+            "lower": 0.5231871058265813
+        },
+        "macd": {
+            "histogram": 0.2671673630828901,
+            "signal_line": 0.4972964689765403,
+            "value": 0.7644638320594304,
+            "crossover": ""
+        },
+        "moving_averages": {
+            "ma_50": 1.3256199961900712,
+            "ma_200": null,
+            "signal": ""
+        },
+        "trading_signal": "Strong Sell",
+        "rsi": {
+            "signal": "Overbought",
+            "value": 88.39125340335826
+        },
+        "signal_strength": -1.0
+    },
+    "earnings": {},
+    "recommendations": {},
+    "latest_price": 4.909999847412109,
+    "financials": {
+        "income_statement": {},
+        "cash_flow": {},
+        "balance_sheet": {}
+    },
+    "analysis_date": "2025-06-07 14:59:29",
+    "symbol": "2CUREX.ST",
+    "basic_info": {
+        "symbol": "2CUREX.ST",
+        "shortname": "2cureX AB",
+        "exchange": "Stockholm (STO)",
+        "quoteType": "EQUITY",
+        "sector": "Healthcare",
+        "industry": "Biotechnology"
+    },
+    "latest_volume": null
+}
