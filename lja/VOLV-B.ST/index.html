@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Technical Analysis Dashboard</title>
+    <title>Analysis Report </title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-adapter-moment/1.0.1/chartjs-adapter-moment.min.js"></script>
@@ -479,13 +478,29 @@
         </div>
 
         <div class="tabs">
-            <div class="tab active" onclick="showSection('technical')">Technical Analysis</div>
-            <div class="tab" onclick="showSection('signals')">Trading Signals</div>
-            <div class="tab" onclick="showSection('backtest')">Backtest Results</div>
+            <div class="tab active" onclick="showSection('signals')">Trading Signals</div>
+            <div class="tab" onclick="showSection('technical')">Technical Analysis</div>
             <div class="tab" onclick="showSection('financials')">Financials</div>
+            <div class="tab" onclick="showSection('backtest')">Backtest Results</div>
         </div>
 
-        <div id="technical" class="content-section active">
+        <div id="signals" class="content-section active">
+            <div class="chart-container">
+                <h3 class="chart-title">Trading Signals History</h3>
+                <div class="chart-wrapper">
+                    <canvas id="signalsChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h3 class="chart-title">Multiple Timeframes Analysis</h3>
+                <div class="indicators-grid" id="timeframes-grid">
+                    <!-- Will be populated dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <div id="technical" class="content-section">
             <div class="indicators-grid">
                 <div class="indicator-card">
                     <div class="indicator-name">RSI (14)</div>
@@ -531,35 +546,6 @@
             </div>
         </div>
 
-        <div id="signals" class="content-section">
-            <div class="chart-container">
-                <h3 class="chart-title">Trading Signals History</h3>
-                <div class="chart-wrapper">
-                    <canvas id="signalsChart"></canvas>
-                </div>
-            </div>
-
-            <div class="chart-container">
-                <h3 class="chart-title">Multiple Timeframes Analysis</h3>
-                <div class="indicators-grid" id="timeframes-grid">
-                    <!-- Will be populated dynamically -->
-                </div>
-            </div>
-        </div>
-
-        <div id="backtest" class="content-section">
-            <div class="backtest-metrics" id="backtest-metrics">
-                <!-- Will be populated dynamically -->
-            </div>
-
-            <div class="chart-container">
-                <h3 class="chart-title">Backtest Performance</h3>
-                <div class="chart-wrapper">
-                    <canvas id="backtestChart"></canvas>
-                </div>
-            </div>
-        </div>
-
         <div id="financials" class="content-section">
             <div class="chart-container">
                 <h3 class="chart-title">Earnings Performance</h3>
@@ -584,6 +570,19 @@
                 <h3 class="chart-title">Analyst Recommendations</h3>
                 <div class="chart-wrapper">
                     <canvas id="recommendationsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div id="backtest" class="content-section">
+            <div class="backtest-metrics" id="backtest-metrics">
+                <!-- Will be populated dynamically -->
+            </div>
+
+            <div class="chart-container">
+                <h3 class="chart-title">Backtest Performance</h3>
+                <div class="chart-wrapper">
+                    <canvas id="backtestChart"></canvas>
                 </div>
             </div>
         </div>
@@ -642,7 +641,7 @@
 
             } catch (error) {
                 console.error('Error loading data:', error);
-                document.getElementById('main-title').textContent = 'Technical Analysis Dashboard';
+                document.getElementById('main-title').textContent = 'Analysis Report ';
             }
         }
 
@@ -650,7 +649,7 @@
             const summary = data.analysisSummary;
             
             // Update header
-            document.getElementById('main-title').textContent = `${summary.basic_info.shortname} Technical Analysis Dashboard`;
+            document.getElementById('main-title').textContent = `${summary.basic_info.shortname} Analysis Report `;
             document.getElementById('symbol-value').textContent = summary.symbol;
             document.getElementById('price-value').textContent = `${summary.latest_price.toFixed(2)} SEK`;
             
@@ -1102,16 +1101,16 @@
             
             // Update charts when switching tabs to ensure proper rendering
             setTimeout(() => {
-                if (sectionId === 'technical' && priceChart) {
+                if (sectionId === 'signals' && signalsChart) {
+                    signalsChart.update();
+                } else if (sectionId === 'technical' && priceChart) {
                     priceChart.update();
                     rsiChart.update();
                     macdChart.update();
-                } else if (sectionId === 'signals' && signalsChart) {
-                    signalsChart.update();
-                } else if (sectionId === 'backtest' && backtestChart) {
-                    backtestChart.update();
                 } else if (sectionId === 'financials' && recommendationsChart) {
                     recommendationsChart.update();
+                } else if (sectionId === 'backtest' && backtestChart) {
+                    backtestChart.update();
                 }
             }, 100);
         }
