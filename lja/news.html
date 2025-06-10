@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>마이뉴스 - 한글뉴스</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<style>
+body,h1,h2,h3,h4,h5,h6 {font-family: "Raleway", sans-serif; font-size: 14px;}
+.news-item {
+  background: white;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+.news-item:hover {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  transform: translateY(-2px);
+}
+.news-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  cursor: pointer;
+}
+.news-content {
+  padding: 16px;
+}
+.news-title {
+  font-weight: bold;
+  font-size: 16px;
+  margin-bottom: 8px;
+  line-height: 1.4;
+  cursor: pointer;
+  color: #333;
+}
+.news-title:hover {
+  color: #2196F3;
+}
+.news-meta {
+  color: #666;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+.news-description {
+  color: #555;
+  line-height: 1.5;
+  font-size: 13px;
+}
+.category-filter {
+  margin-bottom: 20px;
+}
+.category-filter button {
+  margin: 2px;
+}
+.loading {
+  text-align: center;
+  padding: 50px;
+}
+</style>
+</head>
+<body class="w3-light-grey w3-content" style="max-width:1600px">
+
+<!-- Sidebar/menu -->
+<nav class="w3-sidebar w3-collapse w3-white w3-animate-left" style="z-index:3;width:300px;" id="mySidebar"><br>
+  <div class="w3-container">
+    <a href="#" onclick="w3_close()" class="w3-hide-large w3-right w3-jumbo w3-padding w3-hover-grey" title="close menu">
+      <i class="fa fa-remove"></i>
+    </a>
+    <img src="https://via.placeholder.com/150x150/2196F3/white?text=JJ" style="width:45%;" class="w3-round"><br><br>
+    <h4><b>Jaewoo Joung</b></h4>
+    <p class="w3-text-grey">마이뉴스 - 개인 뉴스 포털</p>
+  </div>
+  <div class="w3-bar-block">
+    <a href="http://mystock.se/mycv.htm" onclick="w3_close()" class="w3-bar-item w3-button w3-padding w3-text-teal"><i class="fa fa-th-large fa-fw w3-margin-right"></i>My Curriculum Vitae</a> 
+    <a href="mailto:jaewoo.joung@outlook.com?subject=Contact%20Request&body=Hello,%20I%20would%20like%20to%20get%20in%20touch..." 
+   onclick="w3_close()" 
+   class="w3-bar-item w3-button w3-padding">
+   <i class="fa fa-envelope fa-fw w3-margin-right"></i>CONTACT
+</a>
+  </div>
+<div class="w3-panel w3-large">
+  <a href="https://www.facebook.com/jaewoo.joung" target="_blank" class="w3-hover-opacity">
+    <i class="fa fa-facebook-official"></i>
+  </a>
+  <a href="https://wa.me/+46735003275" target="_blank" class="w3-hover-opacity">
+    <i class="fa fa-whatsapp"></i>
+  </a>
+  <a href="http://pf.kakao.com/_yourkakaoid" target="_blank" class="w3-hover-opacity">
+    <i class="fa fa-comment"></i>
+  </a>
+  <a href="https://linkedin.com/in/yourprofile" target="_blank" class="w3-hover-opacity">
+    <i class="fa fa-linkedin"></i>
+  </a>
+  <a href="https://github.com/yourusername" target="_blank" class="w3-hover-opacity">
+    <i class="fa fa-github"></i>
+  </a>
+</div>
+</nav>
+
+<!-- Overlay effect when opening sidebar on small screens -->
+<div class="w3-overlay w3-hide-large w3-animate-opacity" onclick="w3_close()" style="cursor:pointer" title="close side menu" id="myOverlay"></div>
+
+<!-- !PAGE CONTENT! -->
+<div class="w3-main" style="margin-left:300px">
+
+  <!-- Header -->
+  <header id="portfolio">
+    <a href="#"><img src="https://via.placeholder.com/65x65/2196F3/white?text=JJ" style="width:65px;" class="w3-circle w3-right w3-margin w3-hide-large w3-hover-opacity"></a>
+    <span class="w3-button w3-hide-large w3-xxlarge w3-hover-text-grey" onclick="w3_open()"><i class="fa fa-bars"></i></span>
+    <div class="w3-container">
+    <h1><b>마이뉴스 포털</b></h1>
+    <div class="w3-section w3-bottombar w3-padding-16 category-filter">
+      <span class="w3-margin-right">카테고리:</span> 
+      <button class="w3-button w3-black" onclick="showCategory('all')">전체</button>
+      <button class="w3-button w3-white" onclick="showCategory('헤드라인')"><i class="fa fa-star w3-margin-right"></i>헤드라인</button>
+      <button class="w3-button w3-white" onclick="showCategory('정치')"><i class="fa fa-landmark w3-margin-right"></i>정치</button>
+      <button class="w3-button w3-white" onclick="showCategory('경제')"><i class="fa fa-chart-line w3-margin-right"></i>경제</button>
+      <button class="w3-button w3-white" onclick="showCategory('과학')"><i class="fa fa-flask w3-margin-right"></i>과학</button>
+      <button class="w3-button w3-white" onclick="showCategory('문화')"><i class="fa fa-palette w3-margin-right"></i>문화</button>
+      <button class="w3-button w3-white" onclick="showCategory('세계')"><i class="fa fa-globe-americas w3-margin-right"></i>세계</button>
+      <button class="w3-button w3-blue" onclick="refreshNews()"><i class="fa fa-refresh w3-margin-right"></i>새로고침</button>
+    </div>
+    </div>
+  </header>
+  
+  <!-- News Grid -->
+  <div id="newsContainer" class="w3-row-padding">
+    <div class="loading">
+      <i class="fa fa-spinner fa-spin fa-3x"></i>
+      <p>뉴스를 불러오는 중...</p>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="w3-center w3-padding-32">
+    <div class="w3-bar" id="pagination">
+      <!-- Pagination will be dynamically generated -->
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="w3-container w3-padding-32 w3-dark-grey">
+  <div class="w3-row-padding">
+    <div class="w3-third">
+      <h3>마이뉴스</h3>
+      <p>네이버 뉴스에서 수집한 최신 한국 뉴스를 개인화된 포털에서 확인하세요.</p>
+      <p>Powered by <a href="https://www.w3schools.com/w3css/default.asp" target="_blank">w3.css</a></p>
+    </div>
+  
+    <div class="w3-third">
+      <h3>최근 업데이트</h3>
+      <ul class="w3-ul w3-hoverable">
+        <li class="w3-padding-16">
+          <span class="w3-large">실시간 뉴스</span><br>
+          <span>매시간 자동 업데이트</span>
+        </li>
+        <li class="w3-padding-16">
+          <span class="w3-large">카테고리별 분류</span><br>
+          <span>정치, 경제, 과학, 문화, 세계</span>
+        </li> 
+      </ul>
+    </div>
+
+    <div class="w3-third">
+      <h3>인기 태그</h3>
+      <p>
+        <span class="w3-tag w3-black w3-margin-bottom">정치</span> 
+        <span class="w3-tag w3-grey w3-small w3-margin-bottom">경제</span> 
+        <span class="w3-tag w3-grey w3-small w3-margin-bottom">과학기술</span>
+        <span class="w3-tag w3-grey w3-small w3-margin-bottom">문화</span> 
+        <span class="w3-tag w3-grey w3-small w3-margin-bottom">세계뉴스</span> 
+        <span class="w3-tag w3-grey w3-small w3-margin-bottom">헤드라인</span>
+        <span class="w3-tag w3-grey w3-small w3-margin-bottom">IT</span> 
+        <span class="w3-tag w3-grey w3-small w3-margin-bottom">스포츠</span>
+      </p>
+    </div>
+  </div>
+  </footer>
+  
+  <div class="w3-black w3-center w3-padding-24">
+    마이뉴스 포털 © 2025 | 개인용 뉴스 수집기
+  </div>
+
+<!-- End page content -->
+</div>
+
+<script>
+// Global variables
+let currentCategory = 'all';
+let currentPage = 1;
+let itemsPerPage = 9;
+
+// Initialize the page
+function init() {
+  // Try to load news from GitHub first
+  loadNewsFromGitHub().then(() => {
+    // Check if news.js is loaded
+    if (typeof allNews !== 'undefined' && allNews.length > 0) {
+      console.log(`뉴스 데이터 로드됨: 총 ${allNews.length}개 뉴스`);
+      displayNews();
+      updateCategoryCount();
+    } else {
+      showFallbackData();
+    }
+  }).catch(error => {
+    console.warn('GitHub에서 뉴스 로드 실패, 샘플 데이터 사용:', error);
+    showFallbackData();
+  });
+}
+
+// Show fallback data when news.js cannot be loaded
+function showFallbackData() {
+  console.warn('news.js 파일이 로드되지 않았습니다. 샘플 데이터를 사용합니다.');
+  window.allNews = [
+    {
+      title: "GitHub에서 뉴스 데이터를 불러오는 중...",
+      url: "https://jaewoojoung.github.io/fun/news.js",
+      description: "Julia 스크립트를 실행하여 news.js 파일을 생성하고, GitHub Pages에 업로드해주세요. 새로고침 버튼을 눌러 다시 시도할 수 있습니다.",
+      press: "시스템",
+      date: new Date().toISOString().slice(0, 19).replace('T', ' '),
+      image: "https://via.placeholder.com/400x200/2196F3/white?text=GitHub+연결중",
+      category: "헤드라인"
+    }
+  ];
+  displayNews();
+}
+
+// Update category count display
+function updateCategoryCount() {
+  if (typeof newsByCategory !== 'undefined') {
+    console.log('카테고리별 뉴스 개수:', newsByCategory);
+  }
+}
+
+// Display news based on current category and page
+function displayNews() {
+  const container = document.getElementById('newsContainer');
+  
+  // Use the news data from news.js or fallback
+  const newsData = window.allNews || [];
+  let filteredNews = currentCategory === 'all' ? newsData : newsData.filter(item => item.category === currentCategory);
+  
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const pageNews = filteredNews.slice(startIndex, endIndex);
+  
+  if (pageNews.length === 0) {
+    container.innerHTML = '<div class="w3-container w3-center"><p>해당 카테고리에 뉴스가 없습니다.</p></div>';
+    return;
+  }
+  
+  let html = '';
+  pageNews.forEach((item, index) => {
+    const colClass = index % 3 === 2 ? 'w3-third w3-container' : 'w3-third w3-container w3-margin-bottom';
+    html += `
+      <div class="${colClass}">
+        <div class="news-item">
+          <img src="${item.image || 'https://via.placeholder.com/400x200/9E9E9E/white?text=No+Image'}" 
+               alt="${item.title}" 
+               class="news-image" 
+               onclick="openNews('${item.url}')"
+               onerror="this.src='https://via.placeholder.com/400x200/9E9E9E/white?text=No+Image'">
+          <div class="news-content">
+            <div class="news-title" onclick="openNews('${item.url}')">${item.title}</div>
+            <div class="news-meta">
+              <i class="fa fa-newspaper-o"></i> ${item.press} | 
+              <i class="fa fa-clock-o"></i> ${formatDate(item.date)} |
+              <span class="w3-tag w3-small w3-blue">${item.category}</span>
+            </div>
+            <div class="news-description">${item.description}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+  
+  container.innerHTML = html;
+  updatePagination(filteredNews.length);
+}
+
+// Format date for display
+function formatDate(dateStr) {
+  if (!dateStr) return '시간 정보 없음';
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  
+  if (diffMins < 60) return `${diffMins}분전`;
+  if (diffHours < 24) return `${diffHours}시간전`;
+  if (diffDays < 7) return `${diffDays}일전`;
+  
+  return date.toLocaleDateString('ko-KR');
+}
+
+// Update pagination
+function updatePagination(totalItems) {
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const pagination = document.getElementById('pagination');
+  
+  if (totalPages <= 1) {
+    pagination.innerHTML = '';
+    return;
+  }
+  
+  let html = '';
+  
+  // Previous button
+  if (currentPage > 1) {
+    html += `<a href="#" class="w3-bar-item w3-button w3-hover-black" onclick="changePage(${currentPage - 1})">«</a>`;
+  }
+  
+  // Page numbers
+  for (let i = 1; i <= totalPages; i++) {
+    const activeClass = i === currentPage ? 'w3-black' : 'w3-hover-black';
+    html += `<a href="#" class="w3-bar-item w3-button ${activeClass}" onclick="changePage(${i})">${i}</a>`;
+  }
+  
+  // Next button
+  if (currentPage < totalPages) {
+    html += `<a href="#" class="w3-bar-item w3-button w3-hover-black" onclick="changePage(${currentPage + 1})">»</a>`;
+  }
+  
+  pagination.innerHTML = html;
+}
+
+// Change page
+function changePage(page) {
+  currentPage = page;
+  displayNews();
+}
+
+// Show category
+function showCategory(category) {
+  currentCategory = category;
+  currentPage = 1;
+  
+  // Update button styles
+  const buttons = document.querySelectorAll('.category-filter button');
+  buttons.forEach(btn => {
+    btn.className = 'w3-button w3-white';
+  });
+  
+  const activeBtn = Array.from(buttons).find(btn => 
+    btn.textContent.includes(category) || (category === 'all' && btn.textContent.includes('전체'))
+  );
+  if (activeBtn) {
+    activeBtn.className = 'w3-button w3-black';
+  }
+  
+  displayNews();
+}
+
+// Open news in new tab
+function openNews(url) {
+  window.open(url, '_blank');
+}
+
+// Refresh news from GitHub Pages
+function refreshNews() {
+  const container = document.getElementById('newsContainer');
+  container.innerHTML = '<div class="loading"><i class="fa fa-spinner fa-spin fa-3x"></i><p>뉴스를 새로 불러오는 중...</p></div>';
+  
+  // Load news data from GitHub Pages
+  loadNewsFromGitHub().then(() => {
+    setTimeout(() => {
+      displayNews();
+      updateCategoryCount();
+      console.log('뉴스 데이터가 GitHub에서 새로고침되었습니다.');
+    }, 1000);
+  }).catch(error => {
+    setTimeout(() => {
+      container.innerHTML = '<div class="w3-container w3-center w3-text-red"><p><i class="fa fa-exclamation-triangle"></i> 뉴스 데이터를 불러올 수 없습니다.<br>네트워크 연결을 확인해주세요.</p></div>';
+      console.error('Error loading news:', error);
+    }, 1000);
+  });
+}
+
+// Function to load news data from GitHub Pages
+async function loadNewsFromGitHub() {
+  const newsUrl = 'https://jaewoojoung.github.io/fun/news.js';
+  
+  try {
+    // Remove any existing news script
+    const existingScript = document.getElementById('news-script');
+    if (existingScript) {
+      existingScript.remove();
+    }
+    
+    // Create new script element
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.id = 'news-script';
+      script.src = newsUrl + '?t=' + new Date().getTime(); // Add timestamp to prevent caching
+      script.onload = () => {
+        console.log('뉴스 데이터가 GitHub에서 로드되었습니다.');
+        resolve();
+      };
+      script.onerror = () => {
+        console.error('GitHub에서 뉴스 데이터 로드 실패');
+        reject(new Error('Failed to load news from GitHub'));
+      };
+      document.head.appendChild(script);
+    });
+  } catch (error) {
+    console.error('Error loading news from GitHub:', error);
+    throw error;
+  }
+}
+
+// Script to open and close sidebar
+function w3_open() {
+    document.getElementById("mySidebar").style.display = "block";
+    document.getElementById("myOverlay").style.display = "block";
+}
+ 
+function w3_close() {
+    document.getElementById("mySidebar").style.display = "none";
+    document.getElementById("myOverlay").style.display = "none";
+}
+
+// Initialize when page loads
+window.onload = init;
+
+</script>
+
+<!-- Load the news data from GitHub Pages -->
+<script>
+// Try to load news.js from GitHub on initial page load
+(function() {
+  const script = document.createElement('script');
+  script.id = 'initial-news-script';
+  script.src = 'https://jaewoojoung.github.io/fun/news.js?t=' + new Date().getTime();
+  script.async = true;
+  script.onerror = function() {
+    console.warn('Initial load from GitHub failed, will try again in init()');
+  };
+  document.head.appendChild(script);
+})();
+</script>
+
+</body>
+</html>
