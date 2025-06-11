@@ -629,12 +629,9 @@
         let priceChart, rsiChart, macdChart, signalsChart, backtestChart, recommendationsChart;
         
         // Load JSON data
-        async function loadData() {
+       async function loadData() {
             try {
-                // Show loading state
-                document.getElementById('main-title').textContent = 'Loading Analysis...';
-                
-                // Fetch all JSON files
+                // Replace window.fs.readFile with fetch
                 const [
                     tradingSignals,
                     rsi,
@@ -657,6 +654,7 @@
                     fetch('analysis_summary.json').then(res => res.json())
                 ]);
 
+                // Rest of your code remains the same
                 const data = {
                     tradingSignals,
                     rsi,
@@ -674,15 +672,7 @@
 
             } catch (error) {
                 console.error('Error loading data:', error);
-                document.getElementById('main-title').innerHTML = `
-                    <div class="error-message">
-                        Error loading data files. Please ensure all JSON files are in the same directory as index.html.
-                        <br><br>
-                        Required files: trading_signals.json, rsi.json, multiple_timeframes.json, 
-                        moving_averages.json, macd.json, comprehensive_technical_analysis.json, 
-                        bollinger_bands.json, backtest_results.json, analysis_summary.json
-                    </div>
-                `;
+                document.getElementById('main-title').textContent = 'Technical Analysis Dashboard';
             }
         }
 
