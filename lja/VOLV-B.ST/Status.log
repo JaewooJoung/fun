@@ -1,0 +1,73 @@
+
+============================================================
+COMPREHENSIVE TECHNICAL ANALYSIS FOR SKF-B.ST
+============================================================
+Fetching prices...
+✅ prices - Success
+Fetching eps...
+✅ eps - Success
+Fetching earnings...
+✅ earnings - Success
+Fetching recommendations...
+✅ recommendations - Success
+Fetching institutions...
+✅ institutions - Success
+Fetching sector_info...
+✅ sector_info - Success
+Fetching income_statement...
+✅ income_statement - Success
+Fetching balance_sheet...
+✅ balance_sheet - Success
+Fetching cash_flow...
+✅ cash_flow - Success
+Fetching news...
+✅ news - Success
+
+Calculating technical indicators...
+✅ RSI calculated
+✅ MACD calculated
+✅ Bollinger Bands calculated
+✅ Moving Average Crosses calculated
+✅ Trading signals generated
+Saved: trading_signals.json
+Saved: rsi.json
+Saved: macd.json
+Saved: bollinger_bands.json
+Saved: moving_averages.json
+
+Running backtest...
+Saved: backtest_results.json
+
+Analyzing multiple timeframes...
+
+Analyzing 1mo timeframe...
+✅ 1mo analysis complete
+
+Analyzing 3mo timeframe...
+✅ 3mo analysis complete
+
+Analyzing 6mo timeframe...
+✅ 6mo analysis complete
+
+Analyzing 1y timeframe...
+✅ 1y analysis complete
+Saved: multiple_timeframes.json
+Saved: analysis_summary.json
+Saved: comprehensive_technical_analysis.json
+
+============================================================
+ANALYSIS COMPLETE!
+============================================================
+
+Files saved to: /var/www/vhosts/mystock.se/httpdocs/주/SKF-B.ST
+
+Generated files:
+1. analysis_summary.json - Overall summary (no news)
+2. comprehensive_technical_analysis.json - All technical data
+3. backtest_results.json - Backtest performance
+4. multiple_timeframes.json - Multi-timeframe analysis
+5. trading_signals.json - Buy/Hold/Sell signals
+6. rsi.json - RSI indicator data
+7. macd.json - MACD indicator data
+8. bollinger_bands.json - Bollinger Bands data
+9. moving_averages.json - Moving averages data

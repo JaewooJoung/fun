@@ -1,47 +1,473 @@
 {
-    "eps": {},
+    "eps": {
+        "surprise": [
+            0.1108,
+            0.0598,
+            0.30629998,
+            0.091400005
+        ],
+        "quarter": [
+            "2024-06-30 00:00:00",
+            "2024-09-30 00:00:00",
+            "2024-12-31 00:00:00",
+            "2025-03-31 00:00:00"
+        ],
+        "estimate": [
+            4.67251,
+            3.82161,
+            3.2153,
+            4.3157
+        ],
+        "actual": [
+            5.19,
+            4.05,
+            4.2,
+            4.71
+        ]
+    },
     "latest_indicators": {
         "bollinger_bands": {
-            "position": "Above Upper Band",
-            "middle": 2.4089999914169313,
-            "upper": 4.294812877007281,
-            "lower": 0.5231871058265813
+            "position": "Within Bands",
+            "middle": 209.5450012207031,
+            "upper": 215.86472224037948,
+            "lower": 203.22528020102675
         },
         "macd": {
-            "histogram": 0.2671673630828901,
-            "signal_line": 0.4972964689765403,
-            "value": 0.7644638320594304,
+            "histogram": 0.15387534341845743,
+            "signal_line": 4.091971923407987,
+            "value": 4.245847266826445,
             "crossover": ""
         },
         "moving_averages": {
-            "ma_50": 1.3256199961900712,
+            "ma_50": 195.3790005493164,
             "ma_200": null,
             "signal": ""
         },
-        "trading_signal": "Strong Sell",
+        "trading_signal": "Hold",
         "rsi": {
-            "signal": "Overbought",
-            "value": 88.39125340335826
+            "signal": "Neutral",
+            "value": 62.45519325192758
         },
-        "signal_strength": -1.0
+        "signal_strength": 0.0
     },
-    "earnings": {},
-    "recommendations": {},
-    "latest_price": 4.909999847412109,
+    "earnings": {
+        "quarter": [
+            "2Q2024",
+            "3Q2024",
+            "4Q2024",
+            "1Q2025",
+            "2Q2025"
+        ],
+        "estimate": [
+            4.67251,
+            3.82161,
+            3.2153,
+            4.3157,
+            4.24529
+        ],
+        "actual": [
+            5.19,
+            4.05,
+            4.2,
+            4.71,
+            null
+        ]
+    },
+    "recommendations": {
+        "strongbuy": [
+            5,
+            5,
+            5,
+            5
+        ],
+        "sell": [
+            0,
+            0,
+            0,
+            1
+        ],
+        "buy": [
+            6,
+            7,
+            7,
+            7
+        ],
+        "period": [
+            "0m",
+            "-1m",
+            "-2m",
+            "-3m"
+        ],
+        "hold": [
+            6,
+            6,
+            6,
+            5
+        ],
+        "strongsell": [
+            0,
+            0,
+            0,
+            1
+        ]
+    },
+    "latest_price": 214.3000030517578,
     "financials": {
-        "income_statement": {},
-        "cash_flow": {},
-        "balance_sheet": {}
+        "income_statement": {
+            "EBITDA": [
+                4143000000
+            ],
+            "NetNonOperatingInterestIncomeExpense": [
+                -290000000
+            ],
+            "NetInterestIncome": [
+                -290000000
+            ],
+            "DilutedAverageShares": [
+                455351068
+            ],
+            "GrossProfit": [
+                7136000000
+            ],
+            "GeneralAndAdministrativeExpense": [
+                3448000000
+            ],
+            "DilutedEPS": [
+                3.95
+            ],
+            "NetIncomeIncludingNoncontrollingInterests": [
+                1948000000
+            ],
+            "ResearchAndDevelopment": [
+                849000000
+            ],
+            "NetIncomeFromContinuingAndDiscontinuedOperation": [
+                1796000000
+            ],
+            "BasicEPS": [
+                3.95
+            ],
+            "NetIncomeFromContinuingOperationNetMinorityInterest": [
+                1796000000
+            ],
+            "BasicAverageShares": [
+                455351068
+            ],
+            "EBIT": [
+                2885000000
+            ],
+            "TaxProvision": [
+                647000000
+            ],
+            "OperatingIncome": [
+                2885000000
+            ],
+            "DilutedNIAvailtoComStockholders": [
+                1796000000
+            ],
+            "NetIncomeCommonStockholders": [
+                1796000000
+            ],
+            "ReconciledCostOfRevenue": [
+                16830000000
+            ],
+            "OperatingExpense": [
+                4251000000
+            ],
+            "TaxEffectOfUnusualItems": [
+                0
+            ],
+            "OtherOperatingExpenses": [
+                -46000000
+            ],
+            "SellingGeneralAndAdministration": [
+                3448000000
+            ],
+            "NetIncomeContinuousOperations": [
+                1948000000
+            ],
+            "ReconciledDepreciation": [
+                1258000000
+            ],
+            "TotalExpenses": [
+                21081000000
+            ],
+            "TotalRevenue": [
+                23966000000
+            ],
+            "CostOfRevenue": [
+                16830000000
+            ],
+            "TotalOperatingIncomeAsReported": [
+                2885000000
+            ],
+            "NormalizedIncome": [
+                1796000000
+            ],
+            "NormalizedEBITDA": [
+                4143000000
+            ],
+            "PretaxIncome": [
+                2595000000
+            ],
+            "MinorityInterests": [
+                -152000000
+            ],
+            "OtherunderPreferredStockDividend": [
+                0
+            ],
+            "TaxRateForCalcs": [
+                0.249
+            ],
+            "OperatingRevenue": [
+                23966000000
+            ],
+            "timestamp": [
+                "2025-03-31 00:00:00"
+            ],
+            "NetIncome": [
+                1796000000
+            ]
+        },
+        "cash_flow": {
+            "CommonStockDividendPaid": [
+                0
+            ],
+            "OperatingCashFlow": [
+                977000000
+            ],
+            "NetShortTermDebtIssuance": [
+                12000000
+            ],
+            "EffectOfExchangeRateChanges": [
+                -398000000
+            ],
+            "GainLossOnSaleOfPPE": [
+                -263000000
+            ],
+            "RepaymentOfDebt": [
+                -41000000
+            ],
+            "ShortTermDebtIssuance": [
+                53000000
+            ],
+            "SaleOfPPE": [
+                314000000
+            ],
+            "InterestPaidCFO": [
+                -146000000
+            ],
+            "ChangeInReceivables": [
+                -1415000000
+            ],
+            "EndCashPosition": [
+                10693000000
+            ],
+            "PurchaseOfIntangibles": [
+                -917000000
+            ],
+            "NetIssuancePaymentsOfDebt": [
+                12000000
+            ],
+            "OtherNonCashItems": [
+                89000000
+            ],
+            "FreeCashFlow": [
+                60000000
+            ],
+            "ChangesInCash": [
+                60000000
+            ],
+            "ChangeInOtherCurrentAssets": [
+                139000000
+            ],
+            "IssuanceOfDebt": [
+                53000000
+            ],
+            "ShortTermDebtPayments": [
+                -41000000
+            ],
+            "InvestingCashFlow": [
+                -603000000
+            ],
+            "ChangeInCashSupplementalAsReported": [
+                60000000
+            ],
+            "NetIntangiblesPurchaseAndSale": [
+                -917000000
+            ],
+            "InterestReceivedCFO": [
+                46000000
+            ],
+            "ChangeInInventory": [
+                -589000000
+            ],
+            "BeginningCashPosition": [
+                11031000000
+            ],
+            "DepreciationAndAmortization": [
+                1258000000
+            ],
+            "FinancingCashFlow": [
+                -314000000
+            ],
+            "ChangeInWorkingCapital": [
+                -1829000000
+            ],
+            "Depreciation": [
+                1258000000
+            ],
+            "NetIncomeFromContinuingOperations": [
+                2885000000
+            ],
+            "CapitalExpenditure": [
+                -917000000
+            ],
+            "ChangeInPayable": [
+                36000000
+            ],
+            "NetPPEPurchaseAndSale": [
+                314000000
+            ],
+            "timestamp": [
+                "2025-03-31 00:00:00"
+            ],
+            "TaxesRefundPaid": [
+                -602000000
+            ],
+            "NetOtherFinancingCharges": [
+                -93000000
+            ],
+            "NetIncome": [
+                1796000000
+            ]
+        },
+        "balance_sheet": {
+            "AccountsPayable": [
+                11783000000
+            ],
+            "ShareIssued": [
+                455351068
+            ],
+            "MinorityInterest": [
+                2262000000
+            ],
+            "InvestedCapital": [
+                56898000000
+            ],
+            "OtherIntangibleAssets": [
+                4169000000
+            ],
+            "TotalNonCurrentLiabilitiesNetMinorityInterest": [
+                25323000000
+            ],
+            "Goodwill": [
+                11574000000
+            ],
+            "Payables": [
+                11783000000
+            ],
+            "TotalCapitalization": [
+                56898000000
+            ],
+            "Inventory": [
+                24845000000
+            ],
+            "TangibleBookValue": [
+                41155000000
+            ],
+            "CashCashEquivalentsAndShortTermInvestments": [
+                11143000000
+            ],
+            "WorkingCapital": [
+                31453000000
+            ],
+            "OtherNonCurrentLiabilities": [
+                1209000000
+            ],
+            "CommonStockEquity": [
+                56898000000
+            ],
+            "NonCurrentDeferredTaxesLiabilities": [
+                1800000000
+            ],
+            "CurrentLiabilities": [
+                28706000000
+            ],
+            "StockholdersEquity": [
+                56898000000
+            ],
+            "OtherProperties": [
+                31363000000
+            ],
+            "AssetsHeldForSaleCurrent": [
+                1654000000
+            ],
+            "NetPPE": [
+                31363000000
+            ],
+            "NonCurrentDeferredTaxesAssets": [
+                3436000000
+            ],
+            "NonCurrentPensionAndOtherPostretirementBenefitPlans": [
+                7917000000
+            ],
+            "OtherNonCurrentAssets": [
+                2488000000
+            ],
+            "TotalEquityGrossMinorityInterest": [
+                59160000000
+            ],
+            "OtherShortTermInvestments": [
+                11143000000
+            ],
+            "CurrentAssets": [
+                60159000000
+            ],
+            "AccountsReceivable": [
+                16761000000
+            ],
+            "GrossPPE": [
+                31363000000
+            ],
+            "OrdinarySharesNumber": [
+                455351068
+            ],
+            "NetTangibleAssets": [
+                41155000000
+            ],
+            "TotalNonCurrentAssets": [
+                53030000000
+            ],
+            "TotalAssets": [
+                113189000000
+            ],
+            "GoodwillAndOtherIntangibleAssets": [
+                15743000000
+            ],
+            "timestamp": [
+                "2025-03-31 00:00:00"
+            ],
+            "TotalLiabilitiesNetMinorityInterest": [
+                54029000000
+            ],
+            "OtherCurrentLiabilities": [
+                11857000000
+            ],
+            "OtherCurrentAssets": [
+                5756000000
+            ]
+        }
     },
-    "analysis_date": "2025-06-07 14:59:29",
-    "symbol": "2CUREX.ST",
+    "analysis_date": "2025-06-11 14:50:32",
+    "symbol": "SKF-B.ST",
     "basic_info": {
-        "symbol": "2CUREX.ST",
-        "shortname": "2cureX AB",
+        "symbol": "SKF-B.ST",
+        "shortname": "SKF, AB ser. B",
         "exchange": "Stockholm (STO)",
         "quoteType": "EQUITY",
-        "sector": "Healthcare",
-        "industry": "Biotechnology"
+        "sector": "Industrials",
+        "industry": "Tools & Accessories"
     },
     "latest_volume": null
 }
