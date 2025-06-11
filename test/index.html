@@ -1016,41 +1016,40 @@
         } else {
             document.getElementById('recommendationsChart').style.display = 'none';
         }
-        // Initialize Recommendations Chart
+        // Inside initializeCharts(data), after other charts:
         const recommendationsCtx = document.getElementById('recommendationsChart').getContext('2d');
-
-        // Check if we have recommendations data
-        if (data.analysisSummary && data.analysisSummary.analyst_recommendations) {
-            const recs = data.analysisSummary.analyst_recommendations;
-
-            // Ensure we have all recommendation categories with default 0 if missing
-            const recommendationsData = {
-                strongbuy: recs.strongbuy || 0,
-                buy: recs.buy || 0,
-                hold: recs.hold || 0,
-                sell: recs.sell || 0,
-                strongsell: recs.strongsell || 0
+        
+        if (data.analysisSummary && data.analysisSummary.recommendations) {
+            const recs = data.analysisSummary.recommendations;
+            
+            // Extract the latest recommendations (most recent month)
+            const latestRecs = {
+                strongbuy: recs.strongbuy[0] || 0,
+                buy: recs.buy[0] || 0,
+                hold: recs.hold[0] || 0,
+                sell: recs.sell[0] || 0,
+                strongsell: recs.strongsell[0] || 0
             };
-
+        
             recommendationsChart = new Chart(recommendationsCtx, {
                 type: 'bar',
                 data: {
                     labels: ['Strong Buy', 'Buy', 'Hold', 'Sell', 'Strong Sell'],
                     datasets: [{
-                        label: 'Analyst Recommendations',
+                        label: 'Analyst Recommendations (Latest)',
                         data: [
-                            recommendationsData.strongbuy,
-                            recommendationsData.buy,
-                            recommendationsData.hold,
-                            recommendationsData.sell,
-                            recommendationsData.strongsell
+                            latestRecs.strongbuy,
+                            latestRecs.buy,
+                            latestRecs.hold,
+                            latestRecs.sell,
+                            latestRecs.strongsell
                         ],
                         backgroundColor: [
-                            'rgba(40, 167, 69, 0.8)',
-                            'rgba(40, 167, 69, 0.6)',
-                            'rgba(255, 193, 7, 0.8)',
-                            'rgba(220, 53, 69, 0.6)',
-                            'rgba(220, 53, 69, 0.8)'
+                            'rgba(40, 167, 69, 0.8)',  // Strong Buy (green)
+                            'rgba(40, 167, 69, 0.6)',  // Buy (lighter green)
+                            'rgba(255, 193, 7, 0.8)',  // Hold (yellow)
+                            'rgba(220, 53, 69, 0.6)',  // Sell (lighter red)
+                            'rgba(220, 53, 69, 0.8)'   // Strong Sell (red)
                         ],
                         borderColor: [
                             'rgba(40, 167, 69, 1)',
@@ -1068,44 +1067,23 @@
                     plugins: {
                         legend: { display: false },
                         tooltip: {
-                            backgroundColor: 'rgba(0,0,0,0.8)',
-                            titleColor: '#4cc9f0',
-                            bodyColor: '#e0e0e0',
-                            borderColor: '#4cc9f0',
-                            borderWidth: 1,
-                            padding: 10,
                             callbacks: {
-                                label: function(context) {
-                                    return `${context.label}: ${context.raw} analysts`;
-                                }
+                                label: (ctx) => `${ctx.label}: ${ctx.raw} analysts`
                             }
                         }
                     },
                     scales: {
-                        x: {
-                            grid: { color: 'rgba(255,255,255,0.05)' }
-                        },
                         y: {
-                            position: 'left',
-                            grid: { color: 'rgba(255,255,255,0.05)' },
-                            ticks: {
-                                stepSize: 1,
-                                precision: 0
-                            },
                             beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Number of Analysts',
-                                color: '#e0e0e0'
-                            }
+                            ticks: { stepSize: 1 },
+                            title: { text: 'Number of Analysts' }
                         }
                     }
                 }
             });
         } else {
-            // Show a message if no data is available instead of hiding the container
-            const container = document.getElementById('recommendationsChart').parentElement;
-            container.innerHTML = `
+            // Fallback if no data exists
+            document.getElementById('recommendationsChart').parentElement.innerHTML = `
                 <div style="text-align: center; padding: 40px; color: #888;">
                     <h3>Analyst Recommendations</h3>
                     <p>No recommendation data available</p>
