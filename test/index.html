@@ -511,6 +511,7 @@
             <div class="tab" onclick="showSection('technical', event)">Technical Analysis</div>
             <div class="tab" onclick="showSection('financials', event)">Financials</div>
             <div class="tab" onclick="showSection('backtest', event)">Backtest Results</div>
+            <div class="tab" onclick="showSection('ai', event)">AI</div>
         </div>
 
         <div id="signals" class="content-section active">
@@ -617,6 +618,15 @@
                 </div>
             </div>
         </div>
+
+        <div id="ai" class="content-section">
+            <div class="chart-container">
+                <h3 class="chart-title">AI Analysis</h3>
+                <div id="ai-content" style="padding: 20px; white-space: pre-wrap; font-family: monospace; font-size: 14px; line-height: 1.6; color: #e0e0e0; max-height: 600px; overflow-y: auto;">
+                    Loading AI analysis...
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -641,7 +651,8 @@
                     comprehensive,
                     bollinger,
                     backtest,
-                    analysisSummary
+                    analysisSummary,
+                    aiAnalysis
                 ] = await Promise.all([
                     fetch('trading_signals.json').then(res => res.json()),
                     fetch('rsi.json').then(res => res.json()),
@@ -651,7 +662,8 @@
                     fetch('comprehensive_technical_analysis.json').then(res => res.json()),
                     fetch('bollinger_bands.json').then(res => res.json()),
                     fetch('backtest_results.json').then(res => res.json()),
-                    fetch('analysis_summary.json').then(res => res.json())
+                    fetch('analysis_summary.json').then(res => res.json()),
+                    fetch('Analysis.ai').then(res => res.text()).catch(() => 'AI analysis file not found.')
                 ]);
 
                 // Rest of your code remains the same
@@ -664,7 +676,8 @@
                     comprehensive,
                     bollinger,
                     backtest,
-                    analysisSummary
+                    analysisSummary,
+                    aiAnalysis
                 };
 
                 updateUI(data);
@@ -767,6 +780,12 @@
                 });
             } else {
                 document.getElementById('earnings-table').style.display = 'none';
+            }
+            
+            // Update AI content
+            const aiContentDiv = document.getElementById('ai-content');
+            if (aiContentDiv && data.aiAnalysis) {
+                aiContentDiv.textContent = data.aiAnalysis;
             }
         }
 
