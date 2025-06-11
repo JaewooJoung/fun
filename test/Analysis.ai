@@ -1,0 +1,46 @@
+============================================================
+LATEST ANALYSIS RESULTS
+============================================================
+
+📊 BASIC INFORMATION:
+Symbol: SKF-B.ST
+Name: SKF, AB ser. B
+Exchange: Stockholm (STO)
+
+💰 CURRENT METRICS:
+Date: 2025-06-11T14:49:28
+Price: 214.3
+Volume: N/A
+
+📈 TECHNICAL INDICATORS:
+RSI(14): 62.46 - Neutral
+MACD: 4.2458
+Signal Line: 4.092
+MACD Signal: 
+
+Bollinger Bands:
+  Upper: 215.86
+  Lower: 203.23
+  Position: Within Bands
+
+Moving Averages:
+  50-day: 195.38
+  200-day: N/A
+
+🚦 TRADING SIGNAL:
+Signal: Hold
+Strength: 0.0
+
+💼 BACKTEST RESULTS:
+Total Return: 0.2%
+Win Rate: 33.33%
+Max Drawdown: 1.09%
+Sharpe Ratio: 0.38
+
+📅 MULTIPLE TIMEFRAME ANALYSIS:
+6mo: Price=214.3, RSI=62.7, Trend=Neutral
+1mo: Price=214.3, RSI=54.7, Trend=Neutral
+1y: Price=214.3, RSI=62.7, Trend=Bearish
+3mo: Price=214.3, RSI=62.5, Trend=Neutral
+
+============================================================
