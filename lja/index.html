@@ -3,443 +3,302 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enhanced Stock Analysis: VOLV-B.ST</title>
+    <title>Stock Analysis Report: VOLV-B.ST</title>
     <style>
     body {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         line-height: 1.6;
         color: #333;
-        max-width: 1400px;
+        max-width: 1200px;
         margin: 0 auto;
         padding: 20px;
         background-color: #f9f9f9;
     }
-    .header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 30px;
-        border-radius: 10px;
-        text-align: center;
-        margin-bottom: 30px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    }
-    .signal-badge {
-        display: inline-block;
-        padding: 15px 30px;
-        border-radius: 30px;
-        font-weight: bold;
-        font-size: 1.2em;
-        text-transform: uppercase;
-        margin: 15px 0;
-        box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-    }
-    .buy { background-color: #27ae60; color: white; }
-    .sell { background-color: #e74c3c; color: white; }
-    .hold { background-color: #f39c12; color: white; }
-    .container {
-        background-color: white;
-        padding: 30px;
-        border-radius: 10px;
-        box-shadow: 0 2px 15px rgba(0,0,0,0.1);
-        margin-bottom: 25px;
-    }
-    .metrics {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 20px;
-        margin: 25px 0;
-    }
-    .metric-card {
-        background: linear-gradient(145deg, #f0f0f0, #ffffff);
-        border: 1px solid #e0e0e0;
-        border-radius: 15px;
-        padding: 20px;
-        text-align: center;
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .metric-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-    }
-    .metric-title {
-        font-size: 0.9em;
-        color: #7f8c8d;
-        margin-bottom: 8px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    .metric-value {
-        font-size: 2.2em;
-        font-weight: bold;
+    h1, h2, h3 {
         color: #2c3e50;
     }
-    .metric-subtitle {
-        font-size: 0.85em;
-        color: #95a5a6;
-        margin-top: 5px;
+    h1 {
+        border-bottom: 2px solid #3498db;
+        padding-bottom: 10px;
+    }
+    .container {
+        background-color: white;
+        padding: 25px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+    .summary {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-left: 4px solid #3498db;
+        margin-bottom: 20px;
+        font-family: monospace;
+        white-space: pre-wrap;
     }
     .chart {
         max-width: 100%;
         height: auto;
-        margin: 25px 0;
-        border: 2px solid #e0e0e0;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-    .signal-summary {
-        background: linear-gradient(45deg, #f8f9fa, #e9ecef);
-        padding: 25px;
-        border-radius: 10px;
-        border-left: 5px solid #3498db;
         margin: 20px 0;
-    }
-    .indicator-list {
-        list-style: none;
-        padding: 0;
-    }
-    .indicator-list li {
-        padding: 10px;
-        margin: 8px 0;
-        background: #f8f9fa;
+        border: 1px solid #ddd;
         border-radius: 5px;
-        border-left: 3px solid #3498db;
     }
-    .risk-warning {
-        background-color: #fff3cd;
-        border: 1px solid #ffeaa7;
-        border-radius: 5px;
-        padding: 15px;
-        margin: 10px 0;
-        color: #856404;
+    .buy {
+        color: #27ae60;
+        font-weight: bold;
+    }
+    .sell {
+        color: #e74c3c;
+        font-weight: bold;
+    }
+    .neutral {
+        color: #f39c12;
+        font-weight: bold;
     }
     table {
         width: 100%;
         border-collapse: collapse;
-        margin: 25px 0;
-        background: white;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-    th, td {
-        padding: 15px;
-        text-align: left;
-        border-bottom: 1px solid #e0e0e0;
-    }
-    th {
-        background-color: #f8f9fa;
-        font-weight: bold;
-        text-transform: uppercase;
-        font-size: 0.9em;
-        color: #5a6c7d;
-    }
-    tr:hover {
-        background-color: #f8f9fa;
-    }
-    .positive { color: #27ae60; font-weight: bold; }
-    .negative { color: #e74c3c; font-weight: bold; }
-    .neutral { color: #f39c12; font-weight: bold; }
-    .explanation-box {
-        background: #e8f5e9;
-        border: 1px solid #4caf50;
-        border-radius: 8px;
-        padding: 20px;
         margin: 20px 0;
     }
-    .recommendation-box {
-        background: linear-gradient(135deg, #667eea15, #764ba215);
-        border: 2px solid #667eea;
-        border-radius: 10px;
-        padding: 25px;
-        margin: 30px 0;
-        text-align: center;
+    th, td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+    th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+    }
+    tr:hover {
+        background-color: #f5f5f5;
     }
     .footer {
         text-align: center;
         margin-top: 50px;
-        padding: 20px;
         font-size: 0.9em;
         color: #7f8c8d;
-        border-top: 1px solid #e0e0e0;
     }
-    .tab-container {
-        margin: 25px 0;
-    }
-    .tab-buttons {
+    .metrics {
         display: flex;
-        gap: 10px;
-        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin: 20px 0;
     }
-    .tab-button {
-        padding: 10px 20px;
-        border: none;
-        background: #e0e0e0;
-        border-radius: 5px 5px 0 0;
-        cursor: pointer;
-        transition: background 0.3s;
-    }
-    .tab-button.active {
-        background: #3498db;
-        color: white;
-    }
-    .tab-content {
-        display: none;
-        padding: 20px;
+    .metric-card {
         background: white;
-        border-radius: 0 5px 5px 5px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 15px;
+        flex: 1;
+        min-width: 200px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
-    .tab-content.active {
-        display: block;
+    .metric-title {
+        font-size: 0.9em;
+        color: #7f8c8d;
+        margin-bottom: 5px;
+    }
+    .metric-value {
+        font-size: 1.8em;
+        font-weight: bold;
+        color: #2c3e50;
+    }
+    .chart-container {
+        margin-bottom: 40px;
+    }
+    .chart-title {
+        font-size: 1.2em;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #2c3e50;
+    }
+    .chart-description {
+        margin-top: 10px;
+        font-size: 0.9em;
+        color: #7f8c8d;
     }
 </style>
 
-    <script>
-    function showTab(tabName) {
-        // Hide all tab contents
-        var contents = document.getElementsByClassName('tab-content');
-        for (var i = 0; i < contents.length; i++) {
-            contents[i].classList.remove('active');
-        }
-        
-        // Remove active class from all buttons
-        var buttons = document.getElementsByClassName('tab-button');
-        for (var i = 0; i < buttons.length; i++) {
-            buttons[i].classList.remove('active');
-        }
-        
-        // Show selected tab
-        document.getElementById(tabName).classList.add('active');
-        document.getElementById(tabName + '-btn').classList.add('active');
-    }
-    
-    // Show first tab by default
-    window.onload = function() {
-        showTab('technical');
-    }
-</script>
-
 </head>
 <body>
-    <div class="header">
-        <h1>📈 Enhanced Stock Analysis: VOLV-B.ST</h1>
-        <p>Comprehensive Technical Analysis Report</p>
-        <p>Generated on 2025-06-10 22:05:31</p>
-        <div class="signal-badge hold">
-            Current Signal: HOLD
-        </div>
-        <div style="font-size: 1.1em; margin-top: 10px;">
-            Signal Strength: <strong>1.5</strong> | 
-            Confidence: <strong>Low</strong>
-        </div>
-    </div>
-    
-    <div class="recommendation-box">
-        <h2>💡 Trading Recommendation</h2>
-        <p style="font-size: 1.3em; font-weight: bold;">Hold position - Mixed or weak signals present</p>
-        <p>Market Trend: <span class="neutral">NEUTRAL</span></p>
-        <p>Mixed signals with no clear direction</p>
-    </div>
+    <h1>Stock Analysis Report: VOLV-B.ST</h1>
+    <p>Report generated on 2025-06-11 12:02:15</p>
     
     <div class="container">
-        <h2>📊 Market Overview</h2>
+        <h2>Current Strategy: <span class="sell">BEARISH</span></h2>
         
         <div class="metrics">
             <div class="metric-card">
                 <div class="metric-title">Current Price</div>
-                <div class="metric-value">$(get(analysis_data, "current_price", "N/A"))</div>
-                <div class="metric-subtitle">Latest Close</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-title">5-Day Change</div>
-                <div class="metric-value positive">
-                    4.25%
-                </div>
-                <div class="metric-subtitle">Short-term Performance</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-title">20-Day Change</div>
-                <div class="metric-value positive">
-                    1.89%
-                </div>
-                <div class="metric-subtitle">Medium-term Performance</div>
+                <div class="metric-value">268.6</div>
             </div>
             <div class="metric-card">
                 <div class="metric-title">RSI(14)</div>
-                <div class="metric-value">52.28</div>
-                <div class="metric-subtitle">Neutral</div>
+                <div class="metric-value">51.51</div>
             </div>
             <div class="metric-card">
                 <div class="metric-title">MACD</div>
-                <div class="metric-value">-2.1403</div>
-                <div class="metric-subtitle">Momentum Indicator</div>
+                <div class="metric-value">-1.7306</div>
             </div>
             <div class="metric-card">
-                <div class="metric-title">Volume Status</div>
-                <div class="metric-value">N/A</div>
-                <div class="metric-subtitle">N/Ax Average</div>
+                <div class="metric-title">P/E Ratio</div>
+                <div class="metric-value">10.57</div>
             </div>
         </div>
-    </div>
-    
-    <div class="container">
-        <h2>📈 Technical Indicator Analysis</h2>
         
-        <div class="explanation-box">
-            <h3>Current Market Conditions:</h3>
-            <ul class="indicator-list">
-                <li>RSI (52.3) is in NEUTRAL territory</li>
-                    <li>MACD is ABOVE signal line but NEGATIVE - Early bullish reversal</li>
-                    <li>Mixed MA signals - Potential TREND CHANGE</li>
-                    <li>Price within normal Bollinger Band range</li>
-            </ul>
-        </div>
-        
-        <div class="risk-warning">
-    <h3>⚠️ Risk Considerations:</h3>
-    <ul>
-        <li>⚠️ Weak signal strength - Consider waiting for stronger confirmation</li>
-    </ul>
-</div>
+        <div class="summary">Stock Analysis Summary for VOLV-B.ST
+Period: 3mo
+Date Range: 2025-03-11T08:00:00 to 2025-06-11T10:02:01
 
-    </div>
-    
-    <div class="container">
-        <h2>📊 Technical Analysis Charts</h2>
+Latest Price: 268.6
+RSI(14): 51.51
+MACD: -1.7306, Signal: -2.1505
+
+Recent Signals (Last 30 days):
+Buy Signals: 3
+Sell Signals: 5
+
+Strategy: BEARISH
+</div>
         
-        <div class="tab-container">
-            <div class="tab-buttons">
-                <button id="technical-btn" class="tab-button active" onclick="showTab('technical')">Technical Indicators</button>
-                <button id="volume-btn" class="tab-button" onclick="showTab('volume')">Volume Analysis</button>
-                <button id="combined-btn" class="tab-button" onclick="showTab('combined')">Combined View</button>
-            </div>
-            
-            <div id="technical" class="tab-content active">
-                <h3>Price, RSI, MACD & Signal Strength</h3>
-                <img class="chart" src="plots/VOLV-B.ST_combined.png" alt="Combined Technical Analysis">
-                <p><em>This chart shows price action with Bollinger Bands and signals, RSI momentum, MACD crossovers, and signal strength over time.</em></p>
-            </div>
-            
-            <div id="volume" class="tab-content">
-                <h3>Enhanced Volume Analysis</h3>
-                <img class="chart" src="plots/VOLV-B.ST_enhanced_volume.png" alt="Enhanced Volume Analysis">
-                <div class="signal-summary">
-                    <h4>Volume Color Legend:</h4>
-                    <ul>
-                        <li><span style="color: #27ae60; font-weight: bold;">Green bars</span> - Buy signal days</li>
-                        <li><span style="color: #e74c3c; font-weight: bold;">Red bars</span> - Sell signal days</li>
-                        <li><span style="color: #f39c12; font-weight: bold;">Orange bars</span> - High volume days (>1.5x average)</li>
-                        <li><span style="color: #add8e6; font-weight: bold;">Light blue bars</span> - Normal trading days</li>
-                    </ul>
-                </div>
-            </div>
-            
-            <div id="combined" class="tab-content">
-                <h3>Individual Chart Components</h3>
-                <h4>Price with Bollinger Bands</h4>
-                <img class="chart" src="plots/VOLV-B.ST_price_bb.png" alt="Price with Bollinger Bands">
-                <h4>RSI Momentum</h4>
-                <img class="chart" src="plots/VOLV-B.ST_rsi.png" alt="RSI Chart">
-                <h4>MACD Indicator</h4>
-                <img class="chart" src="plots/VOLV-B.ST_macd.png" alt="MACD Chart">
-                <h4>Signal Strength</h4>
-                <img class="chart" src="plots/VOLV-B.ST_signal_strength.png" alt="Signal Strength Chart">
-            </div>
-        </div>
-    </div>
-    
-    <div class="container">
-        <h2>📅 Signal History & Statistics</h2>
-        
-        <div class="signal-summary">
-            <h3>Signal Distribution (Total Period)</h3>
-            <div class="metrics">
-                <div class="metric-card">
-                    <div class="metric-title">Buy Signals</div>
-                    <div class="metric-value positive">4</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-title">Sell Signals</div>
-                    <div class="metric-value negative">0</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-title">Hold Signals</div>
-                    <div class="metric-value neutral">57</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-title">Signal Conflicts</div>
-                    <div class="metric-value">0</div>
-                </div>
-            </div>
-        </div>
-        
+        <h3>Signals (Last 30 Days)</h3>
         <table>
             <tr>
                 <th>Signal Type</th>
-                <th>Recent Occurrences (Last 10)</th>
-                <th>Total Count</th>
-                <th>Percentage</th>
+                <th>Count</th>
             </tr>
             <tr>
-                <td class="positive">Buy Signals</td>
-                <td>No recent buy signals</td>
-                <td>4</td>
-                <td>6.5%</td>
+                <td>Buy Signals</td>
+                <td>3</td>
             </tr>
             <tr>
-                <td class="negative">Sell Signals</td>
-                <td>No recent sell signals</td>
-                <td>0</td>
-                <td>0.0%</td>
-            </tr>
-            <tr>
-                <td class="neutral">Hold Signals</td>
-                <td>2025-06-10T15:29:32<br>2025-06-09T07:00:00<br>2025-06-05T07:00:00<br>2025-06-04T07:00:00<br>2025-06-03T07:00:00<br>2025-06-02T07:00:00<br>2025-05-30T07:00:00<br>2025-05-28T07:00:00<br>2025-05-27T07:00:00<br>2025-05-26T07:00:00</td>
-                <td>57</td>
-                <td>91.9%</td>
+                <td>Sell Signals</td>
+                <td>5</td>
             </tr>
         </table>
     </div>
     
+    <!-- Combined Analysis Chart -->
     <div class="container">
-    <h2>📊 Fundamental Metrics</h2>
-    <div class="metrics">
-        <div class="metric-card">
-    <div class="metric-title">P/E Ratio</div>
-    <div class="metric-value">10.57</div>
-    <div class="metric-subtitle">Price to Earnings</div>
-</div>
-        <div class="metric-card">
-    <div class="metric-title">P/B Ratio</div>
-    <div class="metric-value">3.05</div>
-    <div class="metric-subtitle">Price to Book</div>
-</div>
+        <h2>Combined Technical Analysis</h2>
+        <img class="chart" src="plots/VOLV-B.ST_combined.png" alt="Combined Technical Analysis Chart">
     </div>
-</div>
+    
+    <!-- Price Chart with Buy/Sell Signals -->
+    <div class="container">
+        <h2>Price Movement and Signals</h2>
+        <div class="chart-container">
+            <div class="chart-title">Price Chart with Buy/Sell Signals</div>
+            <img class="chart" src="plots/VOLV-B.ST_price.png" alt="Price Chart with Buy/Sell Signals">
+            <div class="chart-description">
+                The price chart shows the stock's price movement over time with buy signals (green circles) and 
+                sell signals (red crosses). Moving averages help identify the overall trend.
+            </div>
+        </div>
+    </div>
+    
+    <!-- Technical Indicators -->
+    <div class="container">
+        <h2>Technical Indicators</h2>
+        
+        <!-- RSI Chart -->
+        <div class="chart-container">
+            <div class="chart-title">Relative Strength Index (RSI)</div>
+            <img class="chart" src="plots/VOLV-B.ST_rsi.png" alt="RSI Chart">
+            <div class="chart-description">
+                RSI measures the speed and change of price movements. Values above 70 indicate overbought conditions
+                (potential sell signal), while values below 30 indicate oversold conditions (potential buy signal).
+            </div>
+        </div>
+        
+        <!-- MACD Chart -->
+        <div class="chart-container">
+            <div class="chart-title">Moving Average Convergence Divergence (MACD)</div>
+            <img class="chart" src="plots/VOLV-B.ST_macd.png" alt="MACD Chart">
+            <div class="chart-description">
+                MACD shows the relationship between two moving averages of a security's price. 
+                The MACD line crossing above the signal line is bullish, while crossing below is bearish.
+                The histogram shows the difference between MACD and signal line.
+            </div>
+        </div>
+        
+        <!-- Bollinger Bands Chart -->
+        <div class="chart-container">
+            <div class="chart-title">Bollinger Bands</div>
+            <img class="chart" src="plots/VOLV-B.ST_bb.png" alt="Bollinger Bands Chart">
+            <div class="chart-description">
+                Bollinger Bands consist of a middle band (20-day SMA) with an upper and lower band.
+                Price reaching the upper band may indicate overbought conditions, while reaching the lower band may indicate
+                oversold conditions. The width of the bands indicates volatility.
+            </div>
+        </div>
+    </div>
+    
+    <!-- Advanced Technical Analysis -->
+    <div class="container">
+        <h2>Advanced Technical Analysis</h2>
+        
+        <!-- Fibonacci Retracement Chart -->
+        <div class="chart-container">
+            <div class="chart-title">Fibonacci Retracement</div>
+            <img class="chart" src="plots/VOLV-B.ST_fibonacci.png" alt="Fibonacci Retracement Chart">
+            <div class="chart-description">
+                Fibonacci retracement levels (23.6%, 38.2%, 50%, 61.8%, etc.) are horizontal lines that indicate where 
+                support and resistance are likely to occur based on Fibonacci numbers. These are important levels
+                where price might reverse direction.
+            </div>
+        </div>
+        
+        <!-- All-Time Highs Chart -->
+        <div class="chart-container">
+            <div class="chart-title">All-Time Highs Analysis</div>
+            <img class="chart" src="plots/VOLV-B.ST_ath.png" alt="All-Time Highs Chart">
+            <div class="chart-description">
+                This chart marks points where the price reached all-time highs within a specified lookback window.
+                All-time high points often act as psychological resistance levels and may signal potential trend 
+                strength or market euphoria.
+            </div>
+        </div>
+        
+        <!-- Golden/Death Cross Chart -->
+        <div class="chart-container">
+            <div class="chart-title">Moving Average Crosses (Golden Cross & Death Cross)</div>
+            <img class="chart" src="plots/VOLV-B.ST_crosses.png" alt="Moving Average Crosses Chart">
+            <div class="chart-description">
+                A Golden Cross occurs when a shorter-term moving average crosses above a longer-term moving average,
+                typically the 50-day MA crossing above the 200-day MA, indicating a potential bullish trend.
+                A Death Cross is the opposite, potentially signaling a bearish trend.
+            </div>
+        </div>
+        
+        <!-- Volume Analysis Chart -->
+        <div class="chart-container">
+            <div class="chart-title">Volume Analysis</div>
+            <img class="chart" src="plots/VOLV-B.ST_volume.png" alt="Volume Analysis Chart">
+            <div class="chart-description">
+                Volume analysis examines the number of shares traded over time. High volume often confirms price movements,
+                while price changes on low volume may be less reliable. Volume spikes can indicate potential reversal
+                points or trend confirmations.
+            </div>
+        </div>
+    </div>
     
     <div class="container">
-        <h2>⚖️ Risk Management Guidelines</h2>
-        <div class="signal-summary">
-            <h3>Important Considerations:</h3>
-            <ul>
-                <li><strong>Position Sizing:</strong> Never risk more than 2-3% of your portfolio on a single trade</li>
-                <li><strong>Stop Loss:</strong> Consider setting stop losses 5-10% below entry for buy signals</li>
-                <li><strong>Take Profit:</strong> Consider taking partial profits at 10-20% gains</li>
-                <li><strong>Diversification:</strong> Don't put all capital into one position</li>
-                <li><strong>Market Conditions:</strong> Always consider broader market trends</li>
-                <li><strong>Fundamental Analysis:</strong> Combine technical signals with fundamental research</li>
-            </ul>
-            
-            <p style="margin-top: 20px; padding: 15px; background: #ffe0b2; border-radius: 5px;">
-                <strong>⚠️ Disclaimer:</strong> This analysis is based on historical data and technical indicators. 
-                Past performance does not guarantee future results. Always do your own research and consider 
-                consulting with a financial advisor before making investment decisions.
-            </p>
+        <h2>Recent Signal Dates</h2>
+        
+        <h3>Buy Signals</h3>
+        <div class="buy">
+            2025-06-10T07:00:00<br>2025-06-02T07:00:00<br>2025-04-28T07:00:00<br>2025-04-11T07:00:00<br>2025-04-10T07:00:00
+        </div>
+        
+        <h3>Sell Signals</h3>
+        <div class="sell">
+            2025-06-11T10:02:01<br>2025-05-27T07:00:00<br>2025-05-14T07:00:00<br>2025-05-13T07:00:00<br>2025-05-12T07:00:00
         </div>
     </div>
     
     <div class="footer">
-        <p>📈 Enhanced Technical Analysis Report | Generated with Julia Financial Analysis Tools</p>
-        <p>📅 2025-06-10 | 🏷️ Ticker: VOLV-B.ST | ⏰ Period: 3mo</p>
-        <p>Created by Enhanced Stock Analysis System v2.0</p>
+        <p>Generated with Jaewoo's Financial Analysis Tools | 2025-06-11</p>
     </div>
 </body>
 </html>
