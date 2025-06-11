@@ -1016,76 +1016,95 @@
         } else {
             document.getElementById('recommendationsChart').style.display = 'none';
         }
-                // Inside initializeCharts(data), after other charts:
-        const recommendationsCtx = document.getElementById('recommendationsChart').getContext('2d');
+    // Inside initializeCharts(data) function:
+
+        // 1. Get the container and canvas elements
+        const recommendationsContainer = document.getElementById('recommendations-container');
+        const recommendationsCtx = document.getElementById('recommendationsChart')?.getContext('2d');
         
-        if (data.analysisSummary && data.analysisSummary.recommendations) {
-            const recs = data.analysisSummary.recommendations;
+        // 2. Clear any existing content
+        recommendationsContainer.innerHTML = '<canvas id="recommendationsChart"></canvas>';
+        
+        // 3. Check if data exists and is in correct format
+        if (data.analysisSummary?.recommendations && 
+            typeof data.analysisSummary.recommendations === 'object' &&
+            Object.keys(data.analysisSummary.recommendations).length > 0) {
             
-            // Extract the latest recommendations (most recent month)
-            const latestRecs = {
-                strongbuy: recs.strongbuy[0] || 0,
-                buy: recs.buy[0] || 0,
-                hold: recs.hold[0] || 0,
-                sell: recs.sell[0] || 0,
-                strongsell: recs.strongsell[0] || 0
-            };
+            try {
+                const recs = data.analysisSummary.recommendations;
+                
+                // Get the most recent recommendations (first element in each array)
+                const latestRecs = {
+                    strongbuy: recs.strongbuy?.[0] || 0,
+                    buy: recs.buy?.[0] || 0,
+                    hold: recs.hold?.[0] || 0,
+                    sell: recs.sell?.[0] || 0,
+                    strongsell: recs.strongsell?.[0] || 0
+                };
         
-            recommendationsChart = new Chart(recommendationsCtx, {
-                type: 'bar',
-                data: {
-                    labels: ['Strong Buy', 'Buy', 'Hold', 'Sell', 'Strong Sell'],
-                    datasets: [{
-                        label: 'Analyst Recommendations (Latest)',
-                        data: [
-                            latestRecs.strongbuy,
-                            latestRecs.buy,
-                            latestRecs.hold,
-                            latestRecs.sell,
-                            latestRecs.strongsell
-                        ],
-                        backgroundColor: [
-                            'rgba(40, 167, 69, 0.8)',  // Strong Buy (green)
-                            'rgba(40, 167, 69, 0.6)',  // Buy (lighter green)
-                            'rgba(255, 193, 7, 0.8)',  // Hold (yellow)
-                            'rgba(220, 53, 69, 0.6)',  // Sell (lighter red)
-                            'rgba(220, 53, 69, 0.8)'   // Strong Sell (red)
-                        ],
-                        borderColor: [
-                            'rgba(40, 167, 69, 1)',
-                            'rgba(40, 167, 69, 1)',
-                            'rgba(255, 193, 7, 1)',
-                            'rgba(220, 53, 69, 1)',
-                            'rgba(220, 53, 69, 1)'
-                        ],
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: (ctx) => `${ctx.label}: ${ctx.raw} analysts`
+                // Create the chart
+                recommendationsChart = new Chart(recommendationsCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Strong Buy', 'Buy', 'Hold', 'Sell', 'Strong Sell'],
+                        datasets: [{
+                            data: [
+                                latestRecs.strongbuy,
+                                latestRecs.buy,
+                                latestRecs.hold,
+                                latestRecs.sell,
+                                latestRecs.strongsell
+                            ],
+                            backgroundColor: [
+                                'rgba(40, 167, 69, 0.8)',
+                                'rgba(40, 167, 69, 0.6)',
+                                'rgba(255, 193, 7, 0.8)',
+                                'rgba(220, 53, 69, 0.6)',
+                                'rgba(220, 53, 69, 0.8)'
+                            ],
+                            borderColor: [
+                                'rgba(40, 167, 69, 1)',
+                                'rgba(40, 167, 69, 1)',
+                                'rgba(255, 193, 7, 1)',
+                                'rgba(220, 53, 69, 1)',
+                                'rgba(220, 53, 69, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: (ctx) => `${ctx.label}: ${ctx.raw} analysts`
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1,
+                                    precision: 0
+                                }
                             }
                         }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: { stepSize: 1 },
-                            title: { text: 'Number of Analysts' }
-                        }
                     }
-                }
-            });
+                });
+            } catch (error) {
+                console.error('Error creating recommendations chart:', error);
+                showRecommendationsError();
+            }
         } else {
-            // Fallback if no data exists
-            document.getElementById('recommendationsChart').parentElement.innerHTML = `
+            showRecommendationsError();
+        }
+        
+        function showRecommendationsError() {
+            recommendationsContainer.innerHTML = `
                 <div style="text-align: center; padding: 40px; color: #888;">
-                    <h3>Analyst Recommendations</h3>
+                    <h4>Analyst Recommendations</h4>
                     <p>No recommendation data available</p>
                 </div>
             `;
