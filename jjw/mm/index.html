@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aurora Meeting Q&A Checklist</title>
+    <title>Generic Meeting Minutes Maker</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -108,147 +108,45 @@
             border-radius: 5px;
             font-weight: bold;
         }
+        .add-section {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .section-title-input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .item-title-input {
+            width: 80%;
+            padding: 8px;
+            margin-left: 30px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Aurora Status & Risk Assessment Meeting</h1>
+        <h1><input type="text" id="meetingTitle" placeholder="Enter Meeting Title" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;"></h1>
         <p><strong>Date:</strong> <input type="date" id="meetingDate" style="margin-left: 10px;"></p>
         <p><strong>Attendees:</strong> <input type="text" id="attendees" placeholder="Enter attendee names" style="width: 70%; margin-left: 10px;"></p>
         
         <div class="progress" id="progress">Progress: 0 / 0 items completed</div>
 
-        <h2>1. ASPICE Road Map Update</h2>
-        <div class="item" data-item="1.1">
-            <div class="checkbox-wrapper">
-                <input type="checkbox" id="item1.1" onchange="updateProgress()">
-                <label for="item1.1">1.1 Planned vs Actual</label>
-            </div>
-            <textarea placeholder="Notes on planned vs actual status..."></textarea>
-        </div>
-        <div class="item" data-item="1.2">
-            <div class="checkbox-wrapper">
-                <input type="checkbox" id="item1.2" onchange="updateProgress()">
-                <label for="item1.2">1.2 Risk Evaluation/Status</label>
-            </div>
-            <textarea placeholder="Risk assessment notes..."></textarea>
+        <div id="sectionsContainer">
+            <!-- Sections will be added here dynamically -->
         </div>
 
-        <h2>2. ISO26262 and ISO 21434</h2>
-        <div class="item" data-item="2.1">
-            <div class="checkbox-wrapper">
-                <input type="checkbox" id="item2.1" onchange="updateProgress()">
-                <label for="item2.1">2.1 Aurora Standards Road Map</label>
-            </div>
-            <textarea placeholder="Standards roadmap status..."></textarea>
-        </div>
-
-        <h2>3. SW PPAP Process with Tier n Status</h2>
-        <div class="item" data-item="3.1">
-            <div class="checkbox-wrapper">
-                <input type="checkbox" id="item3.1" onchange="updateProgress()">
-                <label for="item3.1">3.1 How many Suppliers and their current status</label>
-            </div>
-            <textarea placeholder="Supplier count and status..."></textarea>
-        </div>
-        <div class="item" data-item="3.2">
-            <div class="checkbox-wrapper">
-                <input type="checkbox" id="item3.2" onchange="updateProgress()">
-                <label for="item3.2">3.2 Status and Risk Evaluation</label>
-            </div>
-            <textarea placeholder="PPAP risk evaluation..."></textarea>
-        </div>
-        <div class="item" data-item="3.3">
-            <div class="checkbox-wrapper">
-                <input type="checkbox" id="item3.3" onchange="updateProgress()">
-                <label for="item3.3">3.3 Infringement analysis (Third Party SW Assessment)</label>
-            </div>
-            <textarea placeholder="Third party SW assessment findings..."></textarea>
-        </div>
-
-        <h2>4. SSW WP Status</h2>
-        <div class="item" data-item="4.1">
-            <div class="checkbox-wrapper">
-                <input type="checkbox" id="item4.1" onchange="updateProgress()">
-                <label for="item4.1">4.1 SW Test and Verification Report</label>
-            </div>
-            <textarea placeholder="Test and verification status..."></textarea>
-        </div>
-        <div class="item" data-item="4.2">
-            <div class="checkbox-wrapper">
-                <input type="checkbox" id="item4.2" onchange="updateProgress()">
-                <label for="item4.2">4.2 SW Version Description</label>
-            </div>
-            <textarea placeholder="Version description notes..."></textarea>
-        </div>
-        <div class="item" data-item="4.3">
-            <div class="checkbox-wrapper">
-                <input type="checkbox" id="item4.3" onchange="updateProgress()">
-                <label for="item4.3">4.3 SW ICD</label>
-            </div>
-            <textarea placeholder="ICD status..."></textarea>
-        </div>
-        <div class="item" data-item="4.4">
-            <div class="checkbox-wrapper">
-                <input type="checkbox" id="item4.4" onchange="updateProgress()">
-                <label for="item4.4">4.4 Volvo Requirements to Aurora</label>
-            </div>
-            <textarea placeholder="Volvo requirements status..."></textarea>
-        </div>
-        <div class="item" data-item="4.5">
-            <div class="checkbox-wrapper">
-                <input type="checkbox" id="item4.5" onchange="updateProgress()">
-                <label for="item4.5">4.5 Aurora Requirements to Volvo</label>
-            </div>
-            <textarea placeholder="Aurora requirements status..."></textarea>
-        </div>
-        <div class="item" data-item="4.6">
-            <div class="checkbox-wrapper">
-                <input type="checkbox" id="item4.6" onchange="updateProgress()">
-                <label for="item4.6">4.6 Release Quality Statement</label>
-            </div>
-            <textarea placeholder="Quality statement notes..."></textarea>
-        </div>
-        <div class="item" data-item="4.7">
-            <div class="checkbox-wrapper">
-                <input type="checkbox" id="item4.7" onchange="updateProgress()">
-                <label for="item4.7">4.7 Requirement Traceability Matrix</label>
-            </div>
-            <textarea placeholder="Traceability matrix status..."></textarea>
-        </div>
-        <div class="item" data-item="4.8">
-            <div class="checkbox-wrapper">
-                <input type="checkbox" id="item4.8" onchange="updateProgress()">
-                <label for="item4.8">4.8 SW Test Plan</label>
-            </div>
-            <textarea placeholder="Test plan status..."></textarea>
-        </div>
-
-        <h2>5. SW Unit Verification</h2>
-        <div class="item" data-item="5.1">
-            <div class="checkbox-wrapper">
-                <input type="checkbox" id="item5.1" onchange="updateProgress()">
-                <label for="item5.1">5.1 Are there any negative impacts on the AV Truck or base vehicle?</label>
-            </div>
-            <textarea placeholder="Impact assessment notes..."></textarea>
-        </div>
-
-        <h2>6. Maintenance Plan Status (TBD)</h2>
-        <div class="item" data-item="6">
-            <div class="checkbox-wrapper">
-                <input type="checkbox" id="item6" onchange="updateProgress()">
-                <label for="item6">Maintenance Plan Status</label>
-            </div>
-            <textarea placeholder="Maintenance plan notes..."></textarea>
-        </div>
-
-        <h2>7. C Build Review (TBD)</h2>
-        <div class="item" data-item="7.1">
-            <div class="checkbox-wrapper">
-                <input type="checkbox" id="item7.1" onchange="updateProgress()">
-                <label for="item7.1">7.1 Define WOW</label>
-            </div>
-            <textarea placeholder="WOW definition and notes..."></textarea>
+        <div class="add-section">
+            <h3>Add New Section</h3>
+            <input type="text" id="newSectionTitle" class="section-title-input" placeholder="Enter section title">
+            <button onclick="addSection()">Add Section</button>
         </div>
 
         <div class="export-section">
@@ -256,6 +154,8 @@
             <button onclick="generateMinutes()">Generate Meeting Minutes</button>
             <button onclick="copyToClipboard()">Copy to Clipboard</button>
             <button onclick="clearAll()">Clear All</button>
+            <button onclick="saveTemplate()">Save as Template</button>
+            <button onclick="loadTemplate()">Load Template</button>
             
             <div class="summary" id="summary"></div>
         </div>
@@ -264,6 +164,10 @@
     <script>
         // Set today's date by default
         document.getElementById('meetingDate').valueAsDate = new Date();
+        
+        // Counter for item IDs
+        let itemCounter = 0;
+        let sectionCounter = 0;
 
         function updateProgress() {
             const checkboxes = document.querySelectorAll('input[type="checkbox"]');
@@ -282,38 +186,108 @@
             });
         }
 
+        function addSection() {
+            const sectionTitle = document.getElementById('newSectionTitle').value.trim();
+            if (!sectionTitle) {
+                alert('Please enter a section title');
+                return;
+            }
+            
+            sectionCounter++;
+            const sectionId = `section-${sectionCounter}`;
+            
+            const sectionHTML = `
+                <div class="section" id="${sectionId}">
+                    <h2>${sectionCounter}. ${sectionTitle} 
+                        <button onclick="addItem('${sectionId}')" style="font-size: 12px; padding: 3px 8px; float: right;">+ Add Item</button>
+                        <button onclick="removeSection('${sectionId}')" style="font-size: 12px; padding: 3px 8px; float: right; margin-right: 5px; background-color: #dc3545;">× Remove</button>
+                    </h2>
+                    <div class="items-container" id="${sectionId}-items"></div>
+                </div>
+            `;
+            
+            document.getElementById('sectionsContainer').insertAdjacentHTML('beforeend', sectionHTML);
+            document.getElementById('newSectionTitle').value = '';
+            
+            // Add a first item automatically
+            addItem(sectionId);
+        }
+
+        function addItem(sectionId) {
+            itemCounter++;
+            const itemId = `item-${itemCounter}`;
+            
+            const itemHTML = `
+                <div class="item" data-item="${itemId}">
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="${itemId}" onchange="updateProgress()">
+                        <input type="text" class="item-title-input" id="${itemId}-title" placeholder="Enter item title">
+                        <button onclick="removeItem('${itemId}')" style="font-size: 12px; padding: 3px 8px; margin-left: 5px; background-color: #dc3545;">×</button>
+                    </div>
+                    <textarea placeholder="Enter notes..."></textarea>
+                </div>
+            `;
+            
+            document.getElementById(`${sectionId}-items`).insertAdjacentHTML('beforeend', itemHTML);
+            updateProgress();
+        }
+
+        function removeItem(itemId) {
+            if (confirm('Are you sure you want to remove this item?')) {
+                document.querySelector(`[data-item="${itemId}"]`).remove();
+                updateProgress();
+            }
+        }
+
+        function removeSection(sectionId) {
+            if (confirm('Are you sure you want to remove this section and all its items?')) {
+                document.getElementById(sectionId).remove();
+                
+                // Renumber remaining sections
+                const sections = document.querySelectorAll('.section');
+                sections.forEach((section, index) => {
+                    const h2 = section.querySelector('h2');
+                    const currentText = h2.textContent;
+                    const newText = (index + 1) + currentText.substring(currentText.indexOf('.'));
+                    h2.textContent = newText;
+                });
+                
+                updateProgress();
+            }
+        }
+
         function generateMinutes() {
+            const title = document.getElementById('meetingTitle').value || 'Meeting Minutes';
             const date = document.getElementById('meetingDate').value;
             const attendees = document.getElementById('attendees').value;
-            let minutes = `MEETING MINUTES\n`;
-            minutes += `Aurora Status & Risk Assessment Meeting\n`;
+            
+            let minutes = `${title.toUpperCase()}\n`;
             minutes += `Date: ${date}\n`;
             minutes += `Attendees: ${attendees}\n`;
             minutes += `${'='.repeat(50)}\n\n`;
 
             // Get all sections
-            const sections = document.querySelectorAll('h2');
-            sections.forEach(section => {
-                minutes += `${section.textContent}\n`;
-                minutes += `${'-'.repeat(section.textContent.length)}\n`;
+            const sections = document.querySelectorAll('.section');
+            sections.forEach((section, sectionIndex) => {
+                const sectionTitle = section.querySelector('h2').textContent;
+                minutes += `${sectionTitle}\n`;
+                minutes += `${'-'.repeat(sectionTitle.length)}\n`;
                 
                 // Get items in this section
-                let nextElement = section.nextElementSibling;
-                while (nextElement && !nextElement.matches('h2')) {
-                    if (nextElement.classList.contains('item')) {
-                        const checkbox = nextElement.querySelector('input[type="checkbox"]');
-                        const label = nextElement.querySelector('label').textContent;
-                        const notes = nextElement.querySelector('textarea').value;
-                        const status = checkbox.checked ? '✓ COMPLETED' : '○ PENDING';
-                        
-                        minutes += `\n${label}\n`;
-                        minutes += `Status: ${status}\n`;
-                        if (notes.trim()) {
-                            minutes += `Notes: ${notes}\n`;
-                        }
+                const items = section.querySelectorAll('.item');
+                items.forEach((item, itemIndex) => {
+                    const checkbox = item.querySelector('input[type="checkbox"]');
+                    const titleInput = item.querySelector('.item-title-input');
+                    const label = titleInput ? titleInput.value : `Item ${itemIndex + 1}`;
+                    const notes = item.querySelector('textarea').value;
+                    const status = checkbox.checked ? '✓ COMPLETED' : '○ PENDING';
+                    
+                    minutes += `\n${sectionIndex + 1}.${itemIndex + 1} ${label}\n`;
+                    minutes += `Status: ${status}\n`;
+                    if (notes.trim()) {
+                        minutes += `Notes: ${notes}\n`;
                     }
-                    nextElement = nextElement.nextElementSibling;
-                }
+                });
                 minutes += '\n';
             });
 
@@ -321,12 +295,15 @@
             const checkboxes = document.querySelectorAll('input[type="checkbox"]');
             const completed = Array.from(checkboxes).filter(cb => cb.checked).length;
             const total = checkboxes.length;
-            minutes += `\nSUMMARY\n`;
-            minutes += `${'-'.repeat(7)}\n`;
-            minutes += `Total Items Discussed: ${total}\n`;
-            minutes += `Completed: ${completed}\n`;
-            minutes += `Pending: ${total - completed}\n`;
-            minutes += `Completion Rate: ${Math.round((completed/total)*100)}%\n`;
+            
+            if (total > 0) {
+                minutes += `\nSUMMARY\n`;
+                minutes += `${'-'.repeat(7)}\n`;
+                minutes += `Total Items Discussed: ${total}\n`;
+                minutes += `Completed: ${completed}\n`;
+                minutes += `Pending: ${total - completed}\n`;
+                minutes += `Completion Rate: ${Math.round((completed/total)*100)}%\n`;
+            }
 
             const summaryDiv = document.getElementById('summary');
             summaryDiv.style.display = 'block';
@@ -346,10 +323,100 @@
         }
 
         function clearAll() {
-            if (confirm('Are you sure you want to clear all checkboxes and notes?')) {
-                document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-                document.querySelectorAll('textarea').forEach(ta => ta.value = '');
+            if (confirm('Are you sure you want to clear all sections and items?')) {
+                document.getElementById('sectionsContainer').innerHTML = '';
+                document.getElementById('meetingTitle').value = '';
+                document.getElementById('attendees').value = '';
                 document.getElementById('summary').style.display = 'none';
+                itemCounter = 0;
+                sectionCounter = 0;
+                updateProgress();
+            }
+        }
+
+        function saveTemplate() {
+            const template = {
+                title: document.getElementById('meetingTitle').value,
+                sections: []
+            };
+            
+            document.querySelectorAll('.section').forEach(section => {
+                const sectionTitle = section.querySelector('h2').textContent;
+                const items = [];
+                
+                section.querySelectorAll('.item').forEach(item => {
+                    const titleInput = item.querySelector('.item-title-input');
+                    items.push({
+                        title: titleInput ? titleInput.value : '',
+                        notes: item.querySelector('textarea').value,
+                        completed: item.querySelector('input[type="checkbox"]').checked
+                    });
+                });
+                
+                template.sections.push({
+                    title: sectionTitle,
+                    items: items
+                });
+            });
+            
+            localStorage.setItem('meetingMinutesTemplate', JSON.stringify(template));
+            alert('Template saved successfully!');
+        }
+
+        function loadTemplate() {
+            const templateJson = localStorage.getItem('meetingMinutesTemplate');
+            if (!templateJson) {
+                alert('No saved template found');
+                return;
+            }
+            
+            if (confirm('Loading a template will overwrite your current minutes. Continue?')) {
+                clearAll();
+                const template = JSON.parse(templateJson);
+                
+                document.getElementById('meetingTitle').value = template.title || '';
+                
+                template.sections.forEach(section => {
+                    // Extract section number and title
+                    const sectionMatch = section.title.match(/^(\d+)\.\s*(.*)/);
+                    const sectionNumber = sectionMatch ? sectionMatch[1] : sectionCounter + 1;
+                    const sectionTitle = sectionMatch ? sectionMatch[2] : section.title;
+                    
+                    sectionCounter = Math.max(sectionCounter, sectionNumber);
+                    
+                    const sectionId = `section-${sectionNumber}`;
+                    const sectionHTML = `
+                        <div class="section" id="${sectionId}">
+                            <h2>${sectionNumber}. ${sectionTitle} 
+                                <button onclick="addItem('${sectionId}')" style="font-size: 12px; padding: 3px 8px; float: right;">+ Add Item</button>
+                                <button onclick="removeSection('${sectionId}')" style="font-size: 12px; padding: 3px 8px; float: right; margin-right: 5px; background-color: #dc3545;">× Remove</button>
+                            </h2>
+                            <div class="items-container" id="${sectionId}-items"></div>
+                        </div>
+                    `;
+                    
+                    document.getElementById('sectionsContainer').insertAdjacentHTML('beforeend', sectionHTML);
+                    
+                    // Add items
+                    section.items.forEach(item => {
+                        itemCounter++;
+                        const itemId = `item-${itemCounter}`;
+                        
+                        const itemHTML = `
+                            <div class="item" data-item="${itemId}">
+                                <div class="checkbox-wrapper">
+                                    <input type="checkbox" id="${itemId}" ${item.completed ? 'checked' : ''} onchange="updateProgress()">
+                                    <input type="text" class="item-title-input" id="${itemId}-title" value="${item.title || ''}" placeholder="Enter item title">
+                                    <button onclick="removeItem('${itemId}')" style="font-size: 12px; padding: 3px 8px; margin-left: 5px; background-color: #dc3545;">×</button>
+                                </div>
+                                <textarea placeholder="Enter notes...">${item.notes || ''}</textarea>
+                            </div>
+                        `;
+                        
+                        document.getElementById(`${sectionId}-items`).insertAdjacentHTML('beforeend', itemHTML);
+                    });
+                });
+                
                 updateProgress();
             }
         }
