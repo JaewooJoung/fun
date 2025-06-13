@@ -1,0 +1,21 @@
+{
+    "trend_direction": "Uptrend",
+    "high_date": "2025-05-26 07:00:00",
+    "analysis_date": "2025-06-12 22:31:37",
+    "current_price": 159.6999969482422,
+    "high_price": 174.5,
+    "current_position": "Between 61.8% and 78.6%",
+    "low_date": "2025-04-07 07:00:00",
+    "retracement_levels": {
+        "78.6%": 159.173,
+        "61.8%": 162.449,
+        "50.0%": 164.75,
+        "100.0%": 155.0,
+        "38.2%": 167.051,
+        "0.0%": 174.5,
+        "23.6%": 169.898
+    },
+    "price_range": 19.5,
+    "low_price": 155.0,
+    "symbol": "SKIS-B.ST"
+}

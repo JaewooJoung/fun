@@ -1,0 +1,29 @@
+{
+    "golden_crosses": [],
+    "summary": {
+        "current_status": {
+            "days_since_golden_cross": null,
+            "days_since_death_cross": null,
+            "ma_50": 167.2379998779297,
+            "ma_200": null,
+            "trend": "Unknown"
+        },
+        "total_golden_crosses": 0,
+        "average_performance": {
+            "avg_golden_cross_performance": {
+                "20_days": null,
+                "1_day": null,
+                "5_days": null
+            },
+            "avg_death_cross_performance": {
+                "20_days": null,
+                "1_day": null,
+                "5_days": null
+            }
+        },
+        "total_death_crosses": 0
+    },
+    "death_crosses": [],
+    "analysis_date": "2025-06-12 22:31:37",
+    "symbol": "SKIS-B.ST"
+}
