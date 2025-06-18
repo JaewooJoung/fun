@@ -648,4 +648,123 @@
         // Add new criteria row
         function addCriteria(tableId, category) {
             const table = document.getElementById(tableId);
-            const tbody
+            const tbody = table.getElementsByTagName('tbody')[0];
+            const subScoreRow = tbody.lastElementChild;
+            
+            const newRow = document.createElement('tr');
+            newRow.className = 'criteria-row';
+            newRow.innerHTML = `
+                <td><input type="text" class="editable-field" placeholder="Enter Criteria"></td>
+                <td><input type="text" class="editable-field" placeholder="Poor description"></td>
+                <td><input type="text" class="editable-field" placeholder="Fair description"></td>
+                <td><input type="text" class="editable-field" placeholder="Good description"></td>
+                <td><input type="text" class="editable-field" placeholder="Very Good description"></td>
+                <td><input type="text" class="editable-field" placeholder="Excellent description"></td>
+                <td class="score-cell">
+                    <select class="score-select" data-category="${category}">
+                        <option value="0">N/A</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </td>
+                <td class="no-print">
+                    <button class="remove-btn" onclick="removeRow(this)">Remove</button>
+                </td>
+            `;
+            
+            tbody.insertBefore(newRow, subScoreRow);
+            attachScoreListeners();
+        }
+        
+        // Add new category
+        function addCategory(tableId, category) {
+            const table = document.getElementById(tableId);
+            const tbody = table.getElementsByTagName('tbody')[0];
+            const subScoreRow = tbody.lastElementChild;
+            
+            const categoryRow = document.createElement('tr');
+            categoryRow.className = 'category-row';
+            categoryRow.innerHTML = `
+                <td colspan="8">
+                    <input type="text" class="editable-field category-input" placeholder="Enter Category Name">
+                </td>
+            `;
+            
+            const criteriaRow = document.createElement('tr');
+            criteriaRow.className = 'criteria-row';
+            criteriaRow.innerHTML = `
+                <td><input type="text" class="editable-field" placeholder="Enter Criteria"></td>
+                <td><input type="text" class="editable-field" placeholder="Poor description"></td>
+                <td><input type="text" class="editable-field" placeholder="Fair description"></td>
+                <td><input type="text" class="editable-field" placeholder="Good description"></td>
+                <td><input type="text" class="editable-field" placeholder="Very Good description"></td>
+                <td><input type="text" class="editable-field" placeholder="Excellent description"></td>
+                <td class="score-cell">
+                    <select class="score-select" data-category="${category}">
+                        <option value="0">N/A</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </td>
+                <td class="no-print">
+                    <button class="remove-btn" onclick="removeRow(this)">Remove</button>
+                </td>
+            `;
+            
+            tbody.insertBefore(categoryRow, subScoreRow);
+            tbody.insertBefore(criteriaRow, subScoreRow);
+            attachScoreListeners();
+        }
+        
+        // Remove row
+        function removeRow(button) {
+            const row = button.closest('tr');
+            const prevRow = row.previousElementSibling;
+            
+            // If this is the last criteria under a category, remove the category too
+            if (prevRow && prevRow.classList.contains('category-row')) {
+                const nextRow = row.nextElementSibling;
+                if (!nextRow || nextRow.querySelector('[style*="text-align: right"]')) {
+                    prevRow.remove();
+                }
+            }
+            
+            row.remove();
+            calculateScores();
+        }
+        
+        // Print preparation
+        window.addEventListener('beforeprint', function() {
+            document.getElementById('printName').textContent = document.getElementById('candidateName').value || 'Not specified';
+            document.getElementById('printDate').textContent = document.getElementById('interviewDate').value || 'Not specified';
+            document.getElementById('printInterviewer').textContent = document.getElementById('interviewer').value || 'Not specified';
+            document.getElementById('printPosition').textContent = document.getElementById('position').value || 'Not specified';
+            document.getElementById('printInfo').style.display = 'block';
+            
+            // Handle additional comments
+            const comments = document.getElementById('additionalComments').value;
+            if (comments) {
+                document.getElementById('printCommentsText').textContent = comments;
+                document.getElementById('printComments').style.display = 'block';
+            }
+        });
+
+        window.addEventListener('afterprint', function() {
+            document.getElementById('printInfo').style.display = 'none';
+            document.getElementById('printComments').style.display = 'none';
+        });
+
+        // Initialize with today's date
+        document.getElementById('interviewDate').value = new Date().toISOString().split('T')[0];
+        
+        // Initialize with event listeners
+        attachScoreListeners();
+    </script>
+</body>
+</html>
