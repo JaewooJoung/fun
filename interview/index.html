@@ -168,6 +168,29 @@
             border-radius: 4px;
         }
         
+        .sample-questions {
+            background-color: #F0F7FF;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #2196F3;
+        }
+        
+        .sample-questions h4 {
+            margin: 0 0 10px 0;
+            color: #1976D2;
+        }
+        
+        .sample-questions ul {
+            margin: 5px 0;
+            padding-left: 20px;
+        }
+        
+        .sample-questions li {
+            margin: 5px 0;
+            color: #333;
+        }
+        
         .criteria-row td:first-child {
             background-color: #F5F5F5;
         }
@@ -195,7 +218,7 @@
             <h3>Candidate Information</h3>
             <label>Candidate Name: <input type="text" id="candidateName" placeholder="Enter name"></label>
             <label>Interview Date: <input type="date" id="interviewDate"></label>
-            <label>Interviewer: <input type="text" id="interviewer" placeholder="Enter interviewer name"></label>
+            <label>Interviewer: <input type="text" id="interviewer" placeholder="Enter interviewer name" value="Jaewoo Joung"></label>
             <label>Position: <input type="text" id="position" placeholder="Enter position"></label>
         </div>
 
@@ -207,9 +230,17 @@
         <button class="button no-print" onclick="window.print()">Print Report</button>
 
         <!-- Core Competencies Section (25%) -->
-        <h2>
-            <span class="section-title">CORE COMPETENCIES - GRADING MATRIX (25%)</span>
-        </h2>
+        <h2>COMPETENCY - GRADING MATRIX (25%)</h2>
+        
+        <div class="sample-questions no-print">
+            <h4>Career to Date - Sample Questions:</h4>
+            <ul>
+                <li>Tell us about a difficult problem you've faced in a project. How did you resolve it and what tools did you use?</li>
+                <li>What interests you about this role and how does it fit with your career aspirations?</li>
+                <li>Can you give an example of when you have built a strong relationship with a supplier that has improved the output/quality from them?</li>
+                <li>Give an example of a time where you had to meet a larger perspective within a tight time frame. What tools/methods did you use to achieve the task?</li>
+            </ul>
+        </div>
         
         <table id="coreTable">
             <thead>
@@ -221,22 +252,19 @@
                     <th>Very Good (4)</th>
                     <th>Excellent (5)</th>
                     <th style="width: 80px;">Score</th>
-                    <th class="no-print" style="width: 80px;">Action</th>
                 </tr>
             </thead>
             <tbody>
-                <tr class="category-row">
-                    <td colspan="8">
-                        <input type="text" class="editable-field category-input" placeholder="Enter Category (e.g., Communication Skills)">
-                    </td>
+                <tr class="category-header">
+                    <td colspan="7">Career to Date</td>
                 </tr>
                 <tr class="criteria-row">
-                    <td><input type="text" class="editable-field" placeholder="Enter Criteria"></td>
-                    <td><input type="text" class="editable-field" placeholder="Poor description"></td>
-                    <td><input type="text" class="editable-field" placeholder="Fair description"></td>
-                    <td><input type="text" class="editable-field" placeholder="Good description"></td>
-                    <td><input type="text" class="editable-field" placeholder="Very Good description"></td>
-                    <td><input type="text" class="editable-field" placeholder="Excellent description"></td>
+                    <td>Motivation</td>
+                    <td>No clear understanding of role</td>
+                    <td>Basic understanding of demands</td>
+                    <td>Good understanding and motivation</td>
+                    <td>Strong understanding and clear goals</td>
+                    <td>Exceptional career progression with clarity and experience</td>
                     <td class="score-cell">
                         <select class="score-select" data-category="core">
                             <option value="0">N/A</option>
@@ -247,19 +275,88 @@
                             <option value="5">5</option>
                         </select>
                     </td>
-                    <td class="no-print">
-                        <button class="remove-btn" onclick="removeRow(this)">Remove</button>
+                </tr>
+                <tr class="category-header">
+                    <td colspan="7">Competency</td>
+                </tr>
+                <tr class="criteria-row">
+                    <td>Decision Making</td>
+                    <td>Makes assumptions; reluctant to decide</td>
+                    <td>Basic problem-solving skills</td>
+                    <td>Analyzes problems effectively</td>
+                    <td>Strong analysis and risk management</td>
+                    <td>Exceptional decision-making abilities</td>
+                    <td class="score-cell">
+                        <select class="score-select" data-category="core">
+                            <option value="0">N/A</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr class="criteria-row">
+                    <td>Teamwork & Collaboration</td>
+                    <td>Works in isolation</td>
+                    <td>Basic team participation</td>
+                    <td>Good team player</td>
+                    <td>Strong team contributor</td>
+                    <td>Exceptional team leader</td>
+                    <td class="score-cell">
+                        <select class="score-select" data-category="core">
+                            <option value="0">N/A</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr class="criteria-row">
+                    <td>Developing & Managing Relationships</td>
+                    <td>Short-term focus</td>
+                    <td>Basic relationship building</td>
+                    <td>Good relationship management</td>
+                    <td>Strong relationship builder</td>
+                    <td>Exceptional relationship developer</td>
+                    <td class="score-cell">
+                        <select class="score-select" data-category="core">
+                            <option value="0">N/A</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr class="criteria-row">
+                    <td>Drive for Results</td>
+                    <td>Makes assumptions about requirements</td>
+                    <td>Basic delivery capabilities</td>
+                    <td>Meets objectives consistently</td>
+                    <td>Strong delivery focus</td>
+                    <td>Exceptional results achievement</td>
+                    <td class="score-cell">
+                        <select class="score-select" data-category="core">
+                            <option value="0">N/A</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
                     </td>
                 </tr>
                 <tr>
-                    <td colspan="6" style="text-align: right; font-weight: bold;">Core Competencies Sub-Score:</td>
+                    <td colspan="6" style="text-align: right; font-weight: bold;">Competency Sub-Score:</td>
                     <td class="score-cell" id="coreSubScore">0</td>
-                    <td class="no-print"></td>
                 </tr>
             </tbody>
         </table>
-        <button class="button add-button no-print" onclick="addCriteria('coreTable', 'core')">Add Criteria</button>
-        <button class="button add-button no-print" onclick="addCategory('coreTable', 'core')">Add Category</button>
 
         <!-- Technical Competencies Section (30%) -->
         <h2>
