@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>General Interview Grading Matrix</title>
+    <style>
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                font-size: 10pt;
+            }
+            .page-break {
+                page-break-after: always;
+            }
+            .editable-field {
+                border: none !important;
+                background: none !important;
+                width: 100% !important;
+                font-weight: inherit !important;
+            }
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        h1, h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            display: inline-block;
+        }
+        
+        .editable-title {
+            border: 1px solid #ddd;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 18px;
+            font-weight: bold;
+            margin-left: 10px;
+            width: 300px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #4CAF50;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .category-header {
+            background-color: #2196F3;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .editable-field {
+            width: 100%;
+            border: 1px solid #ddd;
+            padding: 5px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .category-input {
+            font-weight: bold;
+            background-color: #E3F2FD;
+        }
+        
+        .score-cell {
+            background-color: #FFF9C4;
+            text-align: center;
+            font-weight: bold;
+            width: 80px;
+        }
+        
+        select {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .final-score {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4CAF50;
+            text-align: center;
+            padding: 20px;
+            background-color: #E8F5E9;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        
+        .button:hover {
+            background-color: #45a049;
+        }
+        
+        .add-button {
+            background-color: #2196F3;
+        }
+        
+        .add-button:hover {
+            background-color: #1976D2;
+        }
+        
+        .recommendations {
+            background-color: #FFF3E0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .legend {
+            background-color: #F5F5F5;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .candidate-info {
+            background-color: #E8EAF6;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .candidate-info input {
+            margin: 5px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .criteria-row td:first-child {
+            background-color: #F5F5F5;
+        }
+        
+        .remove-btn {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .remove-btn:hover {
+            background-color: #d32f2f;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>GENERAL INTERVIEW GRADING MATRIX</h1>
+        
+        <div class="candidate-info no-print">
+            <h3>Candidate Information</h3>
+            <label>Candidate Name: <input type="text" id="candidateName" placeholder="Enter name"></label>
+            <label>Interview Date: <input type="date" id="interviewDate"></label>
+            <label>Interviewer: <input type="text" id="interviewer" placeholder="Enter interviewer name"></label>
+            <label>Position: <input type="text" id="position" placeholder="Enter position"></label>
+        </div>
+
+        <div class="legend no-print">
+            <h3>Scoring Legend</h3>
+            <p><strong>5</strong> - Excellent | <strong>4</strong> - Very Good | <strong>3</strong> - Good | <strong>2</strong> - Fair | <strong>1</strong> - Poor | <strong>0</strong> - Not Applicable</p>
+        </div>
+
+        <button class="button no-print" onclick="window.print()">Print Report</button>
+
+        <!-- Core Competencies Section (25%) -->
+        <h2>
+            <span class="section-title">CORE COMPETENCIES - GRADING MATRIX (25%)</span>
+        </h2>
+        
+        <table id="coreTable">
+            <thead>
+                <tr>
+                    <th style="width: 25%;">Category & Criteria</th>
+                    <th>Poor (1)</th>
+                    <th>Fair (2)</th>
+                    <th>Good (3)</th>
+                    <th>Very Good (4)</th>
+                    <th>Excellent (5)</th>
+                    <th style="width: 80px;">Score</th>
+                    <th class="no-print" style="width: 80px;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="category-row">
+                    <td colspan="8">
+                        <input type="text" class="editable-field category-input" placeholder="Enter Category (e.g., Communication Skills)">
+                    </td>
+                </tr>
+                <tr class="criteria-row">
+                    <td><input type="text" class="editable-field" placeholder="Enter Criteria"></td>
+                    <td><input type="text" class="editable-field" placeholder="Poor description"></td>
+                    <td><input type="text" class="editable-field" placeholder="Fair description"></td>
+                    <td><input type="text" class="editable-field" placeholder="Good description"></td>
+                    <td><input type="text" class="editable-field" placeholder="Very Good description"></td>
+                    <td><input type="text" class="editable-field" placeholder="Excellent description"></td>
+                    <td class="score-cell">
+                        <select class="score-select" data-category="core">
+                            <option value="0">N/A</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
+                    </td>
+                    <td class="no-print">
+                        <button class="remove-btn" onclick="removeRow(this)">Remove</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="6" style="text-align: right; font-weight: bold;">Core Competencies Sub-Score:</td>
+                    <td class="score-cell" id="coreSubScore">0</td>
+                    <td class="no-print"></td>
+                </tr>
+            </tbody>
+        </table>
+        <button class="button add-button no-print" onclick="addCriteria('coreTable', 'core')">Add Criteria</button>
+        <button class="button add-button no-print" onclick="addCategory('coreTable', 'core')">Add Category</button>
+
+        <!-- Technical Competencies Section (30%) -->
+        <h2>
+            <span class="section-title">TECHNICAL COMPETENCIES - GRADING MATRIX (30%)</span>
+        </h2>
+        
+        <table id="technicalTable">
+            <thead>
+                <tr>
+                    <th style="width: 25%;">Category & Criteria</th>
+                    <th>Poor (1)</th>
+                    <th>Fair (2)</th>
+                    <th>Good (3)</th>
+                    <th>Very Good (4)</th>
+                    <th>Excellent (5)</th>
+                    <th style="width: 80px;">Score</th>
+                    <th class="no-print" style="width: 80px;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="category-row">
+                    <td colspan="8">
+                        <input type="text" class="editable-field category-input" placeholder="Enter Category (e.g., Programming Skills)">
+                    </td>
+                </tr>
+                <tr class="criteria-row">
+                    <td><input type="text" class="editable-field" placeholder="Enter Criteria"></td>
+                    <td><input type="text" class="editable-field" placeholder="Poor description"></td>
+                    <td><input type="text" class="editable-field" placeholder="Fair description"></td>
+                    <td><input type="text" class="editable-field" placeholder="Good description"></td>
+                    <td><input type="text" class="editable-field" placeholder="Very Good description"></td>
+                    <td><input type="text" class="editable-field" placeholder="Excellent description"></td>
+                    <td class="score-cell">
+                        <select class="score-select" data-category="technical">
+                            <option value="0">N/A</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
+                    </td>
+                    <td class="no-print">
+                        <button class="remove-btn" onclick="removeRow(this)">Remove</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="6" style="text-align: right; font-weight: bold;">Technical Competencies Sub-Score:</td>
+                    <td class="score-cell" id="technicalSubScore">0</td>
+                    <td class="no-print"></td>
+                </tr>
+            </tbody>
+        </table>
+        <button class="button add-button no-print" onclick="addCriteria('technicalTable', 'technical')">Add Criteria</button>
+        <button class="button add-button no-print" onclick="addCategory('technicalTable', 'technical')">Add Category</button>
+
+        <!-- Management Skills Section (30%) -->
+        <h2>
+            <span class="section-title">MANAGEMENT SKILLS - GRADING MATRIX (30%)</span>
+        </h2>
+        
+        <table id="managementTable">
+            <thead>
+                <tr>
+                    <th style="width: 25%;">Category & Criteria</th>
+                    <th>Poor (1)</th>
+                    <th>Fair (2)</th>
+                    <th>Good (3)</th>
+                    <th>Very Good (4)</th>
+                    <th>Excellent (5)</th>
+                    <th style="width: 80px;">Score</th>
+                    <th class="no-print" style="width: 80px;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="category-row">
+                    <td colspan="8">
+                        <input type="text" class="editable-field category-input" placeholder="Enter Category (e.g., Leadership)">
+                    </td>
+                </tr>
+                <tr class="criteria-row">
+                    <td><input type="text" class="editable-field" placeholder="Enter Criteria"></td>
+                    <td><input type="text" class="editable-field" placeholder="Poor description"></td>
+                    <td><input type="text" class="editable-field" placeholder="Fair description"></td>
+                    <td><input type="text" class="editable-field" placeholder="Good description"></td>
+                    <td><input type="text" class="editable-field" placeholder="Very Good description"></td>
+                    <td><input type="text" class="editable-field" placeholder="Excellent description"></td>
+                    <td class="score-cell">
+                        <select class="score-select" data-category="management">
+                            <option value="0">N/A</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
+                    </td>
+                    <td class="no-print">
+                        <button class="remove-btn" onclick="removeRow(this)">Remove</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="6" style="text-align: right; font-weight: bold;">Management Skills Sub-Score:</td>
+                    <td class="score-cell" id="managementSubScore">0</td>
+                    <td class="no-print"></td>
+                </tr>
+            </tbody>
+        </table>
+        <button class="button add-button no-print" onclick="addCriteria('managementTable', 'management')">Add Criteria</button>
+        <button class="button add-button no-print" onclick="addCategory('managementTable', 'management')">Add Category</button>
+
+        <!-- Additional Experience Section (15%) -->
+        <h2>
+            <span class="section-title">ADDITIONAL EXPERIENCE - GRADING MATRIX (15%)</span>
+        </h2>
+        
+        <table id="experienceTable">
+            <thead>
+                <tr>
+                    <th style="width: 25%;">Category & Criteria</th>
+                    <th>Poor (1)</th>
+                    <th>Fair (2)</th>
+                    <th>Good (3)</th>
+                    <th>Very Good (4)</th>
+                    <th>Excellent (5)</th>
+                    <th style="width: 80px;">Score</th>
+                    <th class="no-print" style="width: 80px;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="category-row">
+                    <td colspan="8">
+                        <input type="text" class="editable-field category-input" placeholder="Enter Category (e.g., Industry Experience)">
+                    </td>
+                </tr>
+                <tr class="criteria-row">
+                    <td><input type="text" class="editable-field" placeholder="Enter Criteria"></td>
+                    <td><input type="text" class="editable-field" placeholder="Poor description"></td>
+                    <td><input type="text" class="editable-field" placeholder="Fair description"></td>
+                    <td><input type="text" class="editable-field" placeholder="Good description"></td>
+                    <td><input type="text" class="editable-field" placeholder="Very Good description"></td>
+                    <td><input type="text" class="editable-field" placeholder="Excellent description"></td>
+                    <td class="score-cell">
+                        <select class="score-select" data-category="experience">
+                            <option value="0">N/A</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
+                    </td>
+                    <td class="no-print">
+                        <button class="remove-btn" onclick="removeRow(this)">Remove</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="6" style="text-align: right; font-weight: bold;">Additional Experience Sub-Score:</td>
+                    <td class="score-cell" id="experienceSubScore">0</td>
+                    <td class="no-print"></td>
+                </tr>
+            </tbody>
+        </table>
+        <button class="button add-button no-print" onclick="addCriteria('experienceTable', 'experience')">Add Criteria</button>
+        <button class="button add-button no-print" onclick="addCategory('experienceTable', 'experience')">Add Category</button>
+
+        <div class="final-score">
+            <h2>TOTAL SCORE: <span id="totalScore">0</span> / 100</h2>
+            <p>Grade: <span id="grade">-</span></p>
+        </div>
+
+        <div class="recommendations">
+            <h3>Final Recommendation</h3>
+            <p id="recommendation">-</p>
+            <div class="no-print">
+                <h3>Additional Comments</h3>
+                <textarea id="additionalComments" rows="4" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;" placeholder="Enter any additional comments or observations..."></textarea>
+            </div>
+            <div id="printComments" style="display: none;">
+                <h3>Additional Comments</h3>
+                <p id="printCommentsText"></p>
+            </div>
+        </div>
+
+        <div class="candidate-info" id="printInfo" style="display: none;">
+            <h3>Candidate Information</h3>
+            <p><strong>Candidate Name:</strong> <span id="printName"></span></p>
+            <p><strong>Interview Date:</strong> <span id="printDate"></span></p>
+            <p><strong>Interviewer:</strong> <span id="printInterviewer"></span></p>
+            <p><strong>Position:</strong> <span id="printPosition"></span></p>
+        </div>
+    </div>
+
+    <script>
+        // Add event listeners to all score selects
+        function attachScoreListeners() {
+            document.querySelectorAll('.score-select').forEach(select => {
+                select.removeEventListener('change', calculateScores);
+                select.addEventListener('change', calculateScores);
+            });
+        }
+
+        // Calculate scores when selections change
+        function calculateScores() {
+            // Calculate Core sub-score (25% weight)
+            let coreScores = document.querySelectorAll('[data-category="core"]');
+            let coreTotal = 0;
+            let coreCount = 0;
+            coreScores.forEach(score => {
+                let value = parseInt(score.value);
+                if (value > 0) {
+                    coreTotal += value;
+                    coreCount++;
+                }
+            });
+            let coreSubScore = coreCount > 0 ? (coreTotal / coreCount * 5).toFixed(2) : 0;
+            document.getElementById('coreSubScore').textContent = coreSubScore;
+
+            // Calculate Technical sub-score (30% weight)
+            let techScores = document.querySelectorAll('[data-category="technical"]');
+            let techTotal = 0;
+            let techCount = 0;
+            techScores.forEach(score => {
+                let value = parseInt(score.value);
+                if (value > 0) {
+                    techTotal += value;
+                    techCount++;
+                }
+            });
+            let techSubScore = techCount > 0 ? (techTotal / techCount * 6).toFixed(2) : 0;
+            document.getElementById('technicalSubScore').textContent = techSubScore;
+
+            // Calculate Management sub-score (30% weight)
+            let mgmtScores = document.querySelectorAll('[data-category="management"]');
+            let mgmtTotal = 0;
+            let mgmtCount = 0;
+            mgmtScores.forEach(score => {
+                let value = parseInt(score.value);
+                if (value > 0) {
+                    mgmtTotal += value;
+                    mgmtCount++;
+                }
+            });
+            let mgmtSubScore = mgmtCount > 0 ? (mgmtTotal / mgmtCount * 6).toFixed(2) : 0;
+            document.getElementById('managementSubScore').textContent = mgmtSubScore;
+
+            // Calculate Experience sub-score (15% weight)
+            let expScores = document.querySelectorAll('[data-category="experience"]');
+            let expTotal = 0;
+            let expCount = 0;
+            expScores.forEach(score => {
+                let value = parseInt(score.value);
+                if (value > 0) {
+                    expTotal += value;
+                    expCount++;
+                }
+            });
+            let expSubScore = expCount > 0 ? (expTotal / expCount * 3).toFixed(2) : 0;
+            document.getElementById('experienceSubScore').textContent = expSubScore;
+
+            // Calculate total score
+            let totalScore = (parseFloat(coreSubScore) + parseFloat(techSubScore) + 
+                            parseFloat(mgmtSubScore) + parseFloat(expSubScore)).toFixed(2);
+            document.getElementById('totalScore').textContent = totalScore;
+
+            // Determine grade
+            let grade = '';
+            let recommendation = '';
+            if (totalScore >= 85) {
+                grade = 'A - Excellent';
+                recommendation = 'Highly recommended - Exceptional candidate';
+            } else if (totalScore >= 70) {
+                grade = 'B - Very Good';
+                recommendation = 'Recommended - Strong candidate';
+            } else if (totalScore >= 55) {
+                grade = 'C - Good';
+                recommendation = 'Consider for hire - Good candidate';
+            } else if (totalScore >= 40) {
+                grade = 'D - Fair';
+                recommendation = 'May consider with reservations';
+            } else {
+                grade = 'F - Poor';
+                recommendation = 'Not recommended';
+            }
+            document.getElementById('grade').textContent = grade;
+            document.getElementById('recommendation').textContent = recommendation;
+        }
+
+        // Add new criteria row
+        function addCriteria(tableId, category) {
+            const table = document.getElementById(tableId);
+            const tbody
