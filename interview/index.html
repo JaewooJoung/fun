@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>General Interview Grading Matrix</title>
+    <title>Interview Summary Dashboard</title>
     <style>
         @media print {
             .no-print {
@@ -11,15 +11,6 @@
             }
             body {
                 font-size: 10pt;
-            }
-            .page-break {
-                page-break-after: always;
-            }
-            .editable-field {
-                border: none !important;
-                background: none !important;
-                width: 100% !important;
-                font-weight: inherit !important;
             }
         }
         
@@ -34,87 +25,54 @@
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-width: 1400px;
+            margin: 0 auto;
         }
         
-        h1, h2 {
+        h1 {
             color: #333;
             margin-bottom: 20px;
+            text-align: center;
         }
         
-        .section-title {
-            display: inline-block;
-        }
-        
-        .editable-title {
-            border: 1px solid #ddd;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 18px;
-            font-weight: bold;
-            margin-left: 10px;
-            width: 300px;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
             margin-bottom: 30px;
         }
         
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        
-        th {
-            background-color: #4CAF50;
-            color: white;
-            font-weight: bold;
-        }
-        
-        .category-header {
-            background-color: #2196F3;
-            color: white;
-            font-weight: bold;
-        }
-        
-        .editable-field {
-            width: 100%;
-            border: 1px solid #ddd;
-            padding: 5px;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-        
-        .category-input {
-            font-weight: bold;
-            background-color: #E3F2FD;
-        }
-        
-        .score-cell {
-            background-color: #FFF9C4;
+        .stat-card {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
             text-align: center;
-            font-weight: bold;
-            width: 80px;
+            border: 1px solid #e0e0e0;
         }
         
-        select {
-            width: 100%;
-            padding: 5px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        
-        .final-score {
-            font-size: 24px;
+        .stat-number {
+            font-size: 36px;
             font-weight: bold;
             color: #4CAF50;
-            text-align: center;
-            padding: 20px;
-            background-color: #E8F5E9;
+        }
+        
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .filter-section {
+            background-color: #E8EAF6;
+            padding: 15px;
             border-radius: 8px;
-            margin: 20px 0;
+            margin-bottom: 20px;
+        }
+        
+        .filter-section input, .filter-section select {
+            margin: 5px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
         
         .button {
@@ -125,7 +83,7 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
-            margin: 10px 5px;
+            margin: 5px;
         }
         
         .button:hover {
@@ -140,631 +98,613 @@
             background-color: #1976D2;
         }
         
-        .recommendations {
-            background-color: #FFF3E0;
-            padding: 15px;
-            border-radius: 8px;
+        .export-button {
+            background-color: #FF9800;
+        }
+        
+        .export-button:hover {
+            background-color: #F57C00;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
             margin-top: 20px;
         }
         
-        .legend {
-            background-color: #F5F5F5;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        
-        .candidate-info {
-            background-color: #E8EAF6;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        
-        .candidate-info input {
-            margin: 5px;
-            padding: 5px;
+        th, td {
             border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #4CAF50;
+            color: white;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .grade-a {
+            background-color: #4CAF50;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .grade-b {
+            background-color: #8BC34A;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .grade-c {
+            background-color: #FFC107;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .grade-d {
+            background-color: #FF9800;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .grade-f {
+            background-color: #f44336;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .status-hired {
+            background-color: #4CAF50;
+            color: white;
+            padding: 4px 8px;
             border-radius: 4px;
         }
         
-        .sample-questions {
-            background-color: #F0F7FF;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
-            border-left: 4px solid #2196F3;
+        .status-pending {
+            background-color: #2196F3;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
         }
         
-        .sample-questions h4 {
-            margin: 0 0 10px 0;
-            color: #1976D2;
-        }
-        
-        .sample-questions ul {
-            margin: 5px 0;
-            padding-left: 20px;
-        }
-        
-        .sample-questions li {
-            margin: 5px 0;
-            color: #333;
-        }
-        
-        .criteria-row td:first-child {
-            background-color: #F5F5F5;
-        }
-        
-        .remove-btn {
+        .status-rejected {
             background-color: #f44336;
             color: white;
-            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 8px;
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: black;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        
+        .score-breakdown {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .edit-btn, .delete-btn {
             padding: 5px 10px;
+            border: none;
             border-radius: 4px;
             cursor: pointer;
             font-size: 12px;
         }
         
-        .remove-btn:hover {
-            background-color: #d32f2f;
+        .edit-btn {
+            background-color: #2196F3;
+            color: white;
+        }
+        
+        .delete-btn {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        .chart-container {
+            margin: 30px 0;
+            height: 300px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #e0e0e0;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>GENERAL INTERVIEW GRADING MATRIX</h1>
+        <h1>INTERVIEW SUMMARY DASHBOARD</h1>
         
-        <div class="candidate-info no-print">
-            <h3>Candidate Information</h3>
-            <label>Candidate Name: <input type="text" id="candidateName" placeholder="Enter name"></label>
-            <label>Interview Date: <input type="date" id="interviewDate"></label>
-            <label>Interviewer: <input type="text" id="interviewer" placeholder="Enter interviewer name" value="Jaewoo Joung"></label>
-            <label>Position: <input type="text" id="position" placeholder="Enter position"></label>
-        </div>
-
-        <div class="legend no-print">
-            <h3>Scoring Legend</h3>
-            <p><strong>5</strong> - Excellent | <strong>4</strong> - Very Good | <strong>3</strong> - Good | <strong>2</strong> - Fair | <strong>1</strong> - Poor | <strong>0</strong> - Not Applicable</p>
-        </div>
-
-        <button class="button no-print" onclick="window.print()">Print Report</button>
-
-        <!-- Core Competencies Section (25%) -->
-        <h2>COMPETENCY - GRADING MATRIX (25%)</h2>
-        
-        <div class="sample-questions no-print">
-            <h4>Career to Date - Sample Questions:</h4>
-            <ul>
-                <li>Tell us about a difficult problem you've faced in a project. How did you resolve it and what tools did you use?</li>
-                <li>What interests you about this role and how does it fit with your career aspirations?</li>
-                <li>Can you give an example of when you have built a strong relationship with a supplier that has improved the output/quality from them?</li>
-                <li>Give an example of a time where you had to meet a larger perspective within a tight time frame. What tools/methods did you use to achieve the task?</li>
-            </ul>
-        </div>
-        
-        <table id="coreTable">
-            <thead>
-                <tr>
-                    <th style="width: 25%;">Category & Criteria</th>
-                    <th>Poor (1)</th>
-                    <th>Fair (2)</th>
-                    <th>Good (3)</th>
-                    <th>Very Good (4)</th>
-                    <th>Excellent (5)</th>
-                    <th style="width: 80px;">Score</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr class="category-header">
-                    <td colspan="7">Career to Date</td>
-                </tr>
-                <tr class="criteria-row">
-                    <td>Motivation</td>
-                    <td>No clear understanding of role</td>
-                    <td>Basic understanding of demands</td>
-                    <td>Good understanding and motivation</td>
-                    <td>Strong understanding and clear goals</td>
-                    <td>Exceptional career progression with clarity and experience</td>
-                    <td class="score-cell">
-                        <select class="score-select" data-category="core">
-                            <option value="0">N/A</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5">5</option>
-                        </select>
-                    </td>
-                </tr>
-                <tr class="category-header">
-                    <td colspan="7">Competency</td>
-                </tr>
-                <tr class="criteria-row">
-                    <td>Decision Making</td>
-                    <td>Makes assumptions; reluctant to decide</td>
-                    <td>Basic problem-solving skills</td>
-                    <td>Analyzes problems effectively</td>
-                    <td>Strong analysis and risk management</td>
-                    <td>Exceptional decision-making abilities</td>
-                    <td class="score-cell">
-                        <select class="score-select" data-category="core">
-                            <option value="0">N/A</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5">5</option>
-                        </select>
-                    </td>
-                </tr>
-                <tr class="criteria-row">
-                    <td>Teamwork & Collaboration</td>
-                    <td>Works in isolation</td>
-                    <td>Basic team participation</td>
-                    <td>Good team player</td>
-                    <td>Strong team contributor</td>
-                    <td>Exceptional team leader</td>
-                    <td class="score-cell">
-                        <select class="score-select" data-category="core">
-                            <option value="0">N/A</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5">5</option>
-                        </select>
-                    </td>
-                </tr>
-                <tr class="criteria-row">
-                    <td>Developing & Managing Relationships</td>
-                    <td>Short-term focus</td>
-                    <td>Basic relationship building</td>
-                    <td>Good relationship management</td>
-                    <td>Strong relationship builder</td>
-                    <td>Exceptional relationship developer</td>
-                    <td class="score-cell">
-                        <select class="score-select" data-category="core">
-                            <option value="0">N/A</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5">5</option>
-                        </select>
-                    </td>
-                </tr>
-                <tr class="criteria-row">
-                    <td>Drive for Results</td>
-                    <td>Makes assumptions about requirements</td>
-                    <td>Basic delivery capabilities</td>
-                    <td>Meets objectives consistently</td>
-                    <td>Strong delivery focus</td>
-                    <td>Exceptional results achievement</td>
-                    <td class="score-cell">
-                        <select class="score-select" data-category="core">
-                            <option value="0">N/A</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5">5</option>
-                        </select>
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="6" style="text-align: right; font-weight: bold;">Competency Sub-Score:</td>
-                    <td class="score-cell" id="coreSubScore">0</td>
-                </tr>
-            </tbody>
-        </table>
-
-        <!-- Technical Competencies Section (30%) -->
-        <h2>
-            <span class="section-title">TECHNICAL COMPETENCIES - GRADING MATRIX (30%)</span>
-        </h2>
-        
-        <table id="technicalTable">
-            <thead>
-                <tr>
-                    <th style="width: 25%;">Category & Criteria</th>
-                    <th>Poor (1)</th>
-                    <th>Fair (2)</th>
-                    <th>Good (3)</th>
-                    <th>Very Good (4)</th>
-                    <th>Excellent (5)</th>
-                    <th style="width: 80px;">Score</th>
-                    <th class="no-print" style="width: 80px;">Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr class="category-row">
-                    <td colspan="8">
-                        <input type="text" class="editable-field category-input" placeholder="Enter Category (e.g., Programming Skills)">
-                    </td>
-                </tr>
-                <tr class="criteria-row">
-                    <td><input type="text" class="editable-field" placeholder="Enter Criteria"></td>
-                    <td><input type="text" class="editable-field" placeholder="Poor description"></td>
-                    <td><input type="text" class="editable-field" placeholder="Fair description"></td>
-                    <td><input type="text" class="editable-field" placeholder="Good description"></td>
-                    <td><input type="text" class="editable-field" placeholder="Very Good description"></td>
-                    <td><input type="text" class="editable-field" placeholder="Excellent description"></td>
-                    <td class="score-cell">
-                        <select class="score-select" data-category="technical">
-                            <option value="0">N/A</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5">5</option>
-                        </select>
-                    </td>
-                    <td class="no-print">
-                        <button class="remove-btn" onclick="removeRow(this)">Remove</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="6" style="text-align: right; font-weight: bold;">Technical Competencies Sub-Score:</td>
-                    <td class="score-cell" id="technicalSubScore">0</td>
-                    <td class="no-print"></td>
-                </tr>
-            </tbody>
-        </table>
-        <button class="button add-button no-print" onclick="addCriteria('technicalTable', 'technical')">Add Criteria</button>
-        <button class="button add-button no-print" onclick="addCategory('technicalTable', 'technical')">Add Category</button>
-
-        <!-- Management Skills Section (30%) -->
-        <h2>
-            <span class="section-title">MANAGEMENT SKILLS - GRADING MATRIX (30%)</span>
-        </h2>
-        
-        <table id="managementTable">
-            <thead>
-                <tr>
-                    <th style="width: 25%;">Category & Criteria</th>
-                    <th>Poor (1)</th>
-                    <th>Fair (2)</th>
-                    <th>Good (3)</th>
-                    <th>Very Good (4)</th>
-                    <th>Excellent (5)</th>
-                    <th style="width: 80px;">Score</th>
-                    <th class="no-print" style="width: 80px;">Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr class="category-row">
-                    <td colspan="8">
-                        <input type="text" class="editable-field category-input" placeholder="Enter Category (e.g., Leadership)">
-                    </td>
-                </tr>
-                <tr class="criteria-row">
-                    <td><input type="text" class="editable-field" placeholder="Enter Criteria"></td>
-                    <td><input type="text" class="editable-field" placeholder="Poor description"></td>
-                    <td><input type="text" class="editable-field" placeholder="Fair description"></td>
-                    <td><input type="text" class="editable-field" placeholder="Good description"></td>
-                    <td><input type="text" class="editable-field" placeholder="Very Good description"></td>
-                    <td><input type="text" class="editable-field" placeholder="Excellent description"></td>
-                    <td class="score-cell">
-                        <select class="score-select" data-category="management">
-                            <option value="0">N/A</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5">5</option>
-                        </select>
-                    </td>
-                    <td class="no-print">
-                        <button class="remove-btn" onclick="removeRow(this)">Remove</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="6" style="text-align: right; font-weight: bold;">Management Skills Sub-Score:</td>
-                    <td class="score-cell" id="managementSubScore">0</td>
-                    <td class="no-print"></td>
-                </tr>
-            </tbody>
-        </table>
-        <button class="button add-button no-print" onclick="addCriteria('managementTable', 'management')">Add Criteria</button>
-        <button class="button add-button no-print" onclick="addCategory('managementTable', 'management')">Add Category</button>
-
-        <!-- Additional Experience Section (15%) -->
-        <h2>
-            <span class="section-title">ADDITIONAL EXPERIENCE - GRADING MATRIX (15%)</span>
-        </h2>
-        
-        <table id="experienceTable">
-            <thead>
-                <tr>
-                    <th style="width: 25%;">Category & Criteria</th>
-                    <th>Poor (1)</th>
-                    <th>Fair (2)</th>
-                    <th>Good (3)</th>
-                    <th>Very Good (4)</th>
-                    <th>Excellent (5)</th>
-                    <th style="width: 80px;">Score</th>
-                    <th class="no-print" style="width: 80px;">Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr class="category-row">
-                    <td colspan="8">
-                        <input type="text" class="editable-field category-input" placeholder="Enter Category (e.g., Industry Experience)">
-                    </td>
-                </tr>
-                <tr class="criteria-row">
-                    <td><input type="text" class="editable-field" placeholder="Enter Criteria"></td>
-                    <td><input type="text" class="editable-field" placeholder="Poor description"></td>
-                    <td><input type="text" class="editable-field" placeholder="Fair description"></td>
-                    <td><input type="text" class="editable-field" placeholder="Good description"></td>
-                    <td><input type="text" class="editable-field" placeholder="Very Good description"></td>
-                    <td><input type="text" class="editable-field" placeholder="Excellent description"></td>
-                    <td class="score-cell">
-                        <select class="score-select" data-category="experience">
-                            <option value="0">N/A</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5">5</option>
-                        </select>
-                    </td>
-                    <td class="no-print">
-                        <button class="remove-btn" onclick="removeRow(this)">Remove</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="6" style="text-align: right; font-weight: bold;">Additional Experience Sub-Score:</td>
-                    <td class="score-cell" id="experienceSubScore">0</td>
-                    <td class="no-print"></td>
-                </tr>
-            </tbody>
-        </table>
-        <button class="button add-button no-print" onclick="addCriteria('experienceTable', 'experience')">Add Criteria</button>
-        <button class="button add-button no-print" onclick="addCategory('experienceTable', 'experience')">Add Category</button>
-
-        <div class="final-score">
-            <h2>TOTAL SCORE: <span id="totalScore">0</span> / 100</h2>
-            <p>Grade: <span id="grade">-</span></p>
-        </div>
-
-        <div class="recommendations">
-            <h3>Final Recommendation</h3>
-            <p id="recommendation">-</p>
-            <div class="no-print">
-                <h3>Additional Comments</h3>
-                <textarea id="additionalComments" rows="4" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;" placeholder="Enter any additional comments or observations..."></textarea>
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-number" id="totalCandidates">0</div>
+                <div class="stat-label">Total Candidates</div>
             </div>
-            <div id="printComments" style="display: none;">
-                <h3>Additional Comments</h3>
-                <p id="printCommentsText"></p>
+            <div class="stat-card">
+                <div class="stat-number" id="avgScore">0</div>
+                <div class="stat-label">Average Score</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="hiredCount">0</div>
+                <div class="stat-label">Hired</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="pendingCount">0</div>
+                <div class="stat-label">Pending</div>
             </div>
         </div>
-
-        <div class="candidate-info" id="printInfo" style="display: none;">
-            <h3>Candidate Information</h3>
-            <p><strong>Candidate Name:</strong> <span id="printName"></span></p>
-            <p><strong>Interview Date:</strong> <span id="printDate"></span></p>
-            <p><strong>Interviewer:</strong> <span id="printInterviewer"></span></p>
-            <p><strong>Position:</strong> <span id="printPosition"></span></p>
+        
+        <div class="filter-section no-print">
+            <h3>Filters</h3>
+            <input type="text" id="searchName" placeholder="Search by name..." onkeyup="filterTable()">
+            <input type="text" id="searchPosition" placeholder="Search by position..." onkeyup="filterTable()">
+            <input type="date" id="filterDateFrom" onchange="filterTable()">
+            <span> to </span>
+            <input type="date" id="filterDateTo" onchange="filterTable()">
+            <select id="filterGrade" onchange="filterTable()">
+                <option value="">All Grades</option>
+                <option value="A">A - Excellent</option>
+                <option value="B">B - Very Good</option>
+                <option value="C">C - Good</option>
+                <option value="D">D - Fair</option>
+                <option value="F">F - Poor</option>
+            </select>
+            <select id="filterStatus" onchange="filterTable()">
+                <option value="">All Status</option>
+                <option value="Hired">Hired</option>
+                <option value="Pending">Pending</option>
+                <option value="Rejected">Rejected</option>
+            </select>
+            <button class="button" onclick="clearFilters()">Clear Filters</button>
+        </div>
+        
+        <div class="no-print">
+            <button class="button add-button" onclick="showAddModal()">Add Candidate</button>
+            <button class="button export-button" onclick="exportToCSV()">Export to CSV</button>
+            <button class="button" onclick="window.print()">Print Summary</button>
+        </div>
+        
+        <table id="candidatesTable">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Candidate Name</th>
+                    <th>Position</th>
+                    <th>Total Score</th>
+                    <th>Grade</th>
+                    <th>Core (25%)</th>
+                    <th>Technical (30%)</th>
+                    <th>Management (30%)</th>
+                    <th>Experience (15%)</th>
+                    <th>Status</th>
+                    <th>Interviewer</th>
+                    <th class="no-print">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="candidatesBody">
+                <!-- Sample data - remove these in production -->
+                <tr>
+                    <td>2025-06-19</td>
+                    <td>John Doe</td>
+                    <td>Software Engineer</td>
+                    <td>85.50</td>
+                    <td><span class="grade-a">A</span></td>
+                    <td>22.50</td>
+                    <td>26.40</td>
+                    <td>24.60</td>
+                    <td>12.00</td>
+                    <td><span class="status-hired">Hired</span></td>
+                    <td>Jaewoo Joung</td>
+                    <td class="no-print">
+                        <div class="action-buttons">
+                            <button class="edit-btn" onclick="editCandidate(0)">Edit</button>
+                            <button class="delete-btn" onclick="deleteCandidate(0)">Delete</button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="chart-container">
+            <p style="color: #666;">Grade Distribution Chart (Placeholder for visual representation)</p>
+        </div>
+    </div>
+    
+    <!-- Add/Edit Modal -->
+    <div id="candidateModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">Add Candidate</h2>
+            <form id="candidateForm">
+                <div class="form-group">
+                    <label>Interview Date:</label>
+                    <input type="date" id="modalDate" required>
+                </div>
+                <div class="form-group">
+                    <label>Candidate Name:</label>
+                    <input type="text" id="modalName" required>
+                </div>
+                <div class="form-group">
+                    <label>Position:</label>
+                    <input type="text" id="modalPosition" required>
+                </div>
+                <div class="form-group">
+                    <label>Interviewer:</label>
+                    <input type="text" id="modalInterviewer" value="Jaewoo Joung">
+                </div>
+                <div class="score-breakdown">
+                    <div class="form-group">
+                        <label>Core Competencies Score (max 25):</label>
+                        <input type="number" id="modalCore" min="0" max="25" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Technical Score (max 30):</label>
+                        <input type="number" id="modalTechnical" min="0" max="30" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Management Score (max 30):</label>
+                        <input type="number" id="modalManagement" min="0" max="30" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Experience Score (max 15):</label>
+                        <input type="number" id="modalExperience" min="0" max="15" step="0.01" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Total Score:</label>
+                    <input type="number" id="modalTotal" readonly style="background-color: #f5f5f5;">
+                </div>
+                <div class="form-group">
+                    <label>Status:</label>
+                    <select id="modalStatus" required>
+                        <option value="Pending">Pending</option>
+                        <option value="Hired">Hired</option>
+                        <option value="Rejected">Rejected</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Notes:</label>
+                    <textarea id="modalNotes" rows="3"></textarea>
+                </div>
+                <button type="submit" class="button">Save</button>
+                <button type="button" class="button" style="background-color: #666;" onclick="closeModal()">Cancel</button>
+            </form>
         </div>
     </div>
 
     <script>
-        // Add event listeners to all score selects
-        function attachScoreListeners() {
-            document.querySelectorAll('.score-select').forEach(select => {
-                select.removeEventListener('change', calculateScores);
-                select.addEventListener('change', calculateScores);
-            });
-        }
-
-        // Calculate scores when selections change
-        function calculateScores() {
-            // Calculate Core sub-score (25% weight)
-            let coreScores = document.querySelectorAll('[data-category="core"]');
-            let coreTotal = 0;
-            let coreCount = 0;
-            coreScores.forEach(score => {
-                let value = parseInt(score.value);
-                if (value > 0) {
-                    coreTotal += value;
-                    coreCount++;
-                }
-            });
-            let coreSubScore = coreCount > 0 ? (coreTotal / coreCount * 5).toFixed(2) : 0;
-            document.getElementById('coreSubScore').textContent = coreSubScore;
-
-            // Calculate Technical sub-score (30% weight)
-            let techScores = document.querySelectorAll('[data-category="technical"]');
-            let techTotal = 0;
-            let techCount = 0;
-            techScores.forEach(score => {
-                let value = parseInt(score.value);
-                if (value > 0) {
-                    techTotal += value;
-                    techCount++;
-                }
-            });
-            let techSubScore = techCount > 0 ? (techTotal / techCount * 6).toFixed(2) : 0;
-            document.getElementById('technicalSubScore').textContent = techSubScore;
-
-            // Calculate Management sub-score (30% weight)
-            let mgmtScores = document.querySelectorAll('[data-category="management"]');
-            let mgmtTotal = 0;
-            let mgmtCount = 0;
-            mgmtScores.forEach(score => {
-                let value = parseInt(score.value);
-                if (value > 0) {
-                    mgmtTotal += value;
-                    mgmtCount++;
-                }
-            });
-            let mgmtSubScore = mgmtCount > 0 ? (mgmtTotal / mgmtCount * 6).toFixed(2) : 0;
-            document.getElementById('managementSubScore').textContent = mgmtSubScore;
-
-            // Calculate Experience sub-score (15% weight)
-            let expScores = document.querySelectorAll('[data-category="experience"]');
-            let expTotal = 0;
-            let expCount = 0;
-            expScores.forEach(score => {
-                let value = parseInt(score.value);
-                if (value > 0) {
-                    expTotal += value;
-                    expCount++;
-                }
-            });
-            let expSubScore = expCount > 0 ? (expTotal / expCount * 3).toFixed(2) : 0;
-            document.getElementById('experienceSubScore').textContent = expSubScore;
-
-            // Calculate total score
-            let totalScore = (parseFloat(coreSubScore) + parseFloat(techSubScore) + 
-                            parseFloat(mgmtSubScore) + parseFloat(expSubScore)).toFixed(2);
-            document.getElementById('totalScore').textContent = totalScore;
-
-            // Determine grade
-            let grade = '';
-            let recommendation = '';
-            if (totalScore >= 85) {
-                grade = 'A - Excellent';
-                recommendation = 'Highly recommended - Exceptional candidate';
-            } else if (totalScore >= 70) {
-                grade = 'B - Very Good';
-                recommendation = 'Recommended - Strong candidate';
-            } else if (totalScore >= 55) {
-                grade = 'C - Good';
-                recommendation = 'Consider for hire - Good candidate';
-            } else if (totalScore >= 40) {
-                grade = 'D - Fair';
-                recommendation = 'May consider with reservations';
+        // Sample data array - in production, this would come from a database
+        let candidates = [
+            {
+                date: '2025-06-19',
+                name: 'John Doe',
+                position: 'Software Engineer',
+                totalScore: 85.50,
+                grade: 'A',
+                coreScore: 22.50,
+                technicalScore: 26.40,
+                managementScore: 24.60,
+                experienceScore: 12.00,
+                status: 'Hired',
+                interviewer: 'Jaewoo Joung',
+                notes: 'Excellent technical skills and great team fit'
+            }
+        ];
+        
+        let editingIndex = -1;
+        
+        // Update statistics
+        function updateStats() {
+            document.getElementById('totalCandidates').textContent = candidates.length;
+            
+            if (candidates.length > 0) {
+                const avgScore = candidates.reduce((sum, c) => sum + c.totalScore, 0) / candidates.length;
+                document.getElementById('avgScore').textContent = avgScore.toFixed(1);
             } else {
-                grade = 'F - Poor';
-                recommendation = 'Not recommended';
-            }
-            document.getElementById('grade').textContent = grade;
-            document.getElementById('recommendation').textContent = recommendation;
-        }
-
-        // Add new criteria row
-        function addCriteria(tableId, category) {
-            const table = document.getElementById(tableId);
-            const tbody = table.getElementsByTagName('tbody')[0];
-            const subScoreRow = tbody.lastElementChild;
-            
-            const newRow = document.createElement('tr');
-            newRow.className = 'criteria-row';
-            newRow.innerHTML = `
-                <td><input type="text" class="editable-field" placeholder="Enter Criteria"></td>
-                <td><input type="text" class="editable-field" placeholder="Poor description"></td>
-                <td><input type="text" class="editable-field" placeholder="Fair description"></td>
-                <td><input type="text" class="editable-field" placeholder="Good description"></td>
-                <td><input type="text" class="editable-field" placeholder="Very Good description"></td>
-                <td><input type="text" class="editable-field" placeholder="Excellent description"></td>
-                <td class="score-cell">
-                    <select class="score-select" data-category="${category}">
-                        <option value="0">N/A</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                    </select>
-                </td>
-                <td class="no-print">
-                    <button class="remove-btn" onclick="removeRow(this)">Remove</button>
-                </td>
-            `;
-            
-            tbody.insertBefore(newRow, subScoreRow);
-            attachScoreListeners();
-        }
-        
-        // Add new category
-        function addCategory(tableId, category) {
-            const table = document.getElementById(tableId);
-            const tbody = table.getElementsByTagName('tbody')[0];
-            const subScoreRow = tbody.lastElementChild;
-            
-            const categoryRow = document.createElement('tr');
-            categoryRow.className = 'category-row';
-            categoryRow.innerHTML = `
-                <td colspan="8">
-                    <input type="text" class="editable-field category-input" placeholder="Enter Category Name">
-                </td>
-            `;
-            
-            const criteriaRow = document.createElement('tr');
-            criteriaRow.className = 'criteria-row';
-            criteriaRow.innerHTML = `
-                <td><input type="text" class="editable-field" placeholder="Enter Criteria"></td>
-                <td><input type="text" class="editable-field" placeholder="Poor description"></td>
-                <td><input type="text" class="editable-field" placeholder="Fair description"></td>
-                <td><input type="text" class="editable-field" placeholder="Good description"></td>
-                <td><input type="text" class="editable-field" placeholder="Very Good description"></td>
-                <td><input type="text" class="editable-field" placeholder="Excellent description"></td>
-                <td class="score-cell">
-                    <select class="score-select" data-category="${category}">
-                        <option value="0">N/A</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                    </select>
-                </td>
-                <td class="no-print">
-                    <button class="remove-btn" onclick="removeRow(this)">Remove</button>
-                </td>
-            `;
-            
-            tbody.insertBefore(categoryRow, subScoreRow);
-            tbody.insertBefore(criteriaRow, subScoreRow);
-            attachScoreListeners();
-        }
-        
-        // Remove row
-        function removeRow(button) {
-            const row = button.closest('tr');
-            const prevRow = row.previousElementSibling;
-            
-            // If this is the last criteria under a category, remove the category too
-            if (prevRow && prevRow.classList.contains('category-row')) {
-                const nextRow = row.nextElementSibling;
-                if (!nextRow || nextRow.querySelector('[style*="text-align: right"]')) {
-                    prevRow.remove();
-                }
+                document.getElementById('avgScore').textContent = '0';
             }
             
-            row.remove();
-            calculateScores();
+            document.getElementById('hiredCount').textContent = candidates.filter(c => c.status === 'Hired').length;
+            document.getElementById('pendingCount').textContent = candidates.filter(c => c.status === 'Pending').length;
         }
         
-        // Print preparation
-        window.addEventListener('beforeprint', function() {
-            document.getElementById('printName').textContent = document.getElementById('candidateName').value || 'Not specified';
-            document.getElementById('printDate').textContent = document.getElementById('interviewDate').value || 'Not specified';
-            document.getElementById('printInterviewer').textContent = document.getElementById('interviewer').value || 'Not specified';
-            document.getElementById('printPosition').textContent = document.getElementById('position').value || 'Not specified';
-            document.getElementById('printInfo').style.display = 'block';
+        // Render table
+        function renderTable() {
+            const tbody = document.getElementById('candidatesBody');
+            tbody.innerHTML = '';
             
-            // Handle additional comments
-            const comments = document.getElementById('additionalComments').value;
-            if (comments) {
-                document.getElementById('printCommentsText').textContent = comments;
-                document.getElementById('printComments').style.display = 'block';
+            candidates.forEach((candidate, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${candidate.date}</td>
+                    <td>${candidate.name}</td>
+                    <td>${candidate.position}</td>
+                    <td>${candidate.totalScore.toFixed(2)}</td>
+                    <td><span class="grade-${candidate.grade.toLowerCase()}">${candidate.grade}</span></td>
+                    <td>${candidate.coreScore.toFixed(2)}</td>
+                    <td>${candidate.technicalScore.toFixed(2)}</td>
+                    <td>${candidate.managementScore.toFixed(2)}</td>
+                    <td>${candidate.experienceScore.toFixed(2)}</td>
+                    <td><span class="status-${candidate.status.toLowerCase()}">${candidate.status}</span></td>
+                    <td>${candidate.interviewer}</td>
+                    <td class="no-print">
+                        <div class="action-buttons">
+                            <button class="edit-btn" onclick="editCandidate(${index})">Edit</button>
+                            <button class="delete-btn" onclick="deleteCandidate(${index})">Delete</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            updateStats();
+        }
+        
+        // Calculate total score in modal
+        function calculateModalTotal() {
+            const core = parseFloat(document.getElementById('modalCore').value) || 0;
+            const technical = parseFloat(document.getElementById('modalTechnical').value) || 0;
+            const management = parseFloat(document.getElementById('modalManagement').value) || 0;
+            const experience = parseFloat(document.getElementById('modalExperience').value) || 0;
+            
+            const total = core + technical + management + experience;
+            document.getElementById('modalTotal').value = total.toFixed(2);
+        }
+        
+        // Calculate grade
+        function calculateGrade(score) {
+            if (score >= 85) return 'A';
+            if (score >= 70) return 'B';
+            if (score >= 55) return 'C';
+            if (score >= 40) return 'D';
+            return 'F';
+        }
+        
+        // Show modal
+        function showAddModal() {
+            editingIndex = -1;
+            document.getElementById('modalTitle').textContent = 'Add Candidate';
+            document.getElementById('candidateForm').reset();
+            document.getElementById('modalDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('modalInterviewer').value = 'Jaewoo Joung';
+            document.getElementById('candidateModal').style.display = 'block';
+        }
+        
+        // Edit candidate
+        function editCandidate(index) {
+            editingIndex = index;
+            const candidate = candidates[index];
+            document.getElementById('modalTitle').textContent = 'Edit Candidate';
+            
+            document.getElementById('modalDate').value = candidate.date;
+            document.getElementById('modalName').value = candidate.name;
+            document.getElementById('modalPosition').value = candidate.position;
+            document.getElementById('modalInterviewer').value = candidate.interviewer;
+            document.getElementById('modalCore').value = candidate.coreScore;
+            document.getElementById('modalTechnical').value = candidate.technicalScore;
+            document.getElementById('modalManagement').value = candidate.managementScore;
+            document.getElementById('modalExperience').value = candidate.experienceScore;
+            document.getElementById('modalStatus').value = candidate.status;
+            document.getElementById('modalNotes').value = candidate.notes || '';
+            
+            calculateModalTotal();
+            document.getElementById('candidateModal').style.display = 'block';
+        }
+        
+        // Delete candidate
+        function deleteCandidate(index) {
+            if (confirm('Are you sure you want to delete this candidate?')) {
+                candidates.splice(index, 1);
+                renderTable();
+                saveToLocalStorage();
             }
+        }
+        
+        // Close modal
+        function closeModal() {
+            document.getElementById('candidateModal').style.display = 'none';
+        }
+        
+        // Filter table
+        function filterTable() {
+            const nameFilter = document.getElementById('searchName').value.toLowerCase();
+            const positionFilter = document.getElementById('searchPosition').value.toLowerCase();
+            const dateFrom = document.getElementById('filterDateFrom').value;
+            const dateTo = document.getElementById('filterDateTo').value;
+            const gradeFilter = document.getElementById('filterGrade').value;
+            const statusFilter = document.getElementById('filterStatus').value;
+            
+            const rows = document.querySelectorAll('#candidatesBody tr');
+            
+            rows.forEach(row => {
+                const cells = row.getElementsByTagName('td');
+                const date = cells[0].textContent;
+                const name = cells[1].textContent.toLowerCase();
+                const position = cells[2].textContent.toLowerCase();
+                const grade = cells[4].textContent.charAt(0);
+                const status = cells[9].textContent;
+                
+                let show = true;
+                
+                if (nameFilter && !name.includes(nameFilter)) show = false;
+                if (positionFilter && !position.includes(positionFilter)) show = false;
+                if (dateFrom && date < dateFrom) show = false;
+                if (dateTo && date > dateTo) show = false;
+                if (gradeFilter && grade !== gradeFilter) show = false;
+                if (statusFilter && status !== statusFilter) show = false;
+                
+                row.style.display = show ? '' : 'none';
+            });
+        }
+        
+        // Clear filters
+        function clearFilters() {
+            document.getElementById('searchName').value = '';
+            document.getElementById('searchPosition').value = '';
+            document.getElementById('filterDateFrom').value = '';
+            document.getElementById('filterDateTo').value = '';
+            document.getElementById('filterGrade').value = '';
+            document.getElementById('filterStatus').value = '';
+            filterTable();
+        }
+        
+        // Export to CSV
+        function exportToCSV() {
+            let csv = 'Date,Candidate Name,Position,Total Score,Grade,Core Score,Technical Score,Management Score,Experience Score,Status,Interviewer,Notes\n';
+            
+            candidates.forEach(c => {
+                csv += `${c.date},${c.name},${c.position},${c.totalScore},${c.grade},${c.coreScore},${c.technicalScore},${c.managementScore},${c.experienceScore},${c.status},${c.interviewer},"${c.notes || ''}"\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'interview_summary.csv';
+            a.click();
+        }
+        
+        // Save to localStorage
+        function saveToLocalStorage() {
+            localStorage.setItem('interviewCandidates', JSON.stringify(candidates));
+        }
+        
+        // Load from localStorage
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('interviewCandidates');
+            if (saved) {
+                candidates = JSON.parse(saved);
+                renderTable();
+            }
+        }
+        
+        // Form submission
+        document.getElementById('candidateForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const candidateData = {
+                date: document.getElementById('modalDate').value,
+                name: document.getElementById('modalName').value,
+                position: document.getElementById('modalPosition').value,
+                interviewer: document.getElementById('modalInterviewer').value,
+                coreScore: parseFloat(document.getElementById('modalCore').value),
+                technicalScore: parseFloat(document.getElementById('modalTechnical').value),
+                managementScore: parseFloat(document.getElementById('modalManagement').value),
+                experienceScore: parseFloat(document.getElementById('modalExperience').value),
+                totalScore: parseFloat(document.getElementById('modalTotal').value),
+                grade: calculateGrade(parseFloat(document.getElementById('modalTotal').value)),
+                status: document.getElementById('modalStatus').value,
+                notes: document.getElementById('modalNotes').value
+            };
+            
+            if (editingIndex >= 0) {
+                candidates[editingIndex] = candidateData;
+            } else {
+                candidates.push(candidateData);
+            }
+            
+            renderTable();
+            saveToLocalStorage();
+            closeModal();
         });
-
-        window.addEventListener('afterprint', function() {
-            document.getElementById('printInfo').style.display = 'none';
-            document.getElementById('printComments').style.display = 'none';
-        });
-
-        // Initialize with today's date
-        document.getElementById('interviewDate').value = new Date().toISOString().split('T')[0];
         
-        // Initialize with event listeners
-        attachScoreListeners();
+        // Add event listeners for score inputs
+        ['modalCore', 'modalTechnical', 'modalManagement', 'modalExperience'].forEach(id => {
+            document.getElementById(id).addEventListener('input', calculateModalTotal);
+        });
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('candidateModal')) {
+                closeModal();
+            }
+        }
+        
+        // Initialize
+        loadFromLocalStorage();
+        renderTable();
     </script>
 </body>
 </html>
