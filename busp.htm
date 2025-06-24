@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transit Routes to Campus Lundby</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2em;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+        }
+        
+        .controls {
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .route-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .route-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            min-width: 150px;
+        }
+        
+        .route-btn.kungsbacka {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .route-btn.kungsbacka:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+        }
+        
+        .route-btn.alingsas {
+            background: #3498db;
+            color: white;
+        }
+        
+        .route-btn.alingsas:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        .route-btn.campus {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .route-btn.campus:hover {
+            background: #229954;
+            transform: translateY(-2px);
+        }
+        
+        .route-btn.all {
+            background: #9b59b6;
+            color: white;
+        }
+        
+        .route-btn.all:hover {
+            background: #8e44ad;
+            transform: translateY(-2px);
+        }
+        
+        .route-btn.location {
+            background: #f39c12;
+            color: white;
+        }
+        
+        .route-btn.location:hover {
+            background: #e67e22;
+            transform: translateY(-2px);
+        }
+        
+        .route-btn.location.active {
+            background: #d35400;
+        }
+        
+        #map {
+            height: 600px;
+            width: 100%;
+        }
+        
+        .info-panel {
+            padding: 20px;
+            background: white;
+        }
+        
+        .route-info {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .route-info.active {
+            display: block;
+        }
+        
+        .route-info h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        
+        .schedule {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .schedule-column {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .schedule-column h4 {
+            margin: 0 0 10px 0;
+            color: #495057;
+            font-size: 1.1em;
+        }
+        
+        .stop-time {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #f1f3f4;
+        }
+        
+        .stop-time:last-child {
+            border-bottom: none;
+        }
+        
+        .time {
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stop {
+            color: #6c757d;
+        }
+        
+        @media (max-width: 768px) {
+            .route-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .route-btn {
+                width: 200px;
+            }
+            
+            #map {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚌 Transit Routes to Campus Lundby</h1>
+            <p>Interactive map showing bus routes from Kungsbacka and Alingsås</p>
+        </div>
+        
+        <div class="controls">
+            <div class="route-buttons">
+                <button class="route-btn kungsbacka" onclick="showRoute('kungsbacka')">
+                    📍 From Kungsbacka
+                </button>
+                <button class="route-btn alingsas" onclick="showRoute('alingsas')">
+                    📍 From Alingsås
+                </button>
+                <button class="route-btn campus" onclick="showRoute('campus')">
+                    🎓 Campus Lundby
+                </button>
+                <button class="route-btn all" onclick="showRoute('all')">
+                    🗺️ Show All Routes
+                </button>
+                <button class="route-btn location" onclick="toggleLocation()" id="locationBtn">
+                    📍 My Location
+                </button>
+            </div>
+        </div>
+        
+        <div id="map"></div>
+        
+        <div class="info-panel">
+            <div id="kungsbacka-info" class="route-info">
+                <h3>🚌 Kungsbacka to Campus Lundby Routes</h3>
+                <div class="schedule">
+                    <div class="schedule-column">
+                        <h4>Route 1 - Morning</h4>
+                        <div class="stop-time"><span class="time">06:39</span><span class="stop">Hede station (C)</span></div>
+                        <div class="stop-time"><span class="time">06:45</span><span class="stop">Kungsbacka RC (P)</span></div>
+                        <div class="stop-time"><span class="time">06:53</span><span class="stop">Vallda Trekant (B)</span></div>
+                        <div class="stop-time"><span class="time">07:08</span><span class="stop">Lyckhem (A)</span></div>
+                        <div class="stop-time"><span class="time">07:10</span><span class="stop">Hovås Nedre (A)</span></div>
+                        <div class="stop-time"><span class="time">07:11</span><span class="stop">Askimsbadet (A)</span></div>
+                        <div class="stop-time"><span class="time">07:13</span><span class="stop">Trollängen (A)</span></div>
+                        <div class="stop-time"><span class="time">07:14</span><span class="stop">Pilegården (A)</span></div>
+                        <div class="stop-time"><span class="time">07:20</span><span class="stop">Smyckesg (A)</span></div>
+                        <div class="stop-time"><span class="time">07:22</span><span class="stop">Bergkristallsgatan (A)</span></div>
+                        <div class="stop-time"><span class="time">07:26</span><span class="stop">Kungssten Västerleden (H)</span></div>
+                        <div class="stop-time"><span class="time">07:34</span><span class="stop">Volvo Lundby Norra (B-gate)</span></div>
+                    </div>
+                    <div class="schedule-column">
+                        <h4>Route 2 - Morning</h4>
+                        <div class="stop-time"><span class="time">07:24</span><span class="stop">Hede station (C)</span></div>
+                        <div class="stop-time"><span class="time">07:30</span><span class="stop">Kungsbacka RC (P)</span></div>
+                        <div class="stop-time"><span class="time">07:38</span><span class="stop">Vallda Trekant (B)</span></div>
+                        <div class="stop-time"><span class="time">07:53</span><span class="stop">Lyckhem (A)</span></div>
+                        <div class="stop-time"><span class="time">07:55</span><span class="stop">Hovås Nedre (A)</span></div>
+                        <div class="stop-time"><span class="time">07:56</span><span class="stop">Askimsbadet (A)</span></div>
+                        <div class="stop-time"><span class="time">07:58</span><span class="stop">Trollängen (A)</span></div>
+                        <div class="stop-time"><span class="time">07:59</span><span class="stop">Pilegården (A)</span></div>
+                        <div class="stop-time"><span class="time">08:05</span><span class="stop">Smyckesg (A)</span></div>
+                        <div class="stop-time"><span class="time">08:07</span><span class="stop">Bergkristallsgatan (A)</span></div>
+                        <div class="stop-time"><span class="time">08:11</span><span class="stop">Kungssten Västerleden (H)</span></div>
+                        <div class="stop-time"><span class="time">08:19</span><span class="stop">Volvo Lundby Norra (B-gate)</span></div>
+                    </div>
+                    <div class="schedule-column">
+                        <h4>Route 1 - Evening Return</h4>
+                        <div class="stop-time"><span class="time">16:05</span><span class="stop">Campus Lundby (Solskiftesg)</span></div>
+                        <div class="stop-time"><span class="time">16:13</span><span class="stop">Kungssten (G)</span></div>
+                        <div class="stop-time"><span class="time">16:17</span><span class="stop">Bergkristallsgatan (B)</span></div>
+                        <div class="stop-time"><span class="time">16:19</span><span class="stop">Smyckesg (B)</span></div>
+                        <div class="stop-time"><span class="time">16:25</span><span class="stop">Pilegården (B)</span></div>
+                        <div class="stop-time"><span class="time">16:26</span><span class="stop">Trollängen (B)</span></div>
+                        <div class="stop-time"><span class="time">16:28</span><span class="stop">Askimsbadet (B)</span></div>
+                        <div class="stop-time"><span class="time">16:29</span><span class="stop">Hovås Nedre (B)</span></div>
+                        <div class="stop-time"><span class="time">16:31</span><span class="stop">Lyckhem (A)</span></div>
+                        <div class="stop-time"><span class="time">16:46</span><span class="stop">Vallda Trekant (A)</span></div>
+                        <div class="stop-time"><span class="time">16:54</span><span class="stop">Kungsbacka RC (P)</span></div>
+                        <div class="stop-time"><span class="time">17:00</span><span class="stop">Hede station (C)</span></div>
+                    </div>
+                    <div class="schedule-column">
+                        <h4>Route 2 - Evening Return</h4>
+                        <div class="stop-time"><span class="time">17:10</span><span class="stop">Campus Lundby (Solskiftesg)</span></div>
+                        <div class="stop-time"><span class="time">17:18</span><span class="stop">Kungssten (G)</span></div>
+                        <div class="stop-time"><span class="time">17:22</span><span class="stop">Bergkristallsgatan (B)</span></div>
+                        <div class="stop-time"><span class="time">17:24</span><span class="stop">Smyckesg (B)</span></div>
+                        <div class="stop-time"><span class="time">17:30</span><span class="stop">Pilegården (B)</span></div>
+                        <div class="stop-time"><span class="time">17:31</span><span class="stop">Trollängen (B)</span></div>
+                        <div class="stop-time"><span class="time">17:33</span><span class="stop">Askimsbadet (B)</span></div>
+                        <div class="stop-time"><span class="time">17:34</span><span class="stop">Hovås Nedre (B)</span></div>
+                        <div class="stop-time"><span class="time">17:36</span><span class="stop">Lyckhem (A)</span></div>
+                        <div class="stop-time"><span class="time">17:51</span><span class="stop">Vallda Trekant (A)</span></div>
+                        <div class="stop-time"><span class="time">17:59</span><span class="stop">Kungsbacka RC (P)</span></div>
+                        <div class="stop-time"><span class="time">18:05</span><span class="stop">Hede station (C)</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="alingsas-info" class="route-info">
+                <h3>🚌 Alingsås to Campus Lundby Routes</h3>
+                <div class="schedule">
+                    <div class="schedule-column">
+                        <h4>Route 1 - Morning</h4>
+                        <div class="stop-time"><span class="time">06:25</span><span class="stop">Alingsås station (Jänvägsg 3-7)</span></div>
+                        <div class="stop-time"><span class="time">06:43</span><span class="stop">Kastenhof (A)</span></div>
+                        <div class="stop-time"><span class="time">06:45</span><span class="stop">Hedlunds backe (A)</span></div>
+                        <div class="stop-time"><span class="time">06:47</span><span class="stop">Almekärr centrum (B)</span></div>
+                        <div class="stop-time"><span class="time">06:48</span><span class="stop">Ekebacken (B)</span></div>
+                        <div class="stop-time"><span class="time">06:58</span><span class="stop">Nils Henrikssons väg (A)</span></div>
+                        <div class="stop-time"><span class="time">07:04</span><span class="stop">Munkebäcksmotet (A)</span></div>
+                        <div class="stop-time"><span class="time">07:20</span><span class="stop">Volvo Lundby Norra (B-gate)</span></div>
+                    </div>
+                    <div class="schedule-column">
+                        <h4>Route 2 - Morning</h4>
+                        <div class="stop-time"><span class="time">07:15</span><span class="stop">Alingsås station (Jänvägsg 3-7)</span></div>
+                        <div class="stop-time"><span class="time">07:33</span><span class="stop">Kastenhof (A)</span></div>
+                        <div class="stop-time"><span class="time">07:35</span><span class="stop">Hedlunds backe (A)</span></div>
+                        <div class="stop-time"><span class="time">07:37</span><span class="stop">Almekärr centrum (B)</span></div>
+                        <div class="stop-time"><span class="time">07:38</span><span class="stop">Ekebacken (B)</span></div>
+                        <div class="stop-time"><span class="time">07:48</span><span class="stop">Nils Henrikssons väg (A)</span></div>
+                        <div class="stop-time"><span class="time">07:54</span><span class="stop">Munkebäcksmotet (A)</span></div>
+                        <div class="stop-time"><span class="time">08:10</span><span class="stop">Volvo Lundby Norra (B-gate)</span></div>
+                    </div>
+                    <div class="schedule-column">
+                        <h4>Route 1 - Evening Return</h4>
+                        <div class="stop-time"><span class="time">16:10</span><span class="stop">Campus Lundby (Solskiftesg)</span></div>
+                        <div class="stop-time"><span class="time">16:26</span><span class="stop">Munkebäcksmotet (B)</span></div>
+                        <div class="stop-time"><span class="time">16:32</span><span class="stop">Nils Henrikssons väg (B)</span></div>
+                        <div class="stop-time"><span class="time">16:42</span><span class="stop">Ekebacken (A)</span></div>
+                        <div class="stop-time"><span class="time">16:43</span><span class="stop">Almekärr centrum (A)</span></div>
+                        <div class="stop-time"><span class="time">16:45</span><span class="stop">Hedlunds backe (B)</span></div>
+                        <div class="stop-time"><span class="time">16:47</span><span class="stop">Kastenhof (B)</span></div>
+                        <div class="stop-time"><span class="time">17:05</span><span class="stop">Alingsås station (Jänvägsg 3-7)</span></div>
+                    </div>
+                    <div class="schedule-column">
+                        <h4>Route 2 - Evening Return</h4>
+                        <div class="stop-time"><span class="time">16:55</span><span class="stop">Campus Lundby (Solskiftesg)</span></div>
+                        <div class="stop-time"><span class="time">17:11</span><span class="stop">Munkebäcksmotet (B)</span></div>
+                        <div class="stop-time"><span class="time">17:17</span><span class="stop">Nils Henrikssons väg (B)</span></div>
+                        <div class="stop-time"><span class="time">17:27</span><span class="stop">Ekebacken (A)</span></div>
+                        <div class="stop-time"><span class="time">17:28</span><span class="stop">Almekärr centrum (A)</span></div>
+                        <div class="stop-time"><span class="time">17:30</span><span class="stop">Hedlunds backe (B)</span></div>
+                        <div class="stop-time"><span class="time">17:32</span><span class="stop">Kastenhof (B)</span></div>
+                        <div class="stop-time"><span class="time">17:50</span><span class="stop">Alingsås station (Jänvägsg 3-7)</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="campus-info" class="route-info">
+                <h3>🎓 Campus Lundby Information</h3>
+                <p>Campus Lundby is the destination for both routes. The campus is located in the Lundby area of Gothenburg and serves as a major educational facility.</p>
+                <p><strong>Address:</strong> Solskiftesgatan, Lundby, Gothenburg</p>
+                <p><strong>Nearby:</strong> Volvo Lundby Norra (B-gate)</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script>
+        // Initialize map centered on Gothenburg area
+        const map = L.map('map').setView([57.70, 11.95], 10);
+        
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        
+        // Route data with accurate coordinates
+        const stops = {
+            // Kungsbacka route stops - southern route
+            'Hede station': [57.4866, 12.0732],
+            'Kungsbacka RC': [57.4866, 12.0732],
+            'Vallda Trekant': [57.4845795, 12.0090224],
+            'Lyckhem': [57.600489,11.9514631],
+            'Hovås Nedre': [57.617039,11.9368801],
+            'Askimsbadet': [57.626233, 11.933148],
+            'Trollängen': [57.630842, 11.931990],
+            'Pilegården': [57.64690, 11.92708],
+            'Smyckesg': [57.650381, 11.908804],
+            'Bergkristallsgatan': [57.658819, 11.894908],
+            'Kungssten Västerleden': [57.680704, 11.902716],
+            'Volvo Lundby Norra': [57.7168896, 11.9216],
+            'Campus Lundby': [57.7168896, 11.9216],
+            
+            // Alingsås route stops
+            'Alingsås station': [57.92705, 12.53232],
+            'Kastenhof': [57.772969, 12.292022],
+            'Hedlunds backe': [57.768062, 12.274083],
+            'Almekärr centrum': [57.762579, 12.260310],
+            'Ekebacken': [57.754208, 12.249892],
+            'Nils Henrikssons väg': [57.737704, 12.104080],
+            'Munkebäcksmotet': [57.724077, 12.026178]
+        };
+        
+        // Layer groups for different routes
+        const kungsbackaLayer = L.layerGroup();
+        const alingsasLayer = L.layerGroup();
+        const campusLayer = L.layerGroup();
+        
+        // Location tracking variables
+        let userLocationMarker = null;
+        let locationWatchId = null;
+        let isLocationActive = false;
+        
+        // Add Campus Lundby marker
+        const campusMarker = L.marker(stops['Campus Lundby'], {
+            icon: L.icon({
+                iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJMMTMuMDkgOC4yNkwyMCA5TDEzLjA5IDE1Ljc0TDEyIDIyTDEwLjkxIDE1Ljc0TDQgOUwxMC45MSA4LjI2TDEyIDJaIiBmaWxsPSIjMjdhZTYwIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMiIvPgo8L3N2Zz4K',
+                iconSize: [30, 30],
+                iconAnchor: [15, 15]
+            })
+        }).bindPopup('<b>🎓 Campus Lundby</b><br>Main destination for both routes');
+        campusLayer.addLayer(campusMarker);
+        
+        // Kungsbacka route markers and polyline
+        const kungsbackaStops = [
+            'Hede station', 'Kungsbacka RC', 'Vallda Trekant', 'Lyckhem', 
+            'Hovås Nedre', 'Askimsbadet', 'Trollängen', 'Pilegården', 
+            'Smyckesg', 'Bergkristallsgatan', 'Kungssten Västerleden', 
+            'Volvo Lundby Norra', 'Campus Lundby'
+        ];
+        
+        const kungsbackaCoords = kungsbackaStops.map(stop => stops[stop]);
+        
+        kungsbackaStops.forEach((stop, index) => {
+            if (stops[stop]) {
+                const marker = L.marker(stops[stop], {
+                    icon: L.icon({
+                        iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJBMTAgMTAgMCAwIDAgMiAxMkExMCAxMCAwIDAgMCAxMiAyMkExMCAxMCAwIDAgMCAyMiAxMkExMCAxMCAwIDAgMCAxMiAyWiIgZmlsbD0iI2U3NGMzYyIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjIiLz4KPHRleHQgeD0iMTIiIHk9IjE2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjZmZmIiBmb250LXNpemU9IjEwIiBmb250LWZhbWlseT0iQXJpYWwiPks8L3RleHQ+Cjwvc3ZnPgo=',
+                        iconSize: [20, 20],
+                        iconAnchor: [10, 10]
+                    })
+                }).bindPopup(`<b>📍 ${stop}</b><br>Stop #${index + 1} on Kungsbacka route`);
+                kungsbackaLayer.addLayer(marker);
+            }
+        });
+        
+        const kungsbackaPolyline = L.polyline(kungsbackaCoords, {
+            color: '#e74c3c',
+            weight: 4,
+            opacity: 0.8
+        }).bindPopup('<b>🚌 Kungsbacka Route</b><br>Main bus route from Kungsbacka to Campus Lundby');
+        kungsbackaLayer.addLayer(kungsbackaPolyline);
+        
+        // Alingsås route markers and polyline
+        const alingsasStops = [
+            'Alingsås station', 'Kastenhof', 'Hedlunds backe', 'Almekärr centrum',
+            'Ekebacken', 'Nils Henrikssons väg', 'Munkebäcksmotet', 'Campus Lundby'
+        ];
+        
+        const alingsasCoords = alingsasStops.map(stop => stops[stop]);
+        
+        alingsasStops.forEach((stop, index) => {
+            if (stops[stop] && stop !== 'Campus Lundby') {
+                const marker = L.marker(stops[stop], {
+                    icon: L.icon({
+                        iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJBMTAgMTAgMCAwIDAgMiAxMkExMCAxMCAwIDAgMCAxMiAyMkExMCAxMCAwIDAgMCAyMiAxMkExMCAxMCAwIDAgMCAxMiAyWiIgZmlsbD0iIzM0OThkYiIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjIiLz4KPHRleHQgeD0iMTIiIHk9IjE2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjZmZmIiBmb250LXNpemU9IjEwIiBmb250LWZhbWlseT0iQXJpYWwiPkE8L3RleHQ+Cjwvc3ZnPgo=',
+                        iconSize: [20, 20],
+                        iconAnchor: [10, 10]
+                    })
+                }).bindPopup(`<b>📍 ${stop}</b><br>Stop #${index + 1} on Alingsås route`);
+                alingsasLayer.addLayer(marker);
+            }
+        });
+        
+        const alingsasPolyline = L.polyline(alingsasCoords, {
+            color: '#3498db',
+            weight: 4,
+            opacity: 0.8
+        }).bindPopup('<b>🚌 Alingsås Route</b><br>Bus route from Alingsås to Campus Lundby');
+        alingsasLayer.addLayer(alingsasPolyline);
+        
+        // Add all layers to map initially
+        map.addLayer(kungsbackaLayer);
+        map.addLayer(alingsasLayer);
+        map.addLayer(campusLayer);
+        
+        // Route control functions
+        function showRoute(route) {
+            // Hide all info panels
+            document.querySelectorAll('.route-info').forEach(info => {
+                info.classList.remove('active');
+            });
+            
+            // Clear all layers
+            map.removeLayer(kungsbackaLayer);
+            map.removeLayer(alingsasLayer);
+            map.removeLayer(campusLayer);
+            
+            switch(route) {
+                case 'kungsbacka':
+                    map.addLayer(kungsbackaLayer);
+                    map.addLayer(campusLayer);
+                    document.getElementById('kungsbacka-info').classList.add('active');
+                    map.fitBounds(kungsbackaPolyline.getBounds(), { padding: [20, 20] });
+                    break;
+                case 'alingsas':
+                    map.addLayer(alingsasLayer);
+                    map.addLayer(campusLayer);
+                    document.getElementById('alingsas-info').classList.add('active');
+                    map.fitBounds(alingsasPolyline.getBounds(), { padding: [20, 20] });
+                    break;
+                case 'campus':
+                    map.addLayer(campusLayer);
+                    document.getElementById('campus-info').classList.add('active');
+                    map.setView(stops['Campus Lundby'], 14);
+                    break;
+                case 'all':
+                    map.addLayer(kungsbackaLayer);
+                    map.addLayer(alingsasLayer);
+                    map.addLayer(campusLayer);
+                    map.setView([57.70, 11.95], 10);
+                    break;
+            }
+        }
+        
+        // Initialize with all routes visible
+        showRoute('all');
+        
+        // Add click events to polylines for more interactivity
+        kungsbackaPolyline.on('click', function() {
+            showRoute('kungsbacka');
+        });
+        
+        alingsasPolyline.on('click', function() {
+            showRoute('alingsas');
+        });
+        
+        campusMarker.on('click', function() {
+            showRoute('campus');
+        });
+        
+        // Location tracking functions
+        function toggleLocation() {
+            const locationBtn = document.getElementById('locationBtn');
+            
+            if (!isLocationActive) {
+                startLocationTracking();
+            } else {
+                stopLocationTracking();
+            }
+        }
+        
+        function startLocationTracking() {
+            const locationBtn = document.getElementById('locationBtn');
+            
+            if (!navigator.geolocation) {
+                alert('Geolocation is not supported by this browser.');
+                return;
+            }
+            
+            locationBtn.textContent = '⏳ Finding Location...';
+            locationBtn.classList.add('active');
+            
+            // Watch position with high accuracy
+            locationWatchId = navigator.geolocation.watchPosition(
+                updateUserLocation,
+                handleLocationError,
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 1000
+                }
+            );
+            
+            isLocationActive = true;
+        }
+        
+        function stopLocationTracking() {
+            const locationBtn = document.getElementById('locationBtn');
+            
+            if (locationWatchId !== null) {
+                navigator.geolocation.clearWatch(locationWatchId);
+                locationWatchId = null;
+            }
+            
+            if (userLocationMarker) {
+                map.removeLayer(userLocationMarker);
+                userLocationMarker = null;
+            }
+            
+            locationBtn.textContent = '📍 My Location';
+            locationBtn.classList.remove('active');
+            isLocationActive = false;
+        }
+        
+        function updateUserLocation(position) {
+            const locationBtn = document.getElementById('locationBtn');
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            const accuracy = position.coords.accuracy;
+            
+            // Remove existing marker
+            if (userLocationMarker) {
+                map.removeLayer(userLocationMarker);
+            }
+            
+            // Create animated yellow circle marker
+            userLocationMarker = L.circleMarker([lat, lng], {
+                color: '#f39c12',
+                fillColor: '#f1c40f',
+                fillOpacity: 0.8,
+                radius: 12,
+                weight: 3,
+                className: 'user-location-marker'
+            }).addTo(map);
+            
+            // Add accuracy circle
+            const accuracyCircle = L.circle([lat, lng], {
+                color: '#f39c12',
+                fillColor: '#f1c40f',
+                fillOpacity: 0.1,
+                radius: accuracy,
+                weight: 1
+            }).addTo(map);
+            
+            // Bind popup with location info
+            userLocationMarker.bindPopup(`
+                <b>📍 Your Location</b><br>
+                Lat: ${lat.toFixed(6)}<br>
+                Lng: ${lng.toFixed(6)}<br>
+                Accuracy: ±${Math.round(accuracy)}m
+            `);
+            
+            // Update button text
+            locationBtn.textContent = '🟡 Tracking Location';
+            
+            // Add CSS animation for pulsing effect
+            if (!document.getElementById('location-styles')) {
+                const style = document.createElement('style');
+                style.id = 'location-styles';
+                style.textContent = `
+                    .user-location-marker {
+                        animation: pulse 2s infinite;
+                    }
+                    
+                    @keyframes pulse {
+                        0% {
+                            transform: scale(1);
+                            opacity: 1;
+                        }
+                        50% {
+                            transform: scale(1.2);
+                            opacity: 0.7;
+                        }
+                        100% {
+                            transform: scale(1);
+                            opacity: 1;
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        }
+        
+        function handleLocationError(error) {
+            const locationBtn = document.getElementById('locationBtn');
+            let errorMessage = 'Unable to get location: ';
+            
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    errorMessage += 'Location access denied by user.';
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    errorMessage += 'Location information unavailable.';
+                    break;
+                case error.TIMEOUT:
+                    errorMessage += 'Location request timed out.';
+                    break;
+                default:
+                    errorMessage += 'Unknown error occurred.';
+                    break;
+            }
+            
+            alert(errorMessage);
+            stopLocationTracking();
+        }
+    </script>
+</body>
+</html>
