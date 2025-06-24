@@ -184,6 +184,19 @@
             color: #6c757d;
         }
         
+        .user-location-marker {
+            animation: subtle-pulse 3s infinite;
+        }
+        
+        @keyframes subtle-pulse {
+            0%, 100% {
+                opacity: 0.9;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+        
         @media (max-width: 768px) {
             .route-buttons {
                 flex-direction: column;
@@ -399,8 +412,16 @@
         
         // Location tracking variables
         let userLocationMarker = null;
+        let accuracyCircle = null;
         let locationWatchId = null;
         let isLocationActive = false;
+        
+        // Location smoothing variables
+        let locationHistory = [];
+        let smoothedLocation = null;
+        const SMOOTHING_FACTOR = 0.2;
+        const MIN_ACCURACY_THRESHOLD = 100;
+        const MAX_HISTORY_SIZE = 5;
         
         // Add Campus Lundby marker
         const campusMarker = L.marker(stops['Campus Lundby'], {
@@ -475,6 +496,58 @@
         map.addLayer(alingsasLayer);
         map.addLayer(campusLayer);
         
+        // Helper function to calculate distance between two coordinates
+        function calculateDistance(lat1, lng1, lat2, lng2) {
+            const R = 6371e3; // Earth's radius in meters
+            const φ1 = lat1 * Math.PI/180;
+            const φ2 = lat2 * Math.PI/180;
+            const Δφ = (lat2-lat1) * Math.PI/180;
+            const Δλ = (lng2-lng1) * Math.PI/180;
+
+            const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                    Math.cos(φ1) * Math.cos(φ2) *
+                    Math.sin(Δλ/2) * Math.sin(Δλ/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+            return R * c; // Distance in meters
+        }
+        
+        // Smooth location updates using weighted average
+        function smoothLocation(newLat, newLng, accuracy) {
+            // Filter out very inaccurate readings
+            if (accuracy > MIN_ACCURACY_THRESHOLD) {
+                return smoothedLocation;
+            }
+            
+            // Add to history
+            locationHistory.push({ lat: newLat, lng: newLng, accuracy: accuracy, timestamp: Date.now() });
+            
+            // Keep only recent readings
+            if (locationHistory.length > MAX_HISTORY_SIZE) {
+                locationHistory.shift();
+            }
+            
+            // If we have previous smoothed location, check if new reading is reasonable
+            if (smoothedLocation) {
+                const distance = calculateDistance(smoothedLocation.lat, smoothedLocation.lng, newLat, newLng);
+                // If the new reading is more than 200m away, use more conservative smoothing
+                if (distance > 200) {
+                    const conservativeFactor = Math.min(SMOOTHING_FACTOR * 0.3, 0.1);
+                    smoothedLocation.lat = smoothedLocation.lat * (1 - conservativeFactor) + newLat * conservativeFactor;
+                    smoothedLocation.lng = smoothedLocation.lng * (1 - conservativeFactor) + newLng * conservativeFactor;
+                } else {
+                    // Normal smoothing
+                    smoothedLocation.lat = smoothedLocation.lat * (1 - SMOOTHING_FACTOR) + newLat * SMOOTHING_FACTOR;
+                    smoothedLocation.lng = smoothedLocation.lng * (1 - SMOOTHING_FACTOR) + newLng * SMOOTHING_FACTOR;
+                }
+            } else {
+                // First reading
+                smoothedLocation = { lat: newLat, lng: newLng };
+            }
+            
+            return smoothedLocation;
+        }
+        
         // Route control functions
         function showRoute(route) {
             // Hide all info panels
@@ -530,10 +603,8 @@
             showRoute('campus');
         });
         
-// Location tracking functions
+        // Location tracking functions
         function toggleLocation() {
-            const locationBtn = document.getElementById('locationBtn');
-            
             if (!isLocationActive) {
                 startLocationTracking();
             } else {
@@ -552,64 +623,61 @@
             locationBtn.textContent = '⏳ Finding Location...';
             locationBtn.classList.add('active');
             
-            // First try with high accuracy (GPS)
+            // Reset smoothing data
+            locationHistory = [];
+            smoothedLocation = null;
+            
+            // Get initial position with high accuracy
             navigator.geolocation.getCurrentPosition(
                 (position) => {
-                    console.log('GPS location found');
+                    console.log('Initial GPS location found');
                     updateUserLocation(position);
-                    // Continue watching with high accuracy
+                    
+                    // Start continuous tracking with moderate accuracy for stability
                     locationWatchId = navigator.geolocation.watchPosition(
                         updateUserLocation,
-                        (error) => {
-                            console.warn('High accuracy watch failed, falling back...', error);
-                            fallbackLocationTracking();
-                        },
+                        handleLocationError,
                         {
                             enableHighAccuracy: true,
-                            timeout: 5000,
-                            maximumAge: 1000
+                            timeout: 15000,
+                            maximumAge: 30000 // Allow cached positions up to 30 seconds old
                         }
                     );
                 },
                 (error) => {
-                    console.warn('High accuracy failed, trying low accuracy...', error);
-                    fallbackLocationTracking();
+                    console.warn('High accuracy failed, trying standard accuracy...', error);
+                    // Fallback to standard accuracy
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            console.log('Standard accuracy location found');
+                            updateUserLocation(position);
+                            
+                            locationWatchId = navigator.geolocation.watchPosition(
+                                updateUserLocation,
+                                handleLocationError,
+                                {
+                                    enableHighAccuracy: false,
+                                    timeout: 20000,
+                                    maximumAge: 60000
+                                }
+                            );
+                        },
+                        handleLocationError,
+                        {
+                            enableHighAccuracy: false,
+                            timeout: 20000,
+                            maximumAge: 60000
+                        }
+                    );
                 },
                 {
                     enableHighAccuracy: true,
-                    timeout: 5000,
-                    maximumAge: 1000
-                }
-            );
-            
-            isLocationActive = true;
-        }
-        
-        function fallbackLocationTracking() {
-            const locationBtn = document.getElementById('locationBtn');
-            locationBtn.textContent = '📡 Using Network Location...';
-            
-            // Clear any existing watch
-            if (locationWatchId) {
-                navigator.geolocation.clearWatch(locationWatchId);
-            }
-            
-            // Try with low accuracy (WiFi/Network)
-            locationWatchId = navigator.geolocation.watchPosition(
-                (position) => {
-                    console.log('Network location found');
-                    updateUserLocation(position, true);
-                },
-                (error) => {
-                    console.error('All location methods failed', error);
-                    handleLocationError(error);
-                },
-                {
-                    enableHighAccuracy: false,
                     timeout: 10000,
                     maximumAge: 5000
                 }
             );
+            
+            isLocationActive = true;
         }
         
         function stopLocationTracking() {
@@ -625,78 +693,80 @@
                 userLocationMarker = null;
             }
             
+            if (accuracyCircle) {
+                map.removeLayer(accuracyCircle);
+                accuracyCircle = null;
+            }
+            
             locationBtn.textContent = '📍 My Location';
             locationBtn.classList.remove('active');
             isLocationActive = false;
+            
+            // Reset smoothing data
+            locationHistory = [];
+            smoothedLocation = null;
         }
         
         function updateUserLocation(position) {
             const locationBtn = document.getElementById('locationBtn');
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
+            const rawLat = position.coords.latitude;
+            const rawLng = position.coords.longitude;
             const accuracy = position.coords.accuracy;
             
-            // Remove existing marker
+            // Apply location smoothing
+            const smoothed = smoothLocation(rawLat, rawLng, accuracy);
+            
+            if (!smoothed) {
+                console.log('Location filtered due to poor accuracy:', accuracy);
+                return;
+            }
+            
+            const lat = smoothed.lat;
+            const lng = smoothed.lng;
+            
+            // Remove existing markers
             if (userLocationMarker) {
                 map.removeLayer(userLocationMarker);
             }
+            if (accuracyCircle) {
+                map.removeLayer(accuracyCircle);
+            }
             
-            // Create animated yellow circle marker
+            // Create stable location marker with subtle animation
             userLocationMarker = L.circleMarker([lat, lng], {
                 color: '#f39c12',
                 fillColor: '#f1c40f',
-                fillOpacity: 0.8,
-                radius: 12,
+                fillOpacity: 0.9,
+                radius: 10,
                 weight: 3,
                 className: 'user-location-marker'
             }).addTo(map);
             
-            // Add accuracy circle
-            const accuracyCircle = L.circle([lat, lng], {
-                color: '#f39c12',
-                fillColor: '#f1c40f',
-                fillOpacity: 0.1,
-                radius: accuracy,
-                weight: 1
-            }).addTo(map);
+            // Add accuracy circle (only if accuracy is reasonable)
+            if (accuracy < 200) {
+                accuracyCircle = L.circle([lat, lng], {
+                    color: '#f39c12',
+                    fillColor: '#f1c40f',
+                    fillOpacity: 0.05,
+                    radius: accuracy,
+                    weight: 1,
+                    dashArray: '3, 3'
+                }).addTo(map);
+            }
             
-            // Bind popup with location info
+            // Update popup with current info
+            const timestamp = new Date().toLocaleTimeString();
             userLocationMarker.bindPopup(`
                 <b>📍 Your Location</b><br>
-                Lat: ${lat.toFixed(6)}<br>
-                Lng: ${lng.toFixed(6)}<br>
-                Accuracy: ±${Math.round(accuracy)}m
+                <small>Updated: ${timestamp}</small><br>
+                Accuracy: ±${Math.round(accuracy)}m<br>
+                <small>Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}</small>
             `);
             
             // Update button text
-            locationBtn.textContent = '🟡 Tracking Location';
+            locationBtn.textContent = '🟡 Location Active';
             
-            // Add CSS animation for pulsing effect
-            if (!document.getElementById('location-styles')) {
-                const style = document.createElement('style');
-                style.id = 'location-styles';
-                style.textContent = `
-                    .user-location-marker {
-                        animation: pulse 2s infinite;
-                    }
-                    
-                    @keyframes pulse {
-                        0% {
-                            transform: scale(1);
-                            opacity: 1;
-                        }
-                        50% {
-                            transform: scale(1.2);
-                            opacity: 0.7;
-                        }
-                        100% {
-                            transform: scale(1);
-                            opacity: 1;
-                        }
-                    }
-                `;
-                document.head.appendChild(style);
-            }
+            console.log(`Location updated - Accuracy: ${Math.round(accuracy)}m, History: ${locationHistory.length} points`);
         }
         
         function handleLocationError(error) {
@@ -718,6 +788,7 @@
                     break;
             }
             
+            console.error('Location error:', errorMessage);
             alert(errorMessage);
             stopLocationTracking();
         }
