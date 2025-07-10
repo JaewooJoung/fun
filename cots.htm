@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPQAM Supplier Assessment Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px 20px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #495057;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: white;
+            color: #1e3c72;
+            border-bottom: 3px solid #1e3c72;
+        }
+
+        .tab:hover {
+            background: rgba(30, 60, 114, 0.1);
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .assessment-grid {
+            display: grid;
+            grid-template-columns: 60px 120px 140px 120px 120px 100px 120px 120px 100px;
+            gap: 1px;
+            background: #dee2e6;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 30px;
+            overflow-x: auto;
+        }
+
+        .grid-header {
+            background: #1e3c72;
+            color: white;
+            padding: 12px 8px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .grid-cell {
+            background: white;
+            padding: 8px;
+            text-align: center;
+            font-size: 0.85rem;
+        }
+
+        .grid-cell input, .grid-cell select {
+            width: 100%;
+            border: none;
+            padding: 4px;
+            text-align: center;
+            font-size: 0.85rem;
+            background: transparent;
+        }
+
+        .grid-cell.calculated {
+            background: #e3f2fd;
+            font-weight: bold;
+            color: #1565c0;
+        }
+
+        .metrics-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .status-acceptable {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+        }
+
+        .status-fail {
+            background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .controls input, .controls select {
+            padding: 10px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .controls button {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s ease;
+        }
+
+        .controls button:hover {
+            transform: translateY(-2px);
+        }
+
+        .checklist {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .checklist-item {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+            display: grid;
+            grid-template-columns: 40px 60px auto 1fr 80px 80px 100px;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .checklist-item:hover {
+            background: #f8f9fa;
+        }
+
+        .checklist-header {
+            background: #1e3c72;
+            color: white;
+            font-weight: bold;
+            padding: 15px;
+        }
+
+        .status-icon {
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .export-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+            }
+            
+            .assessment-grid {
+                grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+                font-size: 0.8rem;
+            }
+            
+            .checklist-item {
+                grid-template-columns: 30px 50px auto 1fr 60px;
+                gap: 10px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>SPQAM Assessment Tool</h1>
+            <p>Software Quality Assurance & Risk Management - Supplier Compliance Evaluation</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('main')">Main Assessment</button>
+            <button class="tab" onclick="switchTab('detailed')">Detailed Checklist</button>
+            <button class="tab" onclick="switchTab('analytics')">Analytics</button>
+        </div>
+
+        <div id="main-tab" class="content">
+            <div class="controls">
+                <input type="text" id="company-name" placeholder="Company Name" value="Dreager">
+                <select id="project-type">
+                    <option value="GTT">GTT Project</option>
+                    <option value="Other">Other Project</option>
+                </select>
+                <input type="number" id="parma-number" placeholder="Parma Number" value="58247">
+                <div>
+                    <label>Parma Link: </label>
+                    <a id="parma-link" href="#" target="_blank" style="color: #1e3c72; text-decoration: underline;">Parma_Link</a>
+                </div>
+                <button onclick="addNewDocument()">Add Document</button>
+                <button onclick="exportData()">Export Data</button>
+                <button onclick="importData()">Import Data</button>
+            </div>
+
+            <div class="assessment-grid" id="assessment-grid">
+                <!-- Grid will be populated by JavaScript -->
+            </div>
+
+            <div class="metrics-panel">
+                <div class="metric-card" id="credibility-card">
+                    <div class="metric-value" id="credibility-value">77.1%</div>
+                    <div class="metric-label">Credibility (Accuracy)</div>
+                </div>
+                <div class="metric-card" id="confidence-card">
+                    <div class="metric-value" id="confidence-value">75.4%</div>
+                    <div class="metric-label">SW Quality Confidence</div>
+                </div>
+                <div class="metric-card" id="overall-card">
+                    <div class="metric-value" id="overall-value">76.6%</div>
+                    <div class="metric-label">SPQAM SW Confidence</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="detailed-tab" class="content" style="display: none;">
+            <div class="checklist" id="detailed-checklist">
+                <!-- Checklist will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <div id="analytics-tab" class="content" style="display: none;">
+            <canvas id="analytics-chart" width="800" height="400"></canvas>
+            <div class="export-section">
+                <h3>Data Export Options</h3>
+                <button onclick="exportToCSV()">Export to CSV</button>
+                <button onclick="exportToJSON()">Export to JSON</button>
+                <button onclick="generateReport()">Generate Report</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Core data structure
+        let assessmentData = {
+            company: "Dreager",
+            projectType: "GTT",
+            parmaNumber: 58247,
+            documents: [
+                {id: 1, name: "SOW", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "◔"},
+                {id: 2, name: "CRB", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Not Provided", almEvidence: "No", almCoverage: "◕"},
+                {id: 3, name: "QDPR", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Provided", almEvidence: "N/A", almCoverage: "○"},
+                {id: 4, name: "CPLN", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Provided", almEvidence: "N/A", almCoverage: "○"},
+                {id: 5, name: "RMX", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Not Provided", almEvidence: "No", almCoverage: "◕"}
+            ],
+            thresholds: {
+                passingGTT: 0.7,
+                passingOther: 0.6,
+                credibilityThreshold: 0.7
+            }
+        };
+
+        const detailedChecklist = [
+            {id: 1, document: "SOW", category: "Statement Of Work (SOW)", subcategory: "Evidence of Accessibility", item: "Kept in relevant place", question: "Was SOW stored for everyone to access?", status: null, notes: "", spqam: "Retained"},
+            {id: 2, document: "SOW", category: "Statement Of Work (SOW)", subcategory: "Evidence of Accessibility", item: "Kept with easier words", question: "Was SOW listed in the suppliers own ways?", status: null, notes: "", spqam: ""},
+            {id: 3, document: "CRB", category: "Customer Requirement Baseline", subcategory: "Requirements Gathering", item: "Stakeholder input collection", question: "Were all key stakeholders consulted during the requirements gathering process?", status: null, notes: "", spqam: "Retained"},
+            {id: 4, document: "CRB", category: "Customer Requirement Baseline", subcategory: "Requirements Analysis", item: "Prioritization framework", question: "Have requirements been prioritized based on business value and technical constraints?", status: null, notes: "", spqam: ""},
+            {id: 5, document: "QDPR", category: "Compliance Matrix (QDPR)", subcategory: "Compliance", item: "SW Attitude", question: "was compliance well discussed?", status: null, notes: "", spqam: "Retained"}
+        ];
+
+        // Main calculation functions based on Excel formulas
+        function calculateFinalCompliance(supplierCompliance) {
+            // Simplified calculation based only on supplier compliance
+            if (supplierCompliance === "Accept") return 1.0;
+            if (supplierCompliance === "P. Accepted") return 0.8;
+            if (supplierCompliance === "Reject") return 0;
+            return 0;
+        }
+
+        function calculateQualityConfidence(doc) {
+            // Simplified calculation without Volvo acceptance
+            const finalCompliance = calculateFinalCompliance(doc.supplierCompliance);
+            
+            if (doc.sqeCheck !== "Provided") return 0;
+            
+            let multiplier = 1;
+            if (doc.almEvidence === "Yes") {
+                if (doc.almCoverage === "◔") multiplier = 1.12;
+                else if (doc.almCoverage === "◕") multiplier = 1.2;
+                else multiplier = 1;
+            } else if (doc.almEvidence === "No") {
+                multiplier = 0.88;
+            } else if (doc.almEvidence === "N/A") {
+                multiplier = 1;
+            }
+            
+            return Math.min(1, finalCompliance * multiplier);
+        }
+
+        function calculateTruthComplexity(doc) {
+            const provided = "Provided";
+            const notProvided = "Not Provided";
+            const accept = "Accept";
+            const partialAccepted = "P. Accepted";
+            const reject = "Reject";
+            
+            if ((doc.supplierCompliance === partialAccepted || doc.supplierCompliance === accept) && doc.sqeCheck === provided) return "TP";
+            if (doc.supplierCompliance === reject && doc.sqeCheck === provided) return "FP";
+            if ((doc.supplierCompliance === partialAccepted || doc.supplierCompliance === accept) && doc.sqeCheck === notProvided) return "FN";
+            if (doc.supplierCompliance === reject && doc.sqeCheck === notProvided) return "TN";
+            return "Error";
+        }
+
+        function getALMEvidenceStatus(almCoverage) {
+            return almCoverage === "○" ? "N/A" : "Yes";
+        }
+
+        // UI Rendering Functions
+        function renderAssessmentGrid() {
+            const grid = document.getElementById('assessment-grid');
+            const headers = [
+                'No.', 'Document Name', 'Supplier Compliance', 'Final Compliance', 
+                'SW SQE Check', 'ALM Evidence', 'Quality Confidence', 'Truth Complexity', 'ALM Coverage'
+            ];
+            
+            // Clear existing content
+            grid.innerHTML = '';
+            
+            // Add headers
+            headers.forEach(header => {
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'grid-header';
+                headerDiv.textContent = header;
+                grid.appendChild(headerDiv);
+            });
+            
+            // Add data rows
+            assessmentData.documents.forEach((doc, index) => {
+                // No.
+                const noCell = document.createElement('div');
+                noCell.className = 'grid-cell';
+                noCell.textContent = doc.id;
+                grid.appendChild(noCell);
+                
+                // Document Name
+                const nameCell = document.createElement('div');
+                nameCell.className = 'grid-cell';
+                const nameInput = document.createElement('input');
+                nameInput.value = doc.name;
+                nameInput.onchange = (e) => updateDocument(index, 'name', e.target.value);
+                nameCell.appendChild(nameInput);
+                grid.appendChild(nameCell);
+                
+                // Supplier Compliance
+                const supplierCell = document.createElement('div');
+                supplierCell.className = 'grid-cell';
+                const supplierSelect = document.createElement('select');
+                ['Accept', 'P. Accepted', 'Reject'].forEach(option => {
+                    const optionEl = document.createElement('option');
+                    optionEl.value = option;
+                    optionEl.textContent = option;
+                    optionEl.selected = doc.supplierCompliance === option;
+                    supplierSelect.appendChild(optionEl);
+                });
+                supplierSelect.onchange = (e) => updateDocument(index, 'supplierCompliance', e.target.value);
+                supplierCell.appendChild(supplierSelect);
+                grid.appendChild(supplierCell);
+                
+                // Final Compliance (calculated) - now using only supplier compliance
+                const finalCell = document.createElement('div');
+                finalCell.className = 'grid-cell calculated';
+                const finalValue = doc.supplierCompliance === 'Accept' ? 1.0 : 
+                                 doc.supplierCompliance === 'P. Accepted' ? 0.8 : 0;
+                finalCell.textContent = finalValue.toFixed(1);
+                grid.appendChild(finalCell);
+                
+                // SW SQE Check
+                const sqeCell = document.createElement('div');
+                sqeCell.className = 'grid-cell';
+                const sqeSelect = document.createElement('select');
+                ['Provided', 'Not Provided'].forEach(option => {
+                    const optionEl = document.createElement('option');
+                    optionEl.value = option;
+                    optionEl.textContent = option;
+                    optionEl.selected = doc.sqeCheck === option;
+                    sqeSelect.appendChild(optionEl);
+                });
+                sqeSelect.onchange = (e) => updateDocument(index, 'sqeCheck', e.target.value);
+                sqeCell.appendChild(sqeSelect);
+                grid.appendChild(sqeCell);
+                
+                // ALM Evidence (calculated based on ALM Coverage)
+                const almEvidenceCell = document.createElement('div');
+                almEvidenceCell.className = 'grid-cell calculated';
+                almEvidenceCell.textContent = getALMEvidenceStatus(doc.almCoverage);
+                grid.appendChild(almEvidenceCell);
+                
+                // Quality Confidence (calculated)
+                const confidenceCell = document.createElement('div');
+                confidenceCell.className = 'grid-cell calculated';
+                confidenceCell.textContent = calculateQualityConfidence(doc).toFixed(2);
+                grid.appendChild(confidenceCell);
+                
+                // Truth Complexity (calculated)
+                const truthCell = document.createElement('div');
+                truthCell.className = 'grid-cell calculated';
+                truthCell.textContent = calculateTruthComplexity(doc);
+                grid.appendChild(truthCell);
+                
+                // ALM Coverage
+                const coverageCell = document.createElement('div');
+                coverageCell.className = 'grid-cell';
+                const coverageSelect = document.createElement('select');
+                ['○', '◔', '◕'].forEach(option => {
+                    const optionEl = document.createElement('option');
+                    optionEl.value = option;
+                    optionEl.textContent = option;
+                    optionEl.selected = doc.almCoverage === option;
+                    coverageSelect.appendChild(optionEl);
+                });
+                coverageSelect.onchange = (e) => {
+                    updateDocument(index, 'almCoverage', e.target.value);
+                    // Update ALM Evidence automatically
+                    updateDocument(index, 'almEvidence', getALMEvidenceStatus(e.target.value));
+                };
+                coverageCell.appendChild(coverageSelect);
+                grid.appendChild(coverageCell);
+            });
+        }
+
+        function renderDetailedChecklist() {
+            const checklist = document.getElementById('detailed-checklist');
+            checklist.innerHTML = '';
+            
+            // Header
+            const header = document.createElement('div');
+            header.className = 'checklist-header checklist-item';
+            header.innerHTML = `
+                <div>No.</div>
+                <div>Doc</div>
+                <div>Category</div>
+                <div>Verification Question</div>
+                <div>Status</div>
+                <div>Notes</div>
+                <div>SPQAM</div>
+            `;
+            checklist.appendChild(header);
+            
+            // Items
+            detailedChecklist.forEach((item, index) => {
+                const row = document.createElement('div');
+                row.className = 'checklist-item';
+                
+                row.innerHTML = `
+                    <div>${item.id}</div>
+                    <div>${item.document}</div>
+                    <div>
+                        <strong>${item.category}</strong><br>
+                        <small>${item.subcategory} - ${item.item}</small>
+                    </div>
+                    <div>${item.question}</div>
+                    <div>
+                        <span class="status-icon" onclick="toggleStatus(${index})">
+                            ${item.status === true ? '✅' : item.status === false ? '❌' : '⭕'}
+                        </span>
+                    </div>
+                    <div>
+                        <input type="text" value="${item.notes}" 
+                               onchange="updateChecklistItem(${index}, 'notes', this.value)"
+                               placeholder="Add notes...">
+                    </div>
+                    <div>${item.spqam}</div>
+                `;
+                
+                checklist.appendChild(row);
+            });
+        }
+
+        function updateMetrics() {
+            const truthCounts = {TP: 0, TN: 0, FP: 0, FN: 0};
+            let totalConfidence = 0;
+            
+            assessmentData.documents.forEach(doc => {
+                const truth = calculateTruthComplexity(doc);
+                truthCounts[truth] = (truthCounts[truth] || 0) + 1;
+                totalConfidence += calculateQualityConfidence(doc);
+            });
+            
+            // Credibility calculation: (TP + TN) / (TP + TN + FP + FN)
+            const credibility = (truthCounts.TP + truthCounts.TN) / 
+                               (truthCounts.TP + truthCounts.TN + truthCounts.FP + truthCounts.FN);
+            
+            // SW Quality Confidence: Average of all quality confidence scores
+            const swConfidence = totalConfidence / assessmentData.documents.length;
+            
+            // SPQAM SW Confidence: Average of credibility and SW confidence
+            const spqamConfidence = (credibility + swConfidence) / 2;
+            
+            // Update UI
+            document.getElementById('credibility-value').textContent = (credibility * 100).toFixed(1) + '%';
+            document.getElementById('confidence-value').textContent = (swConfidence * 100).toFixed(1) + '%';
+            document.getElementById('overall-value').textContent = (spqamConfidence * 100).toFixed(1) + '%';
+            
+            // Update card colors based on thresholds
+            const threshold = assessmentData.projectType === 'GTT' ? 
+                             assessmentData.thresholds.passingGTT : 
+                             assessmentData.thresholds.passingOther;
+            
+            updateCardStatus('credibility-card', credibility >= assessmentData.thresholds.credibilityThreshold);
+            updateCardStatus('confidence-card', swConfidence >= threshold);
+            updateCardStatus('overall-card', spqamConfidence >= threshold);
+        }
+
+        function updateCardStatus(cardId, isAcceptable) {
+            const card = document.getElementById(cardId);
+            card.className = `metric-card ${isAcceptable ? 'status-acceptable' : 'status-fail'}`;
+        }
+
+        function updateParmaLink() {
+            const parmaNumber = document.getElementById('parma-number').value;
+            const parmaLink = document.getElementById('parma-link');
+            if (parmaNumber) {
+                parmaLink.href = `https://vsib.srv.volvo.com/vsib/Content/Audit/Quality/QualityAuditList.aspx?SupplierId=${parmaNumber}`;
+                parmaLink.style.display = 'inline';
+            } else {
+                parmaLink.style.display = 'none';
+            }
+        }
+
+        // Event Handlers
+        function updateDocument(index, field, value) {
+            assessmentData.documents[index][field] = value;
+            renderAssessmentGrid();
+            updateMetrics();
+        }
+
+        function updateChecklistItem(index, field, value) {
+            detailedChecklist[index][field] = value;
+        }
+
+        function toggleStatus(index) {
+            const item = detailedChecklist[index];
+            if (item.status === null) item.status = true;
+            else if (item.status === true) item.status = false;
+            else item.status = null;
+            renderDetailedChecklist();
+        }
+
+        function addNewDocument() {
+            const newId = Math.max(...assessmentData.documents.map(d => d.id)) + 1;
+            assessmentData.documents.push({
+                id: newId,
+                name: `DOC${newId}`,
+                supplierCompliance: "Accept",
+                retained: "Retained",
+                sqeCheck: "Provided",
+                almEvidence: "Yes",
+                almCoverage: "○"
+            });
+            renderAssessmentGrid();
+            updateMetrics();
+        }
+
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.content').forEach(tab => {
+                tab.style.display = 'none';
+            });
+            
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + '-tab').style.display = 'block';
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+            
+            // Render content if needed
+            if (tabName === 'detailed') {
+                renderDetailedChecklist();
+            } else if (tabName === 'analytics') {
+                renderAnalytics();
+            }
+        }
+
+        function renderAnalytics() {
+            const canvas = document.getElementById('analytics-chart');
+            const ctx = canvas.getContext('2d');
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Count truth table results
+            const truthCounts = {TP: 0, TN: 0, FP: 0, FN: 0};
+            assessmentData.documents.forEach(doc => {
+                const truth = calculateTruthComplexity(doc);
+                truthCounts[truth] = (truthCounts[truth] || 0) + 1;
+            });
+            
+            // Draw pie chart
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = 120;
+            
+            const colors = {
+                TP: '#4CAF50',
+                TN: '#2196F3', 
+                FP: '#FF9800',
+                FN: '#F44336'
+            };
+            
+            const total = Object.values(truthCounts).reduce((a, b) => a + b, 0);
+            let currentAngle = 0;
+            
+            Object.entries(truthCounts).forEach(([key, count]) => {
+                const sliceAngle = (count / total) * 2 * Math.PI;
+                
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
+                ctx.closePath();
+                ctx.fillStyle = colors[key];
+                ctx.fill();
+                
+                // Add labels
+                const labelAngle = currentAngle + sliceAngle / 2;
+                const labelX = centerX + Math.cos(labelAngle) * (radius + 30);
+                const labelY = centerY + Math.sin(labelAngle) * (radius + 30);
+                
+                ctx.fillStyle = '#333';
+                ctx.font = '14px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(`${key}: ${count}`, labelX, labelY);
+                
+                currentAngle += sliceAngle;
+            });
+            
+            // Add title
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 18px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Truth Table Analysis', centerX, 50);
+        }
+
+        // Export Functions
+        function exportData() {
+            const exportData = {
+                company: assessmentData.company,
+                projectType: assessmentData.projectType,
+                parmaNumber: assessmentData.parmaNumber,
+                documents: assessmentData.documents,
+                checklist: detailedChecklist,
+                timestamp: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `spqam-assessment-${assessmentData.company}-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+        }
+
+        function exportToCSV() {
+            let csv = 'No,Document Name,Supplier Compliance,Final Compliance,Quality Confidence,Truth Complexity,ALM Coverage\n';
+            
+            assessmentData.documents.forEach(doc => {
+                csv += `${doc.id},${doc.name},${doc.supplierCompliance},`;
+                csv += `${calculateFinalCompliance(doc.supplierCompliance)},`;
+                csv += `${calculateQualityConfidence(doc)},${calculateTruthComplexity(doc)},${doc.almCoverage}\n`;
+            });
+            
+            const blob = new Blob([csv], {type: 'text/csv'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `spqam-data-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+        }
+
+        function generateReport() {
+            const truthCounts = {TP: 0, TN: 0, FP: 0, FN: 0};
+            let totalConfidence = 0;
+            
+            assessmentData.documents.forEach(doc => {
+                const truth = calculateTruthComplexity(doc);
+                truthCounts[truth] = (truthCounts[truth] || 0) + 1;
+                totalConfidence += calculateQualityConfidence(doc);
+            });
+            
+            const credibility = (truthCounts.TP + truthCounts.TN) / 
+                               (truthCounts.TP + truthCounts.TN + truthCounts.FP + truthCounts.FN);
+            const swConfidence = totalConfidence / assessmentData.documents.length;
+            const spqamConfidence = (credibility + swConfidence) / 2;
+            
+            const report = `
+SPQAM Assessment Report
+Company: ${assessmentData.company}
+Project Type: ${assessmentData.projectType}
+Date: ${new Date().toLocaleDateString()}
+
+SUMMARY METRICS:
+- Credibility (Accuracy): ${(credibility * 100).toFixed(1)}%
+- SW Quality Confidence: ${(swConfidence * 100).toFixed(1)}%
+- SPQAM SW Confidence: ${(spqamConfidence * 100).toFixed(1)}%
+
+TRUTH TABLE ANALYSIS:
+- True Positive (TP): ${truthCounts.TP}
+- True Negative (TN): ${truthCounts.TN}
+- False Positive (FP): ${truthCounts.FP}
+- False Negative (FN): ${truthCounts.FN}
+
+DOCUMENT ASSESSMENT:
+${assessmentData.documents.map(doc => 
+    `${doc.name}: ${doc.supplierCompliance} (Confidence: ${calculateQualityConfidence(doc).toFixed(2)})`
+).join('\n')}
+
+RECOMMENDATIONS:
+${spqamConfidence >= 0.7 ? '✅ Assessment meets quality standards' : '⚠️ Assessment requires improvement'}
+${truthCounts.FN > 0 ? `⚠️ ${truthCounts.FN} False Negatives detected - review missing evidence` : ''}
+${truthCounts.FP > 0 ? `⚠️ ${truthCounts.FP} False Positives detected - review over-reporting` : ''}
+            `;
+            
+            const blob = new Blob([report], {type: 'text/plain'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `spqam-report-${new Date().toISOString().split('T')[0]}.txt`;
+            a.click();
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            renderAssessmentGrid();
+            updateMetrics();
+            
+            // Set up company name binding
+            document.getElementById('company-name').addEventListener('change', function(e) {
+                assessmentData.company = e.target.value;
+            });
+            
+            // Set up project type binding
+            document.getElementById('project-type').addEventListener('change', function(e) {
+                assessmentData.projectType = e.target.value;
+                updateMetrics();
+            });
+            
+            // Set up Parma number binding
+            document.getElementById('parma-number').addEventListener('change', function(e) {
+                assessmentData.parmaNumber = parseInt(e.target.value);
+                updateParmaLink();
+            });
+            
+            // Initialize Parma link
+            updateParmaLink();
+        });
+    </script>
+</body>
+</html>
