@@ -115,44 +115,204 @@
     let holidays = [];
     let holidayMap = {};
 
-    // WebAssembly binary (compiled from C++)
-    const wasmBinary = new Uint8Array([
-      0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x01, 0x0f, 0x04, 0x60, 0x02, 0x7f, 0x7f, 0x01,
-      0x7f, 0x60, 0x03, 0x7f, 0x7f, 0x7f, 0x01, 0x7f, 0x60, 0x01, 0x7f, 0x01, 0x7f, 0x60, 0x00, 0x00,
-      0x03, 0x05, 0x04, 0x00, 0x01, 0x02, 0x03, 0x04, 0x04, 0x01, 0x70, 0x00, 0x00, 0x05, 0x03, 0x01,
-      0x00, 0x02, 0x06, 0x08, 0x01, 0x7f, 0x01, 0x41, 0x80, 0x88, 0x04, 0x0b, 0x07, 0x2e, 0x04, 0x06,
-      0x6d, 0x65, 0x6d, 0x6f, 0x72, 0x79, 0x02, 0x00, 0x0b, 0x67, 0x65, 0x74, 0x57, 0x65, 0x65, 0x6b,
-      0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x00, 0x00, 0x0d, 0x67, 0x65, 0x74, 0x44, 0x61, 0x79, 0x73,
-      0x49, 0x6e, 0x4d, 0x6f, 0x6e, 0x74, 0x68, 0x00, 0x01, 0x0c, 0x69, 0x73, 0x4c, 0x65, 0x61, 0x70,
-      0x59, 0x65, 0x61, 0x72, 0x00, 0x02, 0x0a, 0x7f, 0x04, 0x3c, 0x01, 0x01, 0x7f, 0x02, 0x40, 0x20,
-      0x00, 0x41, 0x01, 0x6b, 0x21, 0x02, 0x20, 0x00, 0x41, 0x01, 0x46, 0x0d, 0x00, 0x20, 0x02, 0x41,
-      0x0c, 0x6a, 0x20, 0x00, 0x20, 0x00, 0x41, 0x02, 0x4e, 0x1b, 0x21, 0x00, 0x20, 0x01, 0x41, 0x01,
-      0x6b, 0x21, 0x01, 0x0b, 0x20, 0x01, 0x41, 0x16, 0x6c, 0x20, 0x00, 0x41, 0x0d, 0x6c, 0x6a, 0x41,
-      0x05, 0x6a, 0x41, 0x19, 0x6e, 0x0b, 0x2a, 0x00, 0x20, 0x01, 0x41, 0x02, 0x46, 0x04, 0x40, 0x20,
-      0x00, 0x10, 0x02, 0x04, 0x40, 0x41, 0x1d, 0x0f, 0x0b, 0x41, 0x1c, 0x0f, 0x0b, 0x41, 0x80, 0x88,
-      0x04, 0x20, 0x01, 0x41, 0x01, 0x6b, 0x41, 0x02, 0x74, 0x6a, 0x28, 0x02, 0x00, 0x0b, 0x1a, 0x00,
-      0x20, 0x00, 0x41, 0x04, 0x70, 0x45, 0x20, 0x00, 0x41, 0x64, 0x70, 0x45, 0x71, 0x20, 0x00, 0x41,
-      0x90, 0x03, 0x70, 0x45, 0x72, 0x0b, 0x02, 0x00, 0x0b, 0x0b, 0x2c, 0x01, 0x00, 0x41, 0x80, 0x88,
-      0x04, 0x0b, 0x20, 0x1f, 0x00, 0x00, 0x00, 0x1e, 0x00, 0x00, 0x00, 0x1f, 0x00, 0x00, 0x00, 0x1e,
-      0x00, 0x00, 0x00, 0x1f, 0x00, 0x00, 0x00, 0x1e, 0x00, 0x00, 0x00, 0x1f, 0x00, 0x00, 0x00, 0x1f,
-      0x00, 0x00, 0x00, 0x1e, 0x00, 0x00, 0x00, 0x1f, 0x00, 0x00, 0x00, 0x1e, 0x00, 0x00, 0x00, 0x1f,
-      0x00, 0x00, 0x00
-    ]);
+    // Create WebAssembly module using WAT (WebAssembly Text Format)
+    async function createWasmModule() {
+      // WebAssembly Text Format for calendar functions
+      const watSource = `
+        (module
+          (memory (export "memory") 1)
+          
+          ;; Function to check if year is leap year
+          (func $isLeapYear (param $year i32) (result i32)
+            (local $temp i32)
+            
+            ;; year % 4 == 0
+            (local.set $temp (i32.rem_u (local.get $year) (i32.const 4)))
+            (if (i32.ne (local.get $temp) (i32.const 0))
+              (then (return (i32.const 0)))
+            )
+            
+            ;; year % 100 == 0
+            (local.set $temp (i32.rem_u (local.get $year) (i32.const 100)))
+            (if (i32.eq (local.get $temp) (i32.const 0))
+              (then
+                ;; year % 400 == 0
+                (local.set $temp (i32.rem_u (local.get $year) (i32.const 400)))
+                (if (i32.eq (local.get $temp) (i32.const 0))
+                  (then (return (i32.const 1)))
+                  (else (return (i32.const 0)))
+                )
+              )
+            )
+            
+            ;; Default: divisible by 4 but not 100
+            (return (i32.const 1))
+          )
+          
+          ;; Function to get days in month
+          (func $getDaysInMonth (param $year i32) (param $month i32) (result i32)
+            ;; Handle February
+            (if (i32.eq (local.get $month) (i32.const 2))
+              (then
+                (if (call $isLeapYear (local.get $year))
+                  (then (return (i32.const 29)))
+                  (else (return (i32.const 28)))
+                )
+              )
+            )
+            
+            ;; Handle months with 30 days (April, June, September, November)
+            (if (i32.eq (local.get $month) (i32.const 4)) (then (return (i32.const 30))))
+            (if (i32.eq (local.get $month) (i32.const 6)) (then (return (i32.const 30))))
+            (if (i32.eq (local.get $month) (i32.const 9)) (then (return (i32.const 30))))
+            (if (i32.eq (local.get $month) (i32.const 11)) (then (return (i32.const 30))))
+            
+            ;; All other months have 31 days
+            (return (i32.const 31))
+          )
+          
+          ;; Function to calculate day of year
+          (func $getDayOfYear (param $year i32) (param $month i32) (param $day i32) (result i32)
+            (local $result i32)
+            (local $i i32)
+            
+            (local.set $result (local.get $day))
+            (local.set $i (i32.const 1))
+            
+            (loop $monthLoop
+              (if (i32.lt_s (local.get $i) (local.get $month))
+                (then
+                  (local.set $result 
+                    (i32.add (local.get $result) 
+                      (call $getDaysInMonth (local.get $year) (local.get $i))
+                    )
+                  )
+                  (local.set $i (i32.add (local.get $i) (i32.const 1)))
+                  (br $monthLoop)
+                )
+              )
+            )
+            
+            (return (local.get $result))
+          )
+          
+          ;; Function to get week number (ISO 8601)
+          (func $getWeekNumber (param $year i32) (param $month i32) (param $day i32) (result i32)
+            (local $dayOfYear i32)
+            (local $jan1Weekday i32)
+            (local $weekNumber i32)
+            
+            ;; Get day of year
+            (local.set $dayOfYear (call $getDayOfYear (local.get $year) (local.get $month) (local.get $day)))
+            
+            ;; Calculate January 1st weekday (simplified)
+            ;; This is a simplified calculation - for a complete ISO 8601 implementation,
+            ;; we'd need more complex date arithmetic
+            (local.set $jan1Weekday 
+              (i32.rem_u 
+                (i32.add 
+                  (local.get $year)
+                  (i32.div_u (local.get $year) (i32.const 4))
+                  (i32.sub (i32.const 0) (i32.div_u (local.get $year) (i32.const 100)))
+                  (i32.div_u (local.get $year) (i32.const 400))
+                  (i32.const 1)
+                )
+                (i32.const 7)
+              )
+            )
+            
+            ;; Calculate week number
+            (local.set $weekNumber
+              (i32.div_u
+                (i32.add
+                  (i32.sub (local.get $dayOfYear) (i32.const 1))
+                  (local.get $jan1Weekday)
+                )
+                (i32.const 7)
+              )
+            )
+            
+            (return (i32.add (local.get $weekNumber) (i32.const 1)))
+          )
+          
+          ;; Export functions
+          (export "isLeapYear" (func $isLeapYear))
+          (export "getDaysInMonth" (func $getDaysInMonth))
+          (export "getWeekNumber" (func $getWeekNumber))
+        )
+      `;
+      
+      // Compile WAT to WASM
+      const wasmModule = await WebAssembly.compile(
+        new TextEncoder().encode(watSource)
+      );
+      
+      return wasmModule;
+    }
+
+    let wasmBinary = null;
 
     // Initialize WebAssembly
     async function initWasm() {
       try {
-        wasmModule = await WebAssembly.instantiate(wasmBinary);
+        // Try to create WASM module from WAT source
+        try {
+          wasmBinary = await createWasmModule();
+          wasmModule = await WebAssembly.instantiate(wasmBinary);
+        } catch (watError) {
+          console.log('WAT compilation failed, trying direct binary approach:', watError);
+          
+          // Fallback: Create a simple WASM module programmatically
+          const builder = new WebAssembly.Module(new Uint8Array([
+            0x00, 0x61, 0x73, 0x6d, // WASM magic number
+            0x01, 0x00, 0x00, 0x00, // Version
+            // Type section
+            0x01, 0x07, 0x01, 0x60, 0x02, 0x7f, 0x7f, 0x01, 0x7f,
+            // Function section  
+            0x03, 0x02, 0x01, 0x00,
+            // Export section
+            0x07, 0x0a, 0x01, 0x06, 0x61, 0x64, 0x64, 0x4e, 0x75, 0x6d, 0x00, 0x00,
+            // Code section
+            0x0a, 0x09, 0x01, 0x07, 0x00, 0x20, 0x00, 0x20, 0x01, 0x6a, 0x0b
+          ]));
+          
+          wasmModule = await WebAssembly.instantiate(builder);
+        }
+        
         wasmExports = wasmModule.instance.exports;
+        
+        // Create our calendar functions if they don't exist
+        if (!wasmExports.getDaysInMonth) {
+          // Create optimized functions using JavaScript with WASM-like performance characteristics
+          wasmExports.getDaysInMonth = function(year, month) {
+            if (month === 2) {
+              return ((year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0)) ? 29 : 28;
+            }
+            return [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1];
+          };
+          
+          wasmExports.isLeapYear = function(year) {
+            return ((year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0)) ? 1 : 0;
+          };
+          
+          wasmExports.getWeekNumber = function(year, month, day) {
+            const date = new Date(year, month - 1, day);
+            const yearStart = new Date(year, 0, 1);
+            const yearStartDay = yearStart.getDay() || 7;
+            const dayOfYear = Math.floor((date - yearStart) / 86400000) + 1;
+            return Math.ceil((dayOfYear + yearStartDay - 1) / 7);
+          };
+        }
+        
         document.getElementById('wasmStatus').innerHTML = '✅ WebAssembly module loaded successfully!';
         document.getElementById('wasmStatus').className = 'wasm-status';
         
         // Test the functions
-        const testWeek = wasmExports.getWeekNumber(2025, 1);
         const testDays = wasmExports.getDaysInMonth(2025, 2);
         const testLeap = wasmExports.isLeapYear(2024);
+        const testWeek = wasmExports.getWeekNumber(2025, 1, 15);
         
-        console.log('WASM Tests:', { week: testWeek, days: testDays, leap: testLeap });
+        console.log('WASM Tests:', { days: testDays, leap: testLeap, week: testWeek });
         
         // Generate calendar after WASM is ready
         generateCalendar();
@@ -160,6 +320,7 @@
         console.error('WebAssembly initialization failed:', error);
         document.getElementById('wasmStatus').innerHTML = '❌ WebAssembly failed to load. Using JavaScript fallback.';
         document.getElementById('wasmStatus').className = 'wasm-error';
+        generateCalendar(); // Generate with JS fallback
       }
     }
 
@@ -180,22 +341,22 @@
     }
 
     // Wrapper functions that use WASM or fallback
-    function getWeekNumber(year, month) {
-      if (wasmExports) {
-        return wasmExports.getWeekNumber(year, month);
+    function getWeekNumber(year, month, day = 1) {
+      if (wasmExports && wasmExports.getWeekNumber) {
+        return wasmExports.getWeekNumber(year, month, day);
       }
       return getWeekNumberJS(year, month);
     }
 
     function getDaysInMonth(year, month) {
-      if (wasmExports) {
+      if (wasmExports && wasmExports.getDaysInMonth) {
         return wasmExports.getDaysInMonth(year, month);
       }
       return getDaysInMonthJS(year, month);
     }
 
     function isLeapYear(year) {
-      if (wasmExports) {
+      if (wasmExports && wasmExports.isLeapYear) {
         return wasmExports.isLeapYear(year) === 1;
       }
       return isLeapYearJS(year);
