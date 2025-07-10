@@ -335,14 +335,6 @@
                 <button onclick="importData()">Import Data</button>
             </div>
 
-            <!-- Compliance Overview Section -->
-            <div class="compliance-overview">
-                <h3 style="margin-bottom: 20px; color: #1e3c72;">Compliance Overview</h3>
-                <div class="compliance-grid" id="compliance-overview">
-                    <!-- Will be populated by JavaScript -->
-                </div>
-            </div>
-
             <div class="assessment-grid" id="assessment-grid">
                 <!-- Grid will be populated by JavaScript -->
             </div>
@@ -364,13 +356,29 @@
         </div>
 
         <div id="detailed-tab" class="content" style="display: none;">
+            <div style="margin-bottom: 20px;">
+                <h3 style="color: #1e3c72; margin-bottom: 10px;">Detailed Quality Checklist</h3>
+                <p style="color: #6c757d; font-style: italic;">Questions are only shown for documents that are not rejected</p>
+            </div>
             <div class="checklist" id="detailed-checklist">
                 <!-- Checklist will be populated by JavaScript -->
             </div>
         </div>
 
         <div id="analytics-tab" class="content" style="display: none;">
-            <canvas id="analytics-chart" width="800" height="400"></canvas>
+            <!-- Compliance Overview Section moved here -->
+            <div class="compliance-overview">
+                <h3 style="margin-bottom: 20px; color: #1e3c72;">Compliance Overview</h3>
+                <div class="compliance-grid" id="compliance-overview">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <div style="margin-top: 30px;">
+                <h3 style="margin-bottom: 20px; color: #1e3c72;">Truth Table Analysis</h3>
+                <canvas id="analytics-chart" width="800" height="400"></canvas>
+            </div>
+            
             <div class="export-section">
                 <h3>Data Export Options</h3>
                 <button onclick="exportToCSV()">Export to CSV</button>
@@ -387,39 +395,39 @@
             projectType: "GTT",
             parmaNumber: "",
             documents: [
-                {id: 1, name: "SOW", supplierCompliance: "P. Accepted", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "○"},
+                {id: 1, name: "SOW", supplierCompliance: "P. Accepted", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "◔"},
                 {id: 2, name: "CRB", supplierCompliance: "P. Accepted", retained: "Retained", sqeCheck: "Not Provided", almEvidence: "No", almCoverage: "●"},
                 {id: 3, name: "QDPR", supplierCompliance: "Reject", retained: "Retained", sqeCheck: "Provided", almEvidence: "N/A", almCoverage: "○"},
                 {id: 4, name: "CPLN", supplierCompliance: "Reject", retained: "Retained", sqeCheck: "Provided", almEvidence: "N/A", almCoverage: "○"},
                 {id: 5, name: "RMX", supplierCompliance: "P. Accepted", retained: "Retained", sqeCheck: "Not Provided", almEvidence: "No", almCoverage: "●"},
-                {id: 6, name: "SWDP", supplierCompliance: "P. Accepted", retained: "Retained", sqeCheck: "Not Provided", almEvidence: "No", almCoverage: "○"},
-                {id: 7, name: "SWDS", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Provided", almEvidence: "No", almCoverage: "○"},
+                {id: 6, name: "SWDP", supplierCompliance: "P. Accepted", retained: "Retained", sqeCheck: "Not Provided", almEvidence: "No", almCoverage: "●"},
+                {id: 7, name: "SWDS", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Provided", almEvidence: "No", almCoverage: "●"},
                 {id: 8, name: "SWQP", supplierCompliance: "P. Accepted", retained: "Retained", sqeCheck: "Provided", almEvidence: "No", almCoverage: "●"},
-                {id: 9, name: "SWTR", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Not Provided", almEvidence: "Yes", almCoverage: "○"},
+                {id: 9, name: "SWTR", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Not Provided", almEvidence: "Yes", almCoverage: "◔"},
                 {id: 10, name: "SWCP", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Not Provided", almEvidence: "No", almCoverage: "●"},
-                {id: 11, name: "FIP", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Provided", almEvidence: "No", almCoverage: "○"},
-                {id: 12, name: "SWR", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Provided", almEvidence: "No", almCoverage: "○"},
+                {id: 11, name: "FIP", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Provided", almEvidence: "No", almCoverage: "●"},
+                {id: 12, name: "SWR", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Provided", almEvidence: "No", almCoverage: "●"},
                 {id: 13, name: "ACAR", supplierCompliance: "Reject", retained: "Retained", sqeCheck: "Provided", almEvidence: "N/A", almCoverage: "○"},
-                {id: 14, name: "AAFP", supplierCompliance: "Reject", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "●"},
+                {id: 14, name: "AAFP", supplierCompliance: "Reject", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "◔"},
                 {id: 15, name: "AIP", supplierCompliance: "Reject", retained: "Retained", sqeCheck: "Provided", almEvidence: "N/A", almCoverage: "○"},
-                {id: 16, name: "PTM", supplierCompliance: "Reject", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "●"},
-                {id: 17, name: "RMP", supplierCompliance: "P. Accepted", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "○"},
+                {id: 16, name: "PTM", supplierCompliance: "Reject", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "◔"},
+                {id: 17, name: "RMP", supplierCompliance: "P. Accepted", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "◔"},
                 {id: 18, name: "RML", supplierCompliance: "P. Accepted", retained: "Retained", sqeCheck: "Provided", almEvidence: "No", almCoverage: "●"},
-                {id: 19, name: "PPS", supplierCompliance: "P. Accepted", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "○"},
-                {id: 20, name: "SWRS", supplierCompliance: "P. Accepted", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "●"},
-                {id: 21, name: "SADD", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "○"},
-                {id: 22, name: "SWDD", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "●"},
-                {id: 23, name: "HSIS", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "○"},
-                {id: 24, name: "RTM", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Not Provided", almEvidence: "Yes", almCoverage: "○"},
-                {id: 25, name: "SCIL", supplierCompliance: "Reject", retained: "Retained", sqeCheck: "Not Provided", almEvidence: "Yes", almCoverage: "●"},
-                {id: 26, name: "SCR", supplierCompliance: "P. Accepted", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "○"},
-                {id: 27, name: "SWTD", supplierCompliance: "P. Accepted", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "●"},
+                {id: 19, name: "PPS", supplierCompliance: "P. Accepted", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "◔"},
+                {id: 20, name: "SWRS", supplierCompliance: "P. Accepted", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "◔"},
+                {id: 21, name: "SADD", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "◔"},
+                {id: 22, name: "SWDD", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "◔"},
+                {id: 23, name: "HSIS", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "◔"},
+                {id: 24, name: "RTM", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Not Provided", almEvidence: "Yes", almCoverage: "◔"},
+                {id: 25, name: "SCIL", supplierCompliance: "Reject", retained: "Retained", sqeCheck: "Not Provided", almEvidence: "Yes", almCoverage: "◔"},
+                {id: 26, name: "SCR", supplierCompliance: "P. Accepted", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "◔"},
+                {id: 27, name: "SWTD", supplierCompliance: "P. Accepted", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "◔"},
                 {id: 28, name: "SWDD", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Provided", almEvidence: "N/A", almCoverage: "○"},
                 {id: 29, name: "SWOCA", supplierCompliance: "Reject", retained: "Retained", sqeCheck: "Not Provided", almEvidence: "N/A", almCoverage: "○"},
                 {id: 30, name: "SWTR", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Provided", almEvidence: "N/A", almCoverage: "○"},
-                {id: 31, name: "SSC", supplierCompliance: "Reject", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "○"},
+                {id: 31, name: "SSC", supplierCompliance: "Reject", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "◔"},
                 {id: 32, name: "IA", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Not Provided", almEvidence: "N/A", almCoverage: "○"},
-                {id: 33, name: "STR", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "○"},
+                {id: 33, name: "STR", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "◔"},
                 {id: 34, name: "SQAR", supplierCompliance: "P. Accepted", retained: "Retained", sqeCheck: "Provided", almEvidence: "N/A", almCoverage: "○"},
                 {id: 35, name: "SWFJ", supplierCompliance: "P. Accepted", retained: "Retained", sqeCheck: "Provided", almEvidence: "N/A", almCoverage: "○"}
             ],
@@ -435,7 +443,27 @@
             {id: 2, document: "SOW", category: "Statement Of Work (SOW)", subcategory: "Evidence of Accessibility", item: "Kept with easier words", question: "Was SOW listed in the suppliers own ways?", status: null, notes: "", spqam: ""},
             {id: 3, document: "CRB", category: "Customer Requirement Baseline", subcategory: "Requirements Gathering", item: "Stakeholder input collection", question: "Were all key stakeholders consulted during the requirements gathering process?", status: null, notes: "", spqam: "Retained"},
             {id: 4, document: "CRB", category: "Customer Requirement Baseline", subcategory: "Requirements Analysis", item: "Prioritization framework", question: "Have requirements been prioritized based on business value and technical constraints?", status: null, notes: "", spqam: ""},
-            {id: 5, document: "QDPR", category: "Compliance Matrix (QDPR)", subcategory: "Compliance", item: "SW Attitude", question: "was compliance well discussed?", status: null, notes: "", spqam: "Retained"}
+            {id: 5, document: "RMX", category: "Risk Management", subcategory: "Risk Identification", item: "Risk assessment process", question: "Has a comprehensive risk assessment been conducted?", status: null, notes: "", spqam: "Retained"},
+            {id: 6, document: "SWDP", category: "Software Development Plan", subcategory: "Development Process", item: "Process documentation", question: "Is the software development process clearly documented?", status: null, notes: "", spqam: "Retained"},
+            {id: 7, document: "SWDS", category: "Software Design Specification", subcategory: "Design Quality", item: "Design completeness", question: "Are all design requirements adequately addressed?", status: null, notes: "", spqam: "Retained"},
+            {id: 8, document: "SWQP", category: "Software Quality Plan", subcategory: "Quality Assurance", item: "QA procedures", question: "Are quality assurance procedures properly defined?", status: null, notes: "", spqam: "Retained"},
+            {id: 9, document: "SWTR", category: "Software Test Report", subcategory: "Test Coverage", item: "Test completeness", question: "Has adequate test coverage been achieved?", status: null, notes: "", spqam: "Retained"},
+            {id: 10, document: "SWCP", category: "Software Configuration Plan", subcategory: "Configuration Management", item: "Version control", question: "Is version control properly implemented?", status: null, notes: "", spqam: "Retained"},
+            {id: 11, document: "FIP", category: "Failure Impact Plan", subcategory: "Failure Analysis", item: "Impact assessment", question: "Has failure impact been properly assessed?", status: null, notes: "", spqam: "Retained"},
+            {id: 12, document: "SWR", category: "Software Requirements", subcategory: "Requirements Quality", item: "Requirements clarity", question: "Are all requirements clearly defined and testable?", status: null, notes: "", spqam: "Retained"},
+            {id: 13, document: "RMP", category: "Risk Management Plan", subcategory: "Risk Mitigation", item: "Mitigation strategies", question: "Are risk mitigation strategies properly defined?", status: null, notes: "", spqam: "Retained"},
+            {id: 14, document: "RML", category: "Risk Management Log", subcategory: "Risk Tracking", item: "Risk monitoring", question: "Are risks being actively monitored and updated?", status: null, notes: "", spqam: "Retained"},
+            {id: 15, document: "PPS", category: "Project Planning Schedule", subcategory: "Schedule Management", item: "Timeline accuracy", question: "Is the project timeline realistic and achievable?", status: null, notes: "", spqam: "Retained"},
+            {id: 16, document: "SWRS", category: "Software Requirements Specification", subcategory: "Requirements Documentation", item: "Documentation quality", question: "Are requirements documented with sufficient detail?", status: null, notes: "", spqam: "Retained"},
+            {id: 17, document: "SADD", category: "Software Architecture Design Document", subcategory: "Architecture Quality", item: "Architecture completeness", question: "Is the software architecture properly documented?", status: null, notes: "", spqam: "Retained"},
+            {id: 18, document: "SWDD", category: "Software Design Document", subcategory: "Design Documentation", item: "Design detail", question: "Are design details sufficiently documented?", status: null, notes: "", spqam: "Retained"},
+            {id: 19, document: "HSIS", category: "Hardware Software Interface Specification", subcategory: "Interface Design", item: "Interface definition", question: "Are hardware-software interfaces clearly defined?", status: null, notes: "", spqam: "Retained"},
+            {id: 20, document: "RTM", category: "Requirements Traceability Matrix", subcategory: "Traceability", item: "Requirements tracing", question: "Can all requirements be traced through implementation?", status: null, notes: "", spqam: "Retained"},
+            {id: 21, document: "SCR", category: "Software Change Request", subcategory: "Change Management", item: "Change process", question: "Is the change management process properly followed?", status: null, notes: "", spqam: "Retained"},
+            {id: 22, document: "SWTD", category: "Software Test Description", subcategory: "Test Documentation", item: "Test procedures", question: "Are test procedures adequately documented?", status: null, notes: "", spqam: "Retained"},
+            {id: 23, document: "STR", category: "Software Test Report", subcategory: "Test Results", item: "Result documentation", question: "Are test results properly documented and analyzed?", status: null, notes: "", spqam: "Retained"},
+            {id: 24, document: "SQAR", category: "Software Quality Assurance Report", subcategory: "Quality Assessment", item: "Quality metrics", question: "Are quality metrics properly tracked and reported?", status: null, notes: "", spqam: "Retained"},
+            {id: 25, document: "SWFJ", category: "Software Failure Justification", subcategory: "Failure Analysis", item: "Failure justification", question: "Are software failures properly justified and documented?", status: null, notes: "", spqam: "Retained"}
         ];
 
         // Main calculation functions based on Excel formulas
@@ -485,12 +513,20 @@
             return almCoverage === "○" ? "N/A" : "Yes";
         }
 
+        function getALMCoverageFromEvidence(almEvidence) {
+            // Automatically determine ALM Coverage based on evidence status
+            if (almEvidence === "N/A") return "○";
+            if (almEvidence === "Yes") return "◔";
+            if (almEvidence === "No") return "●";
+            return "○";
+        }
+
         // UI Rendering Functions
         function renderAssessmentGrid() {
             const grid = document.getElementById('assessment-grid');
             const headers = [
                 'No.', 'Document Name', 'Supplier Compliance', 'Final Compliance', 
-                'SW SQE Check', 'ALM Evidence', 'Quality Confidence', 'Truth Complexity', 'ALM Coverage'
+                'SW SQE Check', 'Was evidence in the ALM?', 'Quality Confidence', 'Truth Complexity', 'ALM Coverage'
             ];
             
             // Clear existing content
@@ -559,10 +595,23 @@
                 sqeCell.appendChild(sqeSelect);
                 grid.appendChild(sqeCell);
                 
-                // ALM Evidence (calculated based on ALM Coverage)
+                // ALM Evidence 
                 const almEvidenceCell = document.createElement('div');
-                almEvidenceCell.className = 'grid-cell calculated';
-                almEvidenceCell.textContent = getALMEvidenceStatus(doc.almCoverage);
+                almEvidenceCell.className = 'grid-cell';
+                const almEvidenceSelect = document.createElement('select');
+                ['Yes', 'No', 'N/A'].forEach(option => {
+                    const optionEl = document.createElement('option');
+                    optionEl.value = option;
+                    optionEl.textContent = option;
+                    optionEl.selected = doc.almEvidence === option;
+                    almEvidenceSelect.appendChild(optionEl);
+                });
+                almEvidenceSelect.onchange = (e) => {
+                    updateDocument(index, 'almEvidence', e.target.value);
+                    // Auto-update ALM Coverage based on evidence
+                    updateDocument(index, 'almCoverage', getALMCoverageFromEvidence(e.target.value));
+                };
+                almEvidenceCell.appendChild(almEvidenceSelect);
                 grid.appendChild(almEvidenceCell);
                 
                 // Quality Confidence (calculated)
@@ -577,23 +626,10 @@
                 truthCell.textContent = calculateTruthComplexity(doc);
                 grid.appendChild(truthCell);
                 
-                // ALM Coverage
+                // ALM Coverage (calculated/automated)
                 const coverageCell = document.createElement('div');
-                coverageCell.className = 'grid-cell';
-                const coverageSelect = document.createElement('select');
-                ['○', '◔', '◕'].forEach(option => {
-                    const optionEl = document.createElement('option');
-                    optionEl.value = option;
-                    optionEl.textContent = option;
-                    optionEl.selected = doc.almCoverage === option;
-                    coverageSelect.appendChild(optionEl);
-                });
-                coverageSelect.onchange = (e) => {
-                    updateDocument(index, 'almCoverage', e.target.value);
-                    // Update ALM Evidence automatically
-                    updateDocument(index, 'almEvidence', getALMEvidenceStatus(e.target.value));
-                };
-                coverageCell.appendChild(coverageSelect);
+                coverageCell.className = 'grid-cell calculated';
+                coverageCell.textContent = doc.almCoverage;
                 grid.appendChild(coverageCell);
             });
         }
@@ -601,6 +637,25 @@
         function renderDetailedChecklist() {
             const checklist = document.getElementById('detailed-checklist');
             checklist.innerHTML = '';
+            
+            // Filter out documents that are rejected
+            const nonRejectedDocs = assessmentData.documents.filter(doc => doc.supplierCompliance !== 'Reject');
+            const nonRejectedDocNames = nonRejectedDocs.map(doc => doc.name);
+            
+            // Filter checklist items to only show non-rejected documents
+            const filteredChecklist = detailedChecklist.filter(item => 
+                nonRejectedDocNames.includes(item.document)
+            );
+            
+            if (filteredChecklist.length === 0) {
+                const noItems = document.createElement('div');
+                noItems.style.padding = '40px';
+                noItems.style.textAlign = 'center';
+                noItems.style.color = '#6c757d';
+                noItems.innerHTML = '<h4>No questions available</h4><p>All documents are either rejected or no questions are defined for accepted documents.</p>';
+                checklist.appendChild(noItems);
+                return;
+            }
             
             // Header
             const header = document.createElement('div');
@@ -616,27 +671,35 @@
             `;
             checklist.appendChild(header);
             
-            // Items
-            detailedChecklist.forEach((item, index) => {
+            // Items (only for non-rejected documents)
+            filteredChecklist.forEach((item, index) => {
                 const row = document.createElement('div');
                 row.className = 'checklist-item';
                 
+                // Find the compliance status for color coding
+                const docInfo = assessmentData.documents.find(doc => doc.name === item.document);
+                const statusClass = docInfo ? 
+                    (docInfo.supplierCompliance === 'Accept' ? 'accept' : 
+                     docInfo.supplierCompliance === 'P. Accepted' ? 'partial' : '') : '';
+                
                 row.innerHTML = `
                     <div>${item.id}</div>
-                    <div>${item.document}</div>
+                    <div class="compliance-item ${statusClass}" style="padding: 5px; border-radius: 4px; margin: 2px;">
+                        ${item.document}
+                    </div>
                     <div>
                         <strong>${item.category}</strong><br>
                         <small>${item.subcategory} - ${item.item}</small>
                     </div>
                     <div>${item.question}</div>
                     <div>
-                        <span class="status-icon" onclick="toggleStatus(${index})">
+                        <span class="status-icon" onclick="toggleStatus(${item.id - 1})">
                             ${item.status === true ? '✅' : item.status === false ? '❌' : '⭕'}
                         </span>
                     </div>
                     <div>
                         <input type="text" value="${item.notes}" 
-                               onchange="updateChecklistItem(${index}, 'notes', this.value)"
+                               onchange="updateChecklistItem(${item.id - 1}, 'notes', this.value)"
                                placeholder="Add notes...">
                     </div>
                     <div>${item.spqam}</div>
@@ -722,12 +785,15 @@
             }
         }
 
-        // Event Handlers
         function updateDocument(index, field, value) {
             assessmentData.documents[index][field] = value;
             renderAssessmentGrid();
-            renderComplianceOverview();
             updateMetrics();
+            
+            // Re-render detailed checklist if compliance status changed (to show/hide questions)
+            if (field === 'supplierCompliance') {
+                renderDetailedChecklist();
+            }
         }
 
         function updateChecklistItem(index, field, value) {
@@ -754,8 +820,10 @@
                 almCoverage: "○"
             });
             renderAssessmentGrid();
-            renderComplianceOverview();
             updateMetrics();
+            
+            // Re-render detailed checklist to include new document
+            renderDetailedChecklist();
         }
 
         function switchTab(tabName) {
@@ -779,6 +847,7 @@
             if (tabName === 'detailed') {
                 renderDetailedChecklist();
             } else if (tabName === 'analytics') {
+                renderComplianceOverview();
                 renderAnalytics();
             }
         }
@@ -932,7 +1001,6 @@ ${truthCounts.FP > 0 ? `⚠️ ${truthCounts.FP} False Positives detected - revi
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
             renderAssessmentGrid();
-            renderComplianceOverview();
             updateMetrics();
             
             // Set up company name binding
