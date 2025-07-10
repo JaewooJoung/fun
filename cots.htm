@@ -215,6 +215,67 @@
             cursor: pointer;
         }
 
+        .compliance-overview {
+            margin-bottom: 30px;
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .compliance-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .compliance-item {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 8px;
+            padding: 15px;
+            border-left: 5px solid #6c757d;
+            transition: all 0.3s ease;
+        }
+
+        .compliance-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .compliance-item.accept {
+            border-left-color: #28a745;
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        }
+
+        .compliance-item.partial {
+            border-left-color: #ffc107;
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        }
+
+        .compliance-item.reject {
+            border-left-color: #dc3545;
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+        }
+
+        .compliance-doc-name {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            color: #495057;
+        }
+
+        .compliance-status {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+
+        .compliance-confidence {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #1e3c72;
+        }
+
         .export-section {
             margin-top: 30px;
             padding: 20px;
@@ -237,6 +298,10 @@
                 gap: 10px;
                 font-size: 0.9rem;
             }
+            
+            .compliance-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -255,7 +320,7 @@
 
         <div id="main-tab" class="content">
             <div class="controls">
-                <input type="text" id="company-name" placeholder="Company Name" value="Dreager">
+                <input type="text" id="company-name" placeholder="Company Name" value="">
                 <select id="project-type">
                     <option value="GTT">GTT Project</option>
                     <option value="Other">Other Project</option>
@@ -268,6 +333,14 @@
                 <button onclick="addNewDocument()">Add Document</button>
                 <button onclick="exportData()">Export Data</button>
                 <button onclick="importData()">Import Data</button>
+            </div>
+
+            <!-- Compliance Overview Section -->
+            <div class="compliance-overview">
+                <h3 style="margin-bottom: 20px; color: #1e3c72;">Compliance Overview</h3>
+                <div class="compliance-grid" id="compliance-overview">
+                    <!-- Will be populated by JavaScript -->
+                </div>
             </div>
 
             <div class="assessment-grid" id="assessment-grid">
@@ -310,7 +383,7 @@
     <script>
         // Core data structure
         let assessmentData = {
-            company: "Dreager",
+            company: "",
             projectType: "GTT",
             parmaNumber: 58247,
             documents: [
@@ -583,6 +656,31 @@
             card.className = `metric-card ${isAcceptable ? 'status-acceptable' : 'status-fail'}`;
         }
 
+        function renderComplianceOverview() {
+            const overviewContainer = document.getElementById('compliance-overview');
+            overviewContainer.innerHTML = '';
+            
+            assessmentData.documents.forEach(doc => {
+                const item = document.createElement('div');
+                item.className = `compliance-item ${doc.supplierCompliance.toLowerCase().replace(' ', '-').replace('.', '')}`;
+                
+                const confidence = calculateQualityConfidence(doc);
+                const confidencePercent = (confidence * 100).toFixed(0);
+                
+                const statusIcon = doc.supplierCompliance === 'Accept' ? '✅' : 
+                                 doc.supplierCompliance === 'P. Accepted' ? '⚠️' : '❌';
+                
+                item.innerHTML = `
+                    <div class="compliance-doc-name">${statusIcon} ${doc.name}</div>
+                    <div class="compliance-status">Status: ${doc.supplierCompliance}</div>
+                    <div class="compliance-status">SQE Check: ${doc.sqeCheck}</div>
+                    <div class="compliance-confidence">${confidencePercent}% Confidence</div>
+                `;
+                
+                overviewContainer.appendChild(item);
+            });
+        }
+
         function updateParmaLink() {
             const parmaNumber = document.getElementById('parma-number').value;
             const parmaLink = document.getElementById('parma-link');
@@ -598,6 +696,7 @@
         function updateDocument(index, field, value) {
             assessmentData.documents[index][field] = value;
             renderAssessmentGrid();
+            renderComplianceOverview();
             updateMetrics();
         }
 
@@ -625,6 +724,7 @@
                 almCoverage: "○"
             });
             renderAssessmentGrid();
+            renderComplianceOverview();
             updateMetrics();
         }
 
@@ -802,6 +902,7 @@ ${truthCounts.FP > 0 ? `⚠️ ${truthCounts.FP} False Positives detected - revi
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
             renderAssessmentGrid();
+            renderComplianceOverview();
             updateMetrics();
             
             // Set up company name binding
