@@ -325,7 +325,7 @@
                     <option value="GTT">GTT Project</option>
                     <option value="Other">Other Project</option>
                 </select>
-                <input type="number" id="parma-number" placeholder="Parma Number" value="58247">
+                <input type="number" id="parma-number" placeholder="Parma Number" value="">
                 <div>
                     <label>Parma Link: </label>
                     <a id="parma-link" href="#" target="_blank" style="color: #1e3c72; text-decoration: underline;">Parma_Link</a>
@@ -385,13 +385,43 @@
         let assessmentData = {
             company: "",
             projectType: "GTT",
-            parmaNumber: 58247,
+            parmaNumber: "",
             documents: [
-                {id: 1, name: "SOW", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "◔"},
-                {id: 2, name: "CRB", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Not Provided", almEvidence: "No", almCoverage: "◕"},
-                {id: 3, name: "QDPR", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Provided", almEvidence: "N/A", almCoverage: "○"},
-                {id: 4, name: "CPLN", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Provided", almEvidence: "N/A", almCoverage: "○"},
-                {id: 5, name: "RMX", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Not Provided", almEvidence: "No", almCoverage: "◕"}
+                {id: 1, name: "SOW", supplierCompliance: "P. Accepted", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "○"},
+                {id: 2, name: "CRB", supplierCompliance: "P. Accepted", retained: "Retained", sqeCheck: "Not Provided", almEvidence: "No", almCoverage: "●"},
+                {id: 3, name: "QDPR", supplierCompliance: "Reject", retained: "Retained", sqeCheck: "Provided", almEvidence: "N/A", almCoverage: "○"},
+                {id: 4, name: "CPLN", supplierCompliance: "Reject", retained: "Retained", sqeCheck: "Provided", almEvidence: "N/A", almCoverage: "○"},
+                {id: 5, name: "RMX", supplierCompliance: "P. Accepted", retained: "Retained", sqeCheck: "Not Provided", almEvidence: "No", almCoverage: "●"},
+                {id: 6, name: "SWDP", supplierCompliance: "P. Accepted", retained: "Retained", sqeCheck: "Not Provided", almEvidence: "No", almCoverage: "○"},
+                {id: 7, name: "SWDS", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Provided", almEvidence: "No", almCoverage: "○"},
+                {id: 8, name: "SWQP", supplierCompliance: "P. Accepted", retained: "Retained", sqeCheck: "Provided", almEvidence: "No", almCoverage: "●"},
+                {id: 9, name: "SWTR", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Not Provided", almEvidence: "Yes", almCoverage: "○"},
+                {id: 10, name: "SWCP", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Not Provided", almEvidence: "No", almCoverage: "●"},
+                {id: 11, name: "FIP", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Provided", almEvidence: "No", almCoverage: "○"},
+                {id: 12, name: "SWR", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Provided", almEvidence: "No", almCoverage: "○"},
+                {id: 13, name: "ACAR", supplierCompliance: "Reject", retained: "Retained", sqeCheck: "Provided", almEvidence: "N/A", almCoverage: "○"},
+                {id: 14, name: "AAFP", supplierCompliance: "Reject", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "●"},
+                {id: 15, name: "AIP", supplierCompliance: "Reject", retained: "Retained", sqeCheck: "Provided", almEvidence: "N/A", almCoverage: "○"},
+                {id: 16, name: "PTM", supplierCompliance: "Reject", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "●"},
+                {id: 17, name: "RMP", supplierCompliance: "P. Accepted", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "○"},
+                {id: 18, name: "RML", supplierCompliance: "P. Accepted", retained: "Retained", sqeCheck: "Provided", almEvidence: "No", almCoverage: "●"},
+                {id: 19, name: "PPS", supplierCompliance: "P. Accepted", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "○"},
+                {id: 20, name: "SWRS", supplierCompliance: "P. Accepted", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "●"},
+                {id: 21, name: "SADD", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "○"},
+                {id: 22, name: "SWDD", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "●"},
+                {id: 23, name: "HSIS", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "○"},
+                {id: 24, name: "RTM", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Not Provided", almEvidence: "Yes", almCoverage: "○"},
+                {id: 25, name: "SCIL", supplierCompliance: "Reject", retained: "Retained", sqeCheck: "Not Provided", almEvidence: "Yes", almCoverage: "●"},
+                {id: 26, name: "SCR", supplierCompliance: "P. Accepted", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "○"},
+                {id: 27, name: "SWTD", supplierCompliance: "P. Accepted", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "●"},
+                {id: 28, name: "SWDD", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Provided", almEvidence: "N/A", almCoverage: "○"},
+                {id: 29, name: "SWOCA", supplierCompliance: "Reject", retained: "Retained", sqeCheck: "Not Provided", almEvidence: "N/A", almCoverage: "○"},
+                {id: 30, name: "SWTR", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Provided", almEvidence: "N/A", almCoverage: "○"},
+                {id: 31, name: "SSC", supplierCompliance: "Reject", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "○"},
+                {id: 32, name: "IA", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Not Provided", almEvidence: "N/A", almCoverage: "○"},
+                {id: 33, name: "STR", supplierCompliance: "Accept", retained: "Retained", sqeCheck: "Provided", almEvidence: "Yes", almCoverage: "○"},
+                {id: 34, name: "SQAR", supplierCompliance: "P. Accepted", retained: "Retained", sqeCheck: "Provided", almEvidence: "N/A", almCoverage: "○"},
+                {id: 35, name: "SWFJ", supplierCompliance: "P. Accepted", retained: "Retained", sqeCheck: "Provided", almEvidence: "N/A", almCoverage: "○"}
             ],
             thresholds: {
                 passingGTT: 0.7,
@@ -918,7 +948,7 @@ ${truthCounts.FP > 0 ? `⚠️ ${truthCounts.FP} False Positives detected - revi
             
             // Set up Parma number binding
             document.getElementById('parma-number').addEventListener('change', function(e) {
-                assessmentData.parmaNumber = parseInt(e.target.value);
+                assessmentData.parmaNumber = e.target.value;
                 updateParmaLink();
             });
             
