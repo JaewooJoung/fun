@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>도장 만들기</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            padding: 40px;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .control-group {
+            background: #f8f9ff;
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid #e1e8ff;
+        }
+
+        .control-group h3 {
+            margin-bottom: 15px;
+            color: #4c63d2;
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .input-group input[type="text"],
+        .input-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e8ff;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input[type="text"]:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: #4c63d2;
+            box-shadow: 0 0 0 3px rgba(76, 99, 210, 0.1);
+        }
+
+        .shape-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .shape-option {
+            padding: 15px;
+            border: 2px solid #e1e8ff;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .shape-option:hover {
+            border-color: #4c63d2;
+            background: #f0f4ff;
+        }
+
+        .shape-option.active {
+            border-color: #4c63d2;
+            background: #4c63d2;
+            color: white;
+        }
+
+        .color-options {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .color-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+
+        .color-option.active {
+            border-color: #333;
+            transform: scale(1.2);
+        }
+
+        .preview-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .canvas-container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 2px solid #f0f4ff;
+            position: relative;
+        }
+
+        #stampCanvas {
+            border: 2px dashed #ddd;
+            border-radius: 15px;
+            background: #fafbff;
+            display: block;
+            cursor: grab;
+        }
+
+        #stampCanvas:active {
+            cursor: grabbing;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4c63d2 0%, #6c5ce7 100%);
+            color: white;
+            box-shadow: 0 5px 15px rgba(76, 99, 210, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(76, 99, 210, 0.6);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%);
+            color: white;
+            box-shadow: 0 5px 15px rgba(253, 121, 168, 0.4);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(253, 121, 168, 0.6);
+        }
+
+        .btn-reset {
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            color: white;
+            box-shadow: 0 5px 15px rgba(116, 185, 255, 0.4);
+        }
+
+        .btn-reset:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(116, 185, 255, 0.6);
+        }
+
+        .instructions {
+            background: #e8f4fd;
+            border: 1px solid #bee5eb;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            color: #0c5460;
+        }
+
+        .instructions strong {
+            color: #064e5b;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 30px;
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+
+        .size-slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #e1e8ff;
+            outline: none;
+            appearance: none;
+        }
+
+        .size-slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #4c63d2;
+            cursor: pointer;
+        }
+
+        .size-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #4c63d2;
+            cursor: pointer;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏆 도장 만들기</h1>
+            <p>나만의 전용 도장을 쉽고 빠르게 만들어보세요</p>
+        </div>
+
+        <div class="main-content">
+            <div class="controls">
+                <div class="instructions">
+                    <strong>💡 사용법:</strong> 도장의 글자를 클릭한 후 드래그하여 원하는 위치로 이동시킬 수 있습니다!
+                </div>
+
+                <div class="control-group">
+                    <h3>📝 텍스트 설정</h3>
+                    <div class="input-group">
+                        <label for="stampText">도장 텍스트</label>
+                        <input type="text" id="stampText" placeholder="이름이나 회사명을 입력하세요" value="김도장">
+                    </div>
+                    <div class="input-group">
+                        <label for="fontSize">글자 크기</label>
+                        <input type="range" id="fontSize" class="size-slider" min="20" max="80" value="40">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>🔷 도장 모양</h3>
+                    <div class="shape-options">
+                        <div class="shape-option active" data-shape="circle">
+                            <div>⭕</div>
+                            <div>원형</div>
+                        </div>
+                        <div class="shape-option" data-shape="square">
+                            <div>⬜</div>
+                            <div>사각형</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>🎨 색상 선택</h3>
+                    <div class="color-options">
+                        <div class="color-option active" style="background: #dc2626" data-color="#dc2626"></div>
+                        <div class="color-option" style="background: #059669" data-color="#059669"></div>
+                        <div class="color-option" style="background: #2563eb" data-color="#2563eb"></div>
+                        <div class="color-option" style="background: #7c3aed" data-color="#7c3aed"></div>
+                        <div class="color-option" style="background: #ea580c" data-color="#ea580c"></div>
+                        <div class="color-option" style="background: #0891b2" data-color="#0891b2"></div>
+                        <div class="color-option" style="background: #be185d" data-color="#be185d"></div>
+                        <div class="color-option" style="background: #374151" data-color="#374151"></div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>📏 크기 설정</h3>
+                    <div class="input-group">
+                        <label for="stampSize">도장 크기</label>
+                        <input type="range" id="stampSize" class="size-slider" min="100" max="300" value="200">
+                    </div>
+                </div>
+            </div>
+
+            <div class="preview-area">
+                <div class="canvas-container">
+                    <canvas id="stampCanvas" width="400" height="400"></canvas>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="generateBtn">도장 생성</button>
+                    <button class="btn btn-reset" id="resetBtn">위치 초기화</button>
+                    <button class="btn btn-secondary" id="downloadBtn">다운로드</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class StampMaker {
+            constructor() {
+                this.canvas = document.getElementById('stampCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.text = '김도장';
+                this.shape = 'circle';
+                this.color = '#dc2626';
+                this.size = 200;
+                this.fontSize = 40;
+                
+                // 각 글자의 위치와 정보를 저장하는 배열
+                this.characters = [];
+                this.selectedChar = null;
+                this.isDragging = false;
+                this.dragOffset = { x: 0, y: 0 };
+                
+                this.initializeEvents();
+                this.initializeCharacters();
+                this.generateStamp();
+            }
+
+            initializeCharacters() {
+                this.characters = [];
+                const chars = this.text.split('');
+                const centerX = this.canvas.width / 2;
+                const centerY = this.canvas.height / 2;
+                
+                // 글자 수에 따라 배치 결정
+                if (chars.length <= 2) {
+                    // 2글자 이하는 가로 배치
+                    const totalWidth = (chars.length - 1) * this.fontSize * 0.8;
+                    let startX = centerX - totalWidth / 2;
+                    
+                    chars.forEach((char, index) => {
+                        this.characters.push({
+                            char: char,
+                            x: startX + index * this.fontSize * 0.8,
+                            y: centerY,
+                            originalX: startX + index * this.fontSize * 0.8,
+                            originalY: centerY
+                        });
+                    });
+                } else {
+                    // 3글자 이상은 세로 배치
+                    const totalHeight = (chars.length - 1) * this.fontSize * 0.9;
+                    let startY = centerY - totalHeight / 2;
+                    
+                    chars.forEach((char, index) => {
+                        this.characters.push({
+                            char: char,
+                            x: centerX,
+                            y: startY + index * this.fontSize * 0.9,
+                            originalX: centerX,
+                            originalY: startY + index * this.fontSize * 0.9
+                        });
+                    });
+                }
+            }
+
+            initializeEvents() {
+                // 텍스트 입력 이벤트
+                document.getElementById('stampText').addEventListener('input', (e) => {
+                    this.text = e.target.value || '도장';
+                    this.initializeCharacters();
+                    this.generateStamp();
+                });
+
+                // 글자 크기 조절 이벤트
+                document.getElementById('fontSize').addEventListener('input', (e) => {
+                    this.fontSize = parseInt(e.target.value);
+                    this.initializeCharacters();
+                    this.generateStamp();
+                });
+
+                // 도장 크기 조절 이벤트
+                document.getElementById('stampSize').addEventListener('input', (e) => {
+                    this.size = parseInt(e.target.value);
+                    this.generateStamp();
+                });
+
+                // 모양 선택 이벤트
+                document.querySelectorAll('.shape-option').forEach(option => {
+                    option.addEventListener('click', (e) => {
+                        document.querySelectorAll('.shape-option').forEach(opt => opt.classList.remove('active'));
+                        option.classList.add('active');
+                        this.shape = option.getAttribute('data-shape');
+                        this.generateStamp();
+                    });
+                });
+
+                // 색상 선택 이벤트
+                document.querySelectorAll('.color-option').forEach(option => {
+                    option.addEventListener('click', (e) => {
+                        document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('active'));
+                        option.classList.add('active');
+                        this.color = option.getAttribute('data-color');
+                        this.generateStamp();
+                    });
+                });
+
+                // 마우스 이벤트
+                this.canvas.addEventListener('mousedown', this.handleMouseDown.bind(this));
+                this.canvas.addEventListener('mousemove', this.handleMouseMove.bind(this));
+                this.canvas.addEventListener('mouseup', this.handleMouseUp.bind(this));
+                this.canvas.addEventListener('mouseleave', this.handleMouseUp.bind(this));
+
+                // 터치 이벤트 (모바일 지원)
+                this.canvas.addEventListener('touchstart', this.handleTouchStart.bind(this));
+                this.canvas.addEventListener('touchmove', this.handleTouchMove.bind(this));
+                this.canvas.addEventListener('touchend', this.handleTouchEnd.bind(this));
+
+                // 버튼 이벤트
+                document.getElementById('generateBtn').addEventListener('click', () => {
+                    this.generateStamp();
+                });
+
+                document.getElementById('resetBtn').addEventListener('click', () => {
+                    this.resetCharacterPositions();
+                });
+
+                document.getElementById('downloadBtn').addEventListener('click', () => {
+                    this.downloadStamp();
+                });
+            }
+
+            getMousePos(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                return {
+                    x: e.clientX - rect.left,
+                    y: e.clientY - rect.top
+                };
+            }
+
+            getTouchPos(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                return {
+                    x: e.touches[0].clientX - rect.left,
+                    y: e.touches[0].clientY - rect.top
+                };
+            }
+
+            hitTest(mousePos) {
+                for (let i = this.characters.length - 1; i >= 0; i--) {
+                    const char = this.characters[i];
+                    const charWidth = this.fontSize * 0.6;
+                    const charHeight = this.fontSize;
+                    
+                    if (mousePos.x >= char.x - charWidth/2 && 
+                        mousePos.x <= char.x + charWidth/2 &&
+                        mousePos.y >= char.y - charHeight/2 && 
+                        mousePos.y <= char.y + charHeight/2) {
+                        return char;
+                    }
+                }
+                return null;
+            }
+
+            handleMouseDown(e) {
+                const mousePos = this.getMousePos(e);
+                const hitChar = this.hitTest(mousePos);
+                
+                if (hitChar) {
+                    this.selectedChar = hitChar;
+                    this.isDragging = true;
+                    this.dragOffset.x = mousePos.x - hitChar.x;
+                    this.dragOffset.y = mousePos.y - hitChar.y;
+                    this.canvas.style.cursor = 'grabbing';
+                }
+            }
+
+            handleMouseMove(e) {
+                if (this.isDragging && this.selectedChar) {
+                    const mousePos = this.getMousePos(e);
+                    this.selectedChar.x = mousePos.x - this.dragOffset.x;
+                    this.selectedChar.y = mousePos.y - this.dragOffset.y;
+                    this.generateStamp();
+                } else {
+                    // 호버 효과
+                    const mousePos = this.getMousePos(e);
+                    const hitChar = this.hitTest(mousePos);
+                    this.canvas.style.cursor = hitChar ? 'grab' : 'default';
+                }
+            }
+
+            handleMouseUp(e) {
+                this.isDragging = false;
+                this.selectedChar = null;
+                this.canvas.style.cursor = 'default';
+            }
+
+            handleTouchStart(e) {
+                e.preventDefault();
+                const touchPos = this.getTouchPos(e);
+                this.handleMouseDown({clientX: touchPos.x + this.canvas.getBoundingClientRect().left, clientY: touchPos.y + this.canvas.getBoundingClientRect().top});
+            }
+
+            handleTouchMove(e) {
+                e.preventDefault();
+                const touchPos = this.getTouchPos(e);
+                this.handleMouseMove({clientX: touchPos.x + this.canvas.getBoundingClientRect().left, clientY: touchPos.y + this.canvas.getBoundingClientRect().top});
+            }
+
+            handleTouchEnd(e) {
+                e.preventDefault();
+                this.handleMouseUp(e);
+            }
+
+            resetCharacterPositions() {
+                this.characters.forEach(char => {
+                    char.x = char.originalX;
+                    char.y = char.originalY;
+                });
+                this.generateStamp();
+            }
+
+            generateStamp() {
+                const ctx = this.ctx;
+                const centerX = this.canvas.width / 2;
+                const centerY = this.canvas.height / 2;
+
+                // 캔버스 초기화
+                ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                // 도장 모양 그리기
+                ctx.strokeStyle = this.color;
+                ctx.fillStyle = this.color;
+                ctx.lineWidth = 4;
+
+                if (this.shape === 'circle') {
+                    // 원형 도장
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, this.size / 2, 0, 2 * Math.PI);
+                    ctx.stroke();
+                    
+                    // 내부 원
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, this.size / 2 - 10, 0, 2 * Math.PI);
+                    ctx.stroke();
+                } else {
+                    // 사각형 도장
+                    const rectSize = this.size * 0.85;
+                    ctx.strokeRect(centerX - rectSize/2, centerY - rectSize/2, rectSize, rectSize);
+                    
+                    // 내부 사각형
+                    const innerSize = rectSize - 20;
+                    ctx.strokeRect(centerX - innerSize/2, centerY - innerSize/2, innerSize, innerSize);
+                }
+
+                // 각 글자 개별로 그리기
+                ctx.fillStyle = this.color;
+                ctx.font = `bold ${this.fontSize}px 'Noto Sans KR', Arial, sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                this.characters.forEach((charObj, index) => {
+                    // 선택된 글자는 하이라이트 효과
+                    if (charObj === this.selectedChar) {
+                        ctx.save();
+                        ctx.globalAlpha = 0.3;
+                        ctx.fillStyle = '#4c63d2';
+                        ctx.beginPath();
+                        ctx.arc(charObj.x, charObj.y, this.fontSize * 0.4, 0, 2 * Math.PI);
+                        ctx.fill();
+                        ctx.restore();
+                    }
+                    
+                    // 글자 그리기
+                    ctx.fillStyle = this.color;
+                    ctx.fillText(charObj.char, charObj.x, charObj.y);
+                });
+
+                // 테두리 효과 추가
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.1)';
+                ctx.shadowBlur = 2;
+                ctx.shadowOffsetX = 1;
+                ctx.shadowOffsetY = 1;
+            }
+
+            downloadStamp() {
+                // 캔버스를 이미지로 변환하여 다운로드
+                const link = document.createElement('a');
+                link.download = `도장_${this.text}_${Date.now()}.png`;
+                link.href = this.canvas.toDataURL();
+                link.click();
+            }
+        }
+
+        // 페이지 로드 시 StampMaker 초기화
+        document.addEventListener('DOMContentLoaded', () => {
+            new StampMaker();
+        });
+    </script>
+</body>
+</html>
