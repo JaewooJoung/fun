@@ -1,0 +1,397 @@
+import React, { useState, useMemo } from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
+
+const TradingSimulator = () => {
+  const [initialCapital, setInitialCapital] = useState(10000);
+  const [sharesPerTrade, setSharesPerTrade] = useState(10);
+  const [jsonData, setJsonData] = useState(null);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  // Default sample data
+  const defaultData = [
+    { date: "2025-05-29T13:30:00", signal: "HOLD", price: 209.09 },
+    { date: "2025-05-30T13:30:00", signal: "HOLD", price: 204.94 },
+    { date: "2025-06-02T13:30:00", signal: "HOLD", price: 208.03 },
+    { date: "2025-06-03T13:30:00", signal: "HOLD", price: 213.62 },
+    { date: "2025-06-04T13:30:00", signal: "HOLD", price: 216.8 },
+    { date: "2025-06-05T13:30:00", signal: "HOLD", price: 215.89 },
+    { date: "2025-06-06T13:30:00", signal: "HOLD", price: 217.34 },
+    { date: "2025-06-09T13:30:00", signal: "SELL", price: 222.46 },
+    { date: "2025-06-10T13:30:00", signal: "SELL", price: 227.32 },
+    { date: "2025-06-11T13:30:00", signal: "SELL", price: 226.56 },
+    { date: "2025-06-12T13:30:00", signal: "SELL", price: 226.87 },
+    { date: "2025-06-13T13:30:00", signal: "HOLD", price: 220.96 },
+    { date: "2025-06-16T13:30:00", signal: "HOLD", price: 227.44 },
+    { date: "2025-06-17T13:30:00", signal: "HOLD", price: 225.64 },
+    { date: "2025-06-18T13:30:00", signal: "HOLD", price: 226.56 },
+    { date: "2025-06-20T13:30:00", signal: "SELL", price: 225.11 },
+    { date: "2025-06-23T13:30:00", signal: "HOLD", price: 226.51 },
+    { date: "2025-06-24T13:30:00", signal: "SELL", price: 235.1 },
+    { date: "2025-06-25T13:30:00", signal: "SELL", price: 237.21 },
+    { date: "2025-06-26T13:30:00", signal: "SELL", price: 239.07 },
+    { date: "2025-06-27T13:30:00", signal: "SELL", price: 238.86 },
+    { date: "2025-06-30T13:30:00", signal: "SELL", price: 238.7 },
+    { date: "2025-07-01T13:30:00", signal: "SELL", price: 237.62 },
+    { date: "2025-07-02T13:30:00", signal: "SELL", price: 242.14 },
+    { date: "2025-07-03T13:30:00", signal: "SELL", price: 243.34 },
+    { date: "2025-07-07T13:30:00", signal: "HOLD", price: 238.78 },
+    { date: "2025-07-08T13:30:00", signal: "HOLD", price: 243.34 },
+    { date: "2025-07-09T13:30:00", signal: "SELL", price: 244.12 },
+    { date: "2025-07-10T13:30:00", signal: "SELL", price: 246.55 },
+    { date: "2025-07-11T13:30:00", signal: "SELL", price: 246.17 },
+    { date: "2025-07-14T13:30:00", signal: "HOLD", price: 243.83 },
+    { date: "2025-07-15T13:30:00", signal: "HOLD", price: 246.26 },
+    { date: "2025-07-16T13:30:00", signal: "HOLD", price: 245.59 },
+    { date: "2025-07-17T13:30:00", signal: "HOLD", price: 246.53 },
+    { date: "2025-07-18T13:30:00", signal: "HOLD", price: 246.73 },
+    { date: "2025-07-21T13:30:00", signal: "HOLD", price: 246.95 },
+    { date: "2025-07-22T13:30:00", signal: "HOLD", price: 243.54 },
+    { date: "2025-07-23T13:30:00", signal: "HOLD", price: 242.06 },
+    { date: "2025-07-24T13:30:00", signal: "HOLD", price: 241.56 },
+    { date: "2025-07-25T16:28:52", signal: "SELL", price: 241.22 }
+  ];
+
+  // Handle file upload
+  const handleFileUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      
+      // Validate data structure
+      if (!Array.isArray(data)) {
+        throw new Error('JSON must contain an array of objects');
+      }
+      
+      // Check if objects have required fields
+      const requiredFields = ['date', 'signal', 'price'];
+      const hasRequiredFields = data.every(item => 
+        requiredFields.every(field => field in item)
+      );
+      
+      if (!hasRequiredFields) {
+        throw new Error('Each object must have "date", "signal", and "price" fields');
+      }
+
+      setJsonData(data);
+      setError('');
+    } catch (err) {
+      setError(`Error reading file: ${err.message}`);
+      setJsonData(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Parse the data
+  const parsedData = useMemo(() => {
+    const dataToUse = jsonData || defaultData;
+    
+    // Sort by date to ensure chronological order
+    return dataToUse
+      .map(item => ({
+        date: item.date,
+        signal: item.signal.toUpperCase(),
+        price: parseFloat(item.price)
+      }))
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+  }, [jsonData]);
+
+  // Simulate trading
+  const simulation = useMemo(() => {
+    let cash = initialCapital;
+    let shares = 0;
+    let totalValue = initialCapital;
+    const results = [];
+    
+    parsedData.forEach((row, index) => {
+      const { date, signal, price } = row;
+      let action = 'HOLD';
+      let tradeValue = 0;
+      
+      if (signal === 'SELL' && shares > 0) {
+        // Sell all shares
+        const sellValue = shares * price;
+        cash += sellValue;
+        tradeValue = sellValue;
+        action = `SELL ${shares} shares`;
+        shares = 0;
+      } else if (signal === 'BUY' || (signal === 'HOLD' && shares === 0 && index === 0)) {
+        // Buy shares if we have cash and no position, or if it's a BUY signal
+        // For this data, we'll buy when we first encounter HOLD and have no position
+        if (cash >= sharesPerTrade * price) {
+          shares = sharesPerTrade;
+          const buyValue = shares * price;
+          cash -= buyValue;
+          tradeValue = -buyValue;
+          action = `BUY ${shares} shares`;
+        }
+      }
+      
+      // Calculate total portfolio value
+      totalValue = cash + (shares * price);
+      const profit = totalValue - initialCapital;
+      const profitPercent = (profit / initialCapital) * 100;
+      
+      results.push({
+        date,
+        signal,
+        price,
+        action,
+        shares,
+        cash: Math.round(cash * 100) / 100,
+        totalValue: Math.round(totalValue * 100) / 100,
+        profit: Math.round(profit * 100) / 100,
+        profitPercent: Math.round(profitPercent * 100) / 100,
+        tradeValue
+      });
+    });
+    
+    return results;
+  }, [parsedData, initialCapital, sharesPerTrade]);
+
+  // Prepare chart data
+  const chartData = simulation.map((row, index) => ({
+    index: index + 1,
+    date: row.date.split('T')[0],
+    price: row.price,
+    totalValue: row.totalValue,
+    profit: row.profit,
+    signal: row.signal
+  }));
+
+  const finalResult = simulation[simulation.length - 1];
+  const totalTrades = simulation.filter(row => row.action !== 'HOLD').length;
+
+  return (
+    <div className="p-6 max-w-7xl mx-auto bg-white">
+      <h1 className="text-3xl font-bold mb-6 text-gray-800">Trading Signal Simulator</h1>
+      
+      {/* File Upload */}
+      <div className="mb-6 p-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+        <div className="text-center">
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Upload JSON Data</h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Upload a JSON file with an array of objects containing: date, signal, and price fields
+          </p>
+          <input
+            type="file"
+            accept=".json"
+            onChange={handleFileUpload}
+            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+          />
+          {loading && (
+            <p className="mt-2 text-sm text-blue-600">Loading file...</p>
+          )}
+          {error && (
+            <p className="mt-2 text-sm text-red-600">{error}</p>
+          )}
+          {jsonData && (
+            <p className="mt-2 text-sm text-green-600">
+              ✅ Successfully loaded {jsonData.length} records
+            </p>
+          )}
+        </div>
+        
+        <div className="mt-4 text-xs text-gray-500">
+          <p><strong>Expected JSON format:</strong></p>
+          <pre className="mt-1 bg-white p-2 rounded border text-left overflow-x-auto">
+{`[
+  {
+    "date": "2025-07-25T16:28:52",
+    "signal": "SELL",
+    "price": 241.22
+  },
+  {
+    "date": "2025-07-24T13:30:00", 
+    "signal": "HOLD",
+    "price": 241.56
+  }
+]`}
+          </pre>
+        </div>
+      </div>
+
+      {/* Controls */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Initial Capital ($)
+          </label>
+          <input
+            type="number"
+            value={initialCapital}
+            onChange={(e) => setInitialCapital(Number(e.target.value))}
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Shares per Trade
+          </label>
+          <input
+            type="number"
+            value={sharesPerTrade}
+            onChange={(e) => setSharesPerTrade(Number(e.target.value))}
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+      </div>
+
+      {/* Summary Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+          <h3 className="text-sm font-medium text-blue-800">Final Portfolio Value</h3>
+          <p className="text-2xl font-bold text-blue-900">${finalResult?.totalValue?.toLocaleString() || 0}</p>
+        </div>
+        <div className={`p-4 rounded-lg border ${finalResult?.profit >= 0 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+          <h3 className={`text-sm font-medium ${finalResult?.profit >= 0 ? 'text-green-800' : 'text-red-800'}`}>
+            Total Profit/Loss
+          </h3>
+          <p className={`text-2xl font-bold ${finalResult?.profit >= 0 ? 'text-green-900' : 'text-red-900'}`}>
+            ${finalResult?.profit?.toLocaleString() || 0}
+          </p>
+        </div>
+        <div className={`p-4 rounded-lg border ${finalResult?.profitPercent >= 0 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+          <h3 className={`text-sm font-medium ${finalResult?.profitPercent >= 0 ? 'text-green-800' : 'text-red-800'}`}>
+            Return %
+          </h3>
+          <p className={`text-2xl font-bold ${finalResult?.profitPercent >= 0 ? 'text-green-900' : 'text-red-900'}`}>
+            {finalResult?.profitPercent?.toFixed(2) || 0}%
+          </p>
+        </div>
+        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <h3 className="text-sm font-medium text-gray-800">Total Trades</h3>
+          <p className="text-2xl font-bold text-gray-900">{totalTrades}</p>
+        </div>
+      </div>
+
+      {/* Portfolio Value Chart */}
+      <div className="mb-8">
+        <h2 className="text-xl font-semibold mb-4 text-gray-800">Portfolio Value Over Time</h2>
+        <div className="h-96 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis 
+                dataKey="date" 
+                tick={{ fontSize: 12 }}
+                angle={-45}
+                textAnchor="end"
+                height={60}
+              />
+              <YAxis tick={{ fontSize: 12 }} />
+              <Tooltip 
+                formatter={(value, name) => [
+                  name === 'totalValue' ? `$${value.toLocaleString()}` : `$${value}`,
+                  name === 'totalValue' ? 'Portfolio Value' : 'Stock Price'
+                ]}
+                labelFormatter={(label) => `Date: ${label}`}
+              />
+              <Legend />
+              <Line 
+                type="monotone" 
+                dataKey="totalValue" 
+                stroke="#2563eb" 
+                strokeWidth={3}
+                name="Portfolio Value"
+                dot={{ fill: '#2563eb', strokeWidth: 2, r: 4 }}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="price" 
+                stroke="#dc2626" 
+                strokeWidth={2}
+                name="Stock Price"
+                dot={{ fill: '#dc2626', strokeWidth: 2, r: 3 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Profit/Loss Chart */}
+      <div className="mb-8">
+        <h2 className="text-xl font-semibold mb-4 text-gray-800">Profit/Loss Over Time</h2>
+        <div className="h-64 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis 
+                dataKey="date" 
+                tick={{ fontSize: 12 }}
+                angle={-45}
+                textAnchor="end"
+                height={60}
+              />
+              <YAxis tick={{ fontSize: 12 }} />
+              <Tooltip 
+                formatter={(value) => [`$${value.toLocaleString()}`, 'Profit/Loss']}
+                labelFormatter={(label) => `Date: ${label}`}
+              />
+              <Bar 
+                dataKey="profit" 
+                fill={(entry) => entry >= 0 ? '#22c55e' : '#ef4444'}
+                name="Profit/Loss"
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Trading Log */}
+      <div>
+        <h2 className="text-xl font-semibold mb-4 text-gray-800">Trading Log</h2>
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white border border-gray-200 rounded-lg">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Signal</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Shares</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Cash</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Total Value</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Profit</th>
+              </tr>
+            </thead>
+            <tbody>
+              {simulation.slice(-10).map((row, index) => (
+                <tr key={index} className="border-t border-gray-200 hover:bg-gray-50">
+                  <td className="px-4 py-2 text-sm text-gray-900">{row.date.split('T')[0]}</td>
+                  <td className="px-4 py-2 text-sm">
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                      row.signal === 'SELL' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'
+                    }`}>
+                      {row.signal}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2 text-sm text-gray-900">${row.price}</td>
+                  <td className="px-4 py-2 text-sm text-gray-900">{row.action}</td>
+                  <td className="px-4 py-2 text-sm text-gray-900">{row.shares}</td>
+                  <td className="px-4 py-2 text-sm text-gray-900">${row.cash.toLocaleString()}</td>
+                  <td className="px-4 py-2 text-sm text-gray-900">${row.totalValue.toLocaleString()}</td>
+                  <td className={`px-4 py-2 text-sm font-medium ${
+                    row.profit >= 0 ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    ${row.profit.toLocaleString()}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="text-sm text-gray-500 mt-2">Showing last 10 entries</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default TradingSimulator;
