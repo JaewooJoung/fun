@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Signal Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="p-6 max-w-7xl mx-auto bg-white min-h-screen">
+        <h1 class="text-3xl font-bold mb-6 text-gray-800">Trading Signal Simulator</h1>
+
+        <!-- File Upload Section -->
+        <div class="mb-6 p-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+            <div class="text-center">
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Upload JSON Data</h3>
+                <p class="text-sm text-gray-600 mb-4">
+                    Upload a JSON file with an array of objects containing: date, signal, and price fields
+                </p>
+                <input
+                    type="file"
+                    id="jsonFile"
+                    accept=".json"
+                    class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+                <p id="loadingMessage" class="mt-2 text-sm text-blue-600 hidden">Loading file...</p>
+                <p id="errorMessage" class="mt-2 text-sm text-red-600 hidden"></p>
+                <p id="successMessage" class="mt-2 text-sm text-green-600 hidden"></p>
+            </div>
+
+            <div class="mt-4 text-xs text-gray-500">
+                <p><strong>Strategy explanationt:</strong></p>
+                <pre class="mt-1 bg-white p-2 rounded border text-left overflow-x-auto">
+1-to-1 Trading:
+This is like having only one toy at a time! When the computer says "BUY," you buy exactly 1 share,but only if you don't already have one.
+When it says "SELL," you sell your 1 share. You never have more than 1 share, just like only playing with one toy at a time.
+
+Fixed Shares:
+This is like always taking the same number of cookies from the jar! You decide how many shares to buy or sell each time (like always taking 5 cookies).
+Every time you get a BUY signal, you buy that same number, and every SELL signal, you sell that same number.
+
+All-In Trading:
+This is like spending all your allowance at once! When you get a BUY signal, you use ALL your money to buy as many shares as possible.
+When you get a SELL signal, you sell ALL your shares at once. It's the most exciting but also the most risky way to play!
+
+Buy & Hold:
+This is like collecting toys and never giving them away! You buy shares when the computer says to, but you NEVER sell them, even when it says "SELL."
+You just keep collecting more and more shares, hoping they become worth more money later.
+</pre>
+            </div>
+        </div>
+
+        <!-- Strategy and Controls -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Trading Strategy</label>
+                <select id="strategy" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
+                    <option value="one-to-one">1-to-1 Trading</option>
+                    <option value="fixed-shares">Fixed Shares</option>
+                    <option value="all-in">All-In Trading</option>
+                    <option value="buy-and-hold">Buy & Hold</option>
+                </select>
+                <p id="strategyDescription" class="text-sm text-gray-500 mt-1">
+                    Buy/sell exactly 1 share. Only buy if no shares owned.
+                </p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Initial Capital ($)</label>
+                <input
+                    type="number"
+                    id="initialCapital"
+                    value="10000"
+                    class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                />
+            </div>
+            <div id="sharesPerTradeDiv" class="hidden">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Shares per Trade</label>
+                <input
+                    type="number"
+                    id="sharesPerTrade"
+                    value="10"
+                    class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                />
+            </div>
+        </div>
+
+        <!-- Summary Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <h3 class="text-sm font-medium text-blue-800">Final Portfolio Value</h3>
+                <p id="finalValue" class="text-2xl font-bold text-blue-900">$10,000</p>
+            </div>
+            <div id="profitLossCard" class="p-4 rounded-lg border bg-gray-50 border-gray-200">
+                <h3 id="profitLossLabel" class="text-sm font-medium text-gray-800">Total Profit/Loss</h3>
+                <p id="profitLoss" class="text-2xl font-bold text-gray-900">$0</p>
+            </div>
+            <div id="returnCard" class="p-4 rounded-lg border bg-gray-50 border-gray-200">
+                <h3 id="returnLabel" class="text-sm font-medium text-gray-800">Return %</h3>
+                <p id="returnPercent" class="text-2xl font-bold text-gray-900">0.00%</p>
+            </div>
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <h3 class="text-sm font-medium text-gray-800">Total Trades</h3>
+                <p id="totalTrades" class="text-2xl font-bold text-gray-900">0</p>
+            </div>
+        </div>
+
+        <!-- Trading Log -->
+        <div>
+            <h2 class="text-xl font-semibold mb-4 text-gray-800">Trading Log</h2>
+                <div class="overflow-x-auto max-h-96 overflow-y-auto">
+                    <table class="min-w-full bg-white border border-gray-200 rounded-lg">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Signal</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Shares</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Cash</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Total Value</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Profit</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tradingLogBody">
+                        <!-- Trading log rows will be inserted here -->
+                    </tbody>
+                </table>
+                <p class="text-sm text-gray-500 mt-2">Showing last 15 entries</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Default sample data
+        const defaultData = [
+            { date: "2025-05-29T13:30:00", signal: "HOLD", price: 209.09 },
+            { date: "2025-05-30T13:30:00", signal: "HOLD", price: 204.94 },
+            { date: "2025-06-02T13:30:00", signal: "HOLD", price: 208.03 },
+            { date: "2025-06-03T13:30:00", signal: "HOLD", price: 213.62 },
+            { date: "2025-06-04T13:30:00", signal: "HOLD", price: 216.8 },
+            { date: "2025-06-05T13:30:00", signal: "HOLD", price: 215.89 },
+            { date: "2025-06-06T13:30:00", signal: "HOLD", price: 217.34 },
+            { date: "2025-06-09T13:30:00", signal: "SELL", price: 222.46 },
+            { date: "2025-06-10T13:30:00", signal: "SELL", price: 227.32 },
+            { date: "2025-06-11T13:30:00", signal: "SELL", price: 226.56 },
+            { date: "2025-06-12T13:30:00", signal: "SELL", price: 226.87 },
+            { date: "2025-06-13T13:30:00", signal: "HOLD", price: 220.96 },
+            { date: "2025-06-16T13:30:00", signal: "HOLD", price: 227.44 },
+            { date: "2025-06-17T13:30:00", signal: "HOLD", price: 225.64 },
+            { date: "2025-06-18T13:30:00", signal: "HOLD", price: 226.56 },
+            { date: "2025-06-20T13:30:00", signal: "SELL", price: 225.11 },
+            { date: "2025-06-23T13:30:00", signal: "HOLD", price: 226.51 },
+            { date: "2025-06-24T13:30:00", signal: "SELL", price: 235.1 },
+            { date: "2025-06-25T13:30:00", signal: "SELL", price: 237.21 },
+            { date: "2025-06-26T13:30:00", signal: "SELL", price: 239.07 },
+            { date: "2025-06-27T13:30:00", signal: "SELL", price: 238.86 },
+            { date: "2025-06-30T13:30:00", signal: "SELL", price: 238.7 },
+            { date: "2025-07-01T13:30:00", signal: "SELL", price: 237.62 },
+            { date: "2025-07-02T13:30:00", signal: "SELL", price: 242.14 },
+            { date: "2025-07-03T13:30:00", signal: "SELL", price: 243.34 },
+            { date: "2025-07-07T13:30:00", signal: "HOLD", price: 238.78 },
+            { date: "2025-07-08T13:30:00", signal: "HOLD", price: 243.34 },
+            { date: "2025-07-09T13:30:00", signal: "SELL", price: 244.12 },
+            { date: "2025-07-10T13:30:00", signal: "SELL", price: 246.55 },
+            { date: "2025-07-11T13:30:00", signal: "SELL", price: 246.17 },
+            { date: "2025-07-14T13:30:00", signal: "HOLD", price: 243.83 },
+            { date: "2025-07-15T13:30:00", signal: "HOLD", price: 246.26 },
+            { date: "2025-07-16T13:30:00", signal: "HOLD", price: 245.59 },
+            { date: "2025-07-17T13:30:00", signal: "HOLD", price: 246.53 },
+            { date: "2025-07-18T13:30:00", signal: "HOLD", price: 246.73 },
+            { date: "2025-07-21T13:30:00", signal: "HOLD", price: 246.95 },
+            { date: "2025-07-22T13:30:00", signal: "HOLD", price: 243.54 },
+            { date: "2025-07-23T13:30:00", signal: "HOLD", price: 242.06 },
+            { date: "2025-07-24T13:30:00", signal: "HOLD", price: 241.56 },
+            { date: "2025-07-25T16:28:52", signal: "SELL", price: 241.22 }
+        ];
+
+        let currentData = defaultData;
+
+        // DOM elements
+        const jsonFileInput = document.getElementById('jsonFile');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+        const strategySelect = document.getElementById('strategy');
+        const strategyDescription = document.getElementById('strategyDescription');
+        const initialCapitalInput = document.getElementById('initialCapital');
+        const sharesPerTradeInput = document.getElementById('sharesPerTrade');
+        const sharesPerTradeDiv = document.getElementById('sharesPerTradeDiv');
+        const tradingLogBody = document.getElementById('tradingLogBody');
+
+        // Strategy descriptions
+        const strategyDescriptions = {
+            'one-to-one': 'Buy/sell exactly 1 share. Only buy if no shares owned.',
+            'fixed-shares': 'Buy/sell a fixed number of shares each time.',
+            'all-in': 'Use all available cash to buy, sell all shares.',
+            'buy-and-hold': 'Buy when signaled, never sell (ignore sell signals).'
+        };
+
+        // File upload handler
+        jsonFileInput.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            showLoading();
+
+            try {
+                const text = await file.text();
+                const data = JSON.parse(text);
+
+                // Validate data structure
+                if (!Array.isArray(data)) {
+                    throw new Error('JSON must contain an array of objects');
+                }
+
+                // Check if objects have required fields
+                const requiredFields = ['date', 'signal', 'price'];
+                const hasRequiredFields = data.every(item =>
+                    requiredFields.every(field => field in item)
+                );
+
+                if (!hasRequiredFields) {
+                    throw new Error('Each object must have "date", "signal", and "price" fields');
+                }
+
+                currentData = data;
+                showSuccess(`Successfully loaded ${data.length} records`);
+                runSimulation();
+            } catch (err) {
+                showError(`Error reading file: ${err.message}`);
+            }
+        });
+
+        // Strategy change handler
+        strategySelect.addEventListener('change', (event) => {
+            const strategy = event.target.value;
+            strategyDescription.textContent = strategyDescriptions[strategy];
+
+            // Show/hide shares per trade input
+            if (strategy === 'fixed-shares') {
+                sharesPerTradeDiv.classList.remove('hidden');
+            } else {
+                sharesPerTradeDiv.classList.add('hidden');
+            }
+
+            runSimulation();
+        });
+
+        // Input change handlers
+        initialCapitalInput.addEventListener('input', runSimulation);
+        sharesPerTradeInput.addEventListener('input', runSimulation);
+
+        // Utility functions
+        function showLoading() {
+            loadingMessage.classList.remove('hidden');
+            errorMessage.classList.add('hidden');
+            successMessage.classList.add('hidden');
+        }
+
+        function showError(message) {
+            loadingMessage.classList.add('hidden');
+            errorMessage.classList.remove('hidden');
+            successMessage.classList.add('hidden');
+            errorMessage.textContent = message;
+        }
+
+        function showSuccess(message) {
+            loadingMessage.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+            successMessage.classList.remove('hidden');
+            successMessage.textContent = `✅ ${message}`;
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(amount);
+        }
+
+        function formatPercent(percent) {
+            return `${percent.toFixed(2)}%`;
+        }
+
+        // Parse and sort data
+        function parseData(data) {
+            return data
+                .map(item => ({
+                    date: item.date,
+                    signal: item.signal.toUpperCase(),
+                    price: parseFloat(item.price)
+                }))
+                .sort((a, b) => new Date(a.date) - new Date(b.date));
+        }
+
+        // Main simulation function
+        function runSimulation() {
+            const strategy = strategySelect.value;
+            const initialCapital = parseFloat(initialCapitalInput.value) || 10000;
+            const sharesPerTrade = parseInt(sharesPerTradeInput.value) || 10;
+
+            const parsedData = parseData(currentData);
+
+            let cash = initialCapital;
+            let shares = 0;
+            let totalValue = initialCapital;
+            const results = [];
+
+            parsedData.forEach((row, index) => {
+                const { date, signal, price } = row;
+                let action = 'HOLD';
+                let tradeValue = 0;
+
+                if (strategy === 'one-to-one') {
+                    // Strategy 1: Buy/Sell exactly 1 share
+                    if (signal === 'BUY' && shares === 0 && cash >= price) {
+                        shares = 1;
+                        const buyValue = price;
+                        cash -= buyValue;
+                        tradeValue = -buyValue;
+                        action = 'BUY 1 share';
+                    } else if (signal === 'SELL' && shares > 0) {
+                        const sellValue = price;
+                        cash += sellValue;
+                        tradeValue = sellValue;
+                        action = 'SELL 1 share';
+                        shares = 0;
+                    } else if (signal === 'BUY' && shares > 0) {
+                        action = 'BUY signal ignored (already own shares)';
+                    } else if (signal === 'SELL' && shares === 0) {
+                        action = 'SELL signal ignored (no shares to sell)';
+                    } else if (signal === 'BUY' && cash < price) {
+                        action = 'BUY signal ignored (insufficient cash)';
+                    }
+
+                } else if (strategy === 'fixed-shares') {
+                    // Strategy 2: Buy/Sell fixed number of shares
+                    if (signal === 'BUY' && cash >= sharesPerTrade * price) {
+                        shares += sharesPerTrade;
+                        const buyValue = sharesPerTrade * price;
+                        cash -= buyValue;
+                        tradeValue = -buyValue;
+                        action = `BUY ${sharesPerTrade} shares`;
+                    } else if (signal === 'SELL' && shares >= sharesPerTrade) {
+                        const sellValue = sharesPerTrade * price;
+                        cash += sellValue;
+                        tradeValue = sellValue;
+                        action = `SELL ${sharesPerTrade} shares`;
+                        shares -= sharesPerTrade;
+                    } else if (signal === 'BUY' && cash < sharesPerTrade * price) {
+                        action = `BUY signal ignored (need ${formatCurrency(sharesPerTrade * price)})`;
+                    } else if (signal === 'SELL' && shares < sharesPerTrade) {
+                        action = `SELL signal ignored (only own ${shares} shares)`;
+                    }
+
+                } else if (strategy === 'all-in') {
+                    // Strategy 3: All-in (buy as many shares as possible, sell all)
+                    if (signal === 'BUY' && cash >= price) {
+                        const maxShares = Math.floor(cash / price);
+                        shares += maxShares;
+                        const buyValue = maxShares * price;
+                        cash -= buyValue;
+                        tradeValue = -buyValue;
+                        action = `BUY ${maxShares} shares (all-in)`;
+                    } else if (signal === 'SELL' && shares > 0) {
+                        const sellValue = shares * price;
+                        cash += sellValue;
+                        tradeValue = sellValue;
+                        action = `SELL ${shares} shares (all)`;
+                        shares = 0;
+                    } else if (signal === 'BUY' && cash < price) {
+                        action = 'BUY signal ignored (insufficient cash)';
+                    } else if (signal === 'SELL' && shares === 0) {
+                        action = 'SELL signal ignored (no shares to sell)';
+                    }
+
+                } else if (strategy === 'buy-and-hold') {
+                    // Strategy 4: Buy and hold (ignore sell signals)
+                    if (signal === 'BUY' && cash >= price) {
+                        const maxShares = Math.floor(cash / price);
+                        if (maxShares > 0) {
+                            shares += maxShares;
+                            const buyValue = maxShares * price;
+                            cash -= buyValue;
+                            tradeValue = -buyValue;
+                            action = `BUY ${maxShares} shares (buy & hold)`;
+                        }
+                    } else if (signal === 'SELL') {
+                        action = 'SELL signal ignored (buy & hold strategy)';
+                    } else if (signal === 'BUY' && cash < price) {
+                        action = 'BUY signal ignored (insufficient cash)';
+                    }
+                }
+
+                // Calculate total portfolio value
+                totalValue = cash + (shares * price);
+                const profit = totalValue - initialCapital;
+                const profitPercent = (profit / initialCapital) * 100;
+
+                results.push({
+                    date,
+                    signal,
+                    price,
+                    action,
+                    shares,
+                    cash: Math.round(cash * 100) / 100,
+                    totalValue: Math.round(totalValue * 100) / 100,
+                    profit: Math.round(profit * 100) / 100,
+                    profitPercent: Math.round(profitPercent * 100) / 100,
+                    tradeValue
+                });
+            });
+
+            updateDisplay(results, initialCapital);
+        }
+
+        // Update display with simulation results
+        function updateDisplay(results, initialCapital) {
+            const finalResult = results[results.length - 1];
+            const totalTrades = results.filter(row =>
+                row.action !== 'HOLD' && !row.action.includes('ignored')
+            ).length;
+
+            // Update summary stats
+            document.getElementById('finalValue').textContent = formatCurrency(finalResult.totalValue);
+            document.getElementById('profitLoss').textContent = formatCurrency(finalResult.profit);
+            document.getElementById('returnPercent').textContent = formatPercent(finalResult.profitPercent);
+            document.getElementById('totalTrades').textContent = totalTrades;
+
+            // Update profit/loss card colors
+            const profitLossCard = document.getElementById('profitLossCard');
+            const profitLossLabel = document.getElementById('profitLossLabel');
+            const profitLossValue = document.getElementById('profitLoss');
+            const returnCard = document.getElementById('returnCard');
+            const returnLabel = document.getElementById('returnLabel');
+            const returnValue = document.getElementById('returnPercent');
+
+            if (finalResult.profit >= 0) {
+                profitLossCard.className = 'p-4 rounded-lg border bg-green-50 border-green-200';
+                profitLossLabel.className = 'text-sm font-medium text-green-800';
+                profitLossValue.className = 'text-2xl font-bold text-green-900';
+                returnCard.className = 'p-4 rounded-lg border bg-green-50 border-green-200';
+                returnLabel.className = 'text-sm font-medium text-green-800';
+                returnValue.className = 'text-2xl font-bold text-green-900';
+            } else {
+                profitLossCard.className = 'p-4 rounded-lg border bg-red-50 border-red-200';
+                profitLossLabel.className = 'text-sm font-medium text-red-800';
+                profitLossValue.className = 'text-2xl font-bold text-red-900';
+                returnCard.className = 'p-4 rounded-lg border bg-red-50 border-red-200';
+                returnLabel.className = 'text-sm font-medium text-red-800';
+                returnValue.className = 'text-2xl font-bold text-red-900';
+            }
+
+            // Update trading log
+            updateTradingLog(results.slice(-1257));
+        }
+
+let currentPage = 1;
+const itemsPerPage = 50;
+let allResults = [];
+
+// Update this function
+function updateTradingLog(results) {
+    allResults = results; // Store all results
+    currentPage = Math.ceil(results.length / itemsPerPage); // Start at last page
+    renderPage();
+    updatePagination();
+}
+
+function renderPage() {
+    tradingLogBody.innerHTML = '';
+
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const pageResults = allResults.slice(startIndex, endIndex);
+
+    pageResults.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.className = 'border-t border-gray-200 hover:bg-gray-50';
+
+        const signalClass =
+            row.signal === 'SELL' ? 'bg-red-100 text-red-800' :
+            row.signal === 'BUY' ? 'bg-green-100 text-green-800' :
+            'bg-gray-100 text-gray-800';
+
+        const profitClass = row.profit >= 0 ? 'text-green-600' : 'text-red-600';
+
+        tr.innerHTML = `
+            <td class="px-4 py-2 text-sm text-gray-900">${row.date.split('T')[0]}</td>
+            <td class="px-4 py-2 text-sm">
+                <span class="px-2 py-1 rounded text-xs font-medium ${signalClass}">
+                    ${row.signal}
+                </span>
+            </td>
+            <td class="px-4 py-2 text-sm text-gray-900">$${row.price}</td>
+            <td class="px-4 py-2 text-sm text-gray-900">${row.action}</td>
+            <td class="px-4 py-2 text-sm text-gray-900">${row.shares}</td>
+            <td class="px-4 py-2 text-sm text-gray-900">${formatCurrency(row.cash)}</td>
+            <td class="px-4 py-2 text-sm text-gray-900">${formatCurrency(row.totalValue)}</td>
+            <td class="px-4 py-2 text-sm font-medium ${profitClass}">${formatCurrency(row.profit)}</td>
+        `;
+
+        tradingLogBody.appendChild(tr);
+    });
+}
+
+function updatePagination() {
+    const totalPages = Math.ceil(allResults.length / itemsPerPage);
+    const paginationHTML = `
+        <div class="flex justify-between items-center mt-4">
+            <div class="text-sm text-gray-500">
+                Showing ${((currentPage-1) * itemsPerPage) + 1} to ${Math.min(currentPage * itemsPerPage, allResults.length)} of ${allResults.length} entries
+            </div>
+            <div class="flex space-x-2">
+                <button onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}
+                    class="px-3 py-1 bg-blue-500 text-white rounded disabled:bg-gray-300">◀️Older</button>
+                <span class="px-3 py-1">Page ${currentPage} of ${totalPages}</span>
+                <button onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}
+                    class="px-3 py-1 bg-blue-500 text-white rounded disabled:bg-gray-300">Newer▶️</button>
+            </div>
+        </div>
+    `;
+
+    // Add pagination after the table
+    let paginationDiv = document.getElementById('pagination');
+    if (!paginationDiv) {
+        paginationDiv = document.createElement('div');
+        paginationDiv.id = 'pagination';
+        document.querySelector('.overflow-x-auto').parentNode.appendChild(paginationDiv);
+    }
+    paginationDiv.innerHTML = paginationHTML;
+}
+
+function goToPage(page) {
+    const totalPages = Math.ceil(allResults.length / itemsPerPage);
+    if (page >= 1 && page <= totalPages) {
+        currentPage = page;
+        renderPage();
+        updatePagination();
+    }
+}
+
+        // Initialize simulation on page load
+        runSimulation();
+    </script>
+</body>
+</html>
