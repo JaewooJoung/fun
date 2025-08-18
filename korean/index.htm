@@ -265,7 +265,9 @@
                 <div class="part">Medial: <span id="medial">-</span></div>
                 <div class="part">Final: <span id="final">-</span></div>
             </div>
-            <button class="btn btn-primary" onclick="completeSyllable()" style="margin-top: 10px;">✅ Complete Syllable</button>
+            <div style="margin-top: 10px; font-size: 14px; color: #6c757d; text-align: center;">
+                Syllables automatically combine into words. Use Space button to separate words.
+            </div>
         </div>
 
         <div class="keyboard-section">
@@ -382,28 +384,46 @@
                 } else if (!currentFinal && canBeFinal(char)) {
                     currentFinal = char;
                 } else {
-                    // Start new syllable
-                    completeSyllable();
+                    // Auto-complete current syllable and start new one
+                    autoCompleteSyllable();
                     currentInitial = char;
                 }
             } else if (type === 'vowel') {
                 if (!currentMedial) {
                     currentMedial = char;
                 } else {
-                    // Complete current and start new
-                    completeSyllable();
+                    // Auto-complete current syllable and start new one
+                    autoCompleteSyllable();
                     currentMedial = char;
                 }
             } else if (type === 'final') {
                 if (!currentFinal) {
                     currentFinal = char;
                 } else {
-                    // Complete current and start new
-                    completeSyllable();
+                    // Auto-complete current syllable and start new one
+                    autoCompleteSyllable();
                     currentFinal = char;
                 }
             }
             updateSyllableDisplay();
+        }
+        
+        function autoCompleteSyllable() {
+            if (currentInitial && currentMedial) {
+                const syllable = composeSyllable(currentInitial, currentMedial, currentFinal);
+                addToOutput(syllable);
+            } else if (currentInitial) {
+                addToOutput(currentInitial);
+            } else if (currentMedial) {
+                addToOutput(currentMedial);
+            } else if (currentFinal) {
+                addToOutput(currentFinal);
+            }
+            
+            // Reset syllable state
+            currentInitial = '';
+            currentMedial = '';
+            currentFinal = '';
         }
         
         function canBeFinal(char) {
