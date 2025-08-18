@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Korean Virtual Keyboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
     <style>
         * {
             box-sizing: border-box;
@@ -289,17 +292,26 @@
         const modernVowels = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ'];
         const modernFinals = ['', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
 
-        // Historical Korean consonants (initials)
-        const oldInitials = ['ᄼ', 'ᄽ', 'ᄾ', 'ᄿ', 'ᅀ', 'ᅁ', 'ᅂ', 'ᅃ', 'ᅄ', 'ᅅ', 'ᅆ', 'ᅇ', 'ᅈ', 'ᅉ', 'ᅊ', 'ᅋ', 'ᅌ', 'ᅍ', 'ᅎ', 'ᅏ', 'ᅐ', 'ᅑ', 'ᅒ', 'ᅓ', 'ᅔ', 'ᅕ', 'ᅖ', 'ᅗ', 'ᅘ', 'ᅙ', 'ㅿ', 'ㆁ', 'ㆂ', 'ㆃ', 'ㆄ', 'ㆅ', 'ㆆ'];
+        // Historical Korean consonants (initials) - including obsolete consonants
+        const oldConsonants = ['ㅿ', 'ㆁ', 'ㆂ', 'ㆃ', 'ㆄ', 'ㆅ', 'ㆆ', 'ㅸ', 'ㅹ', 'ㅺ', 'ㅻ', 'ㅼ', 'ㅽ', 'ㅾ'];
         
-        // Historical Korean vowels (medials)
-        const oldVowels = ['ᅶ', 'ᅷ', 'ᅸ', 'ᅹ', 'ᅺ', 'ᅻ', 'ᅼ', 'ᅽ', 'ᅾ', 'ᅿ', 'ᆀ', 'ᆁ', 'ᆂ', 'ᆃ', 'ᆄ', 'ᆅ', 'ᆆ', 'ᆇ', 'ᆈ', 'ᆉ', 'ᆊ', 'ᆋ', 'ᆌ', 'ᆍ', 'ᆎ', 'ᆏ', 'ᆐ', 'ᆑ', 'ᆒ', 'ᆓ', 'ㆍ'];
+        // Historical Korean vowels (medials) - including arae-a and other old vowels
+        const oldVowels = ['ㆍ', 'ㅤ', 'ㅥ', 'ㅦ', 'ㅧ', 'ㅨ', 'ㅩ', 'ㅪ', 'ㅫ', 'ㅬ', 'ㅭ', 'ㅮ', 'ㅯ', 'ㅰ', 'ㅱ', 'ㅲ', 'ㅳ', 'ㅴ', 'ㅵ', 'ㅶ', 'ㅷ'];
         
-        // Historical Korean finals (including compound finals)
-        const oldFinals = ['ᆪ', 'ᆫ', 'ᆬ', 'ᆭ', 'ᆮ', 'ᆯ', 'ᆰ', 'ᆱ', 'ᆲ', 'ᆳ', 'ᆴ', 'ᆵ', 'ᆶ', 'ᆷ', 'ᆸ', 'ᆹ', 'ᆺ', 'ᆻ', 'ᆼ', 'ᆽ', 'ᆾ', 'ᆿ', 'ᇀ', 'ᇁ', 'ᇂ', 'ㆁ', 'ㆂ', 'ㆃ'];
+        // Historical Korean finals (compound consonants)
+        const oldFinals = ['ㄳ', 'ㄵ', 'ㄶ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅄ', 'ㆀ', 'ㆇ', 'ㆈ', 'ㆉ', 'ㆊ', 'ㆋ', 'ㆌ', 'ㆎ'];
+        
+        // All extended consonants (modern + old)
+        const extendedConsonants = [...modernConsonants, ...oldConsonants];
+        
+        // All extended vowels (modern + old)
+        const extendedVowels = [...modernVowels, ...oldVowels];
+        
+        // All extended finals (modern + old)
+        const extendedFinals = [...modernFinals, ...oldFinals];
         
         // Combined old characters for direct input
-        const oldChars = [...oldInitials, ...oldVowels, ...oldFinals];
+        const oldChars = [...oldConsonants, ...oldVowels, ...oldFinals];
 
         // Syllable composition state
         let currentInitial = '';
@@ -310,7 +322,43 @@
         function initializeKeyboards() {
             createKeyboard('modernConsonants', modernConsonants, 'consonant');
             createKeyboard('modernVowels', modernVowels, 'vowel');
-            createKeyboard('oldChars', oldChars, 'character');
+            
+            // Create separate keyboards for old Korean by type
+            const oldConsonantsContainer = document.getElementById('oldChars');
+            oldConsonantsContainer.innerHTML = '';
+            
+            // Add section headers and keyboards
+            addKeyboardSection(oldConsonantsContainer, 'Old Consonants', oldConsonants, 'consonant');
+            addKeyboardSection(oldConsonantsContainer, 'Old Vowels (including ㆍ)', oldVowels, 'vowel');
+            addKeyboardSection(oldConsonantsContainer, 'Old Finals', oldFinals, 'final');
+        }
+        
+        function addKeyboardSection(container, title, characters, type) {
+            const sectionDiv = document.createElement('div');
+            sectionDiv.style.marginBottom = '15px';
+            
+            const titleDiv = document.createElement('div');
+            titleDiv.textContent = title;
+            titleDiv.style.fontSize = '14px';
+            titleDiv.style.fontWeight = 'bold';
+            titleDiv.style.marginBottom = '8px';
+            titleDiv.style.color = '#495057';
+            titleDiv.style.textAlign = 'center';
+            sectionDiv.appendChild(titleDiv);
+            
+            const gridDiv = document.createElement('div');
+            gridDiv.className = 'keyboard-grid old-chars';
+            
+            characters.forEach(char => {
+                const key = document.createElement('div');
+                key.className = 'key';
+                key.textContent = char;
+                key.onclick = () => handleKeyClick(char, type);
+                gridDiv.appendChild(key);
+            });
+            
+            sectionDiv.appendChild(gridDiv);
+            container.appendChild(sectionDiv);
         }
 
         function createKeyboard(containerId, characters, type) {
@@ -326,7 +374,7 @@
 
         function handleKeyClick(char, type) {
             if (type === 'character') {
-                // Direct character input for old Korean
+                // Direct character input for miscellaneous old Korean
                 addToOutput(char);
             } else if (type === 'consonant') {
                 if (!currentInitial) {
@@ -346,12 +394,20 @@
                     completeSyllable();
                     currentMedial = char;
                 }
+            } else if (type === 'final') {
+                if (!currentFinal) {
+                    currentFinal = char;
+                } else {
+                    // Complete current and start new
+                    completeSyllable();
+                    currentFinal = char;
+                }
             }
             updateSyllableDisplay();
         }
         
         function canBeFinal(char) {
-            return modernFinals.includes(char);
+            return extendedFinals.includes(char);
         }
 
         function updateSyllableDisplay() {
@@ -372,12 +428,38 @@
             const medialCode = getMedialCode(medial);
             const finalCode = getFinalCode(final);
             
-            if (initialCode === -1 || medialCode === -1) {
-                return initial + medial + final; // Fallback for old characters
+            // If we can compose a proper Hangul syllable
+            if (initialCode !== -1 && medialCode !== -1 && finalCode !== -1) {
+                const syllableCode = 0xAC00 + (initialCode * 588) + (medialCode * 28) + finalCode;
+                return String.fromCharCode(syllableCode);
             }
             
-            const syllableCode = 0xAC00 + (initialCode * 588) + (medialCode * 28) + finalCode;
-            return String.fromCharCode(syllableCode);
+            // For old Korean characters that don't fit the standard pattern
+            // Try to create a composed character or return components
+            return composeOldKorean(initial, medial, final) || (initial + medial + final);
+        }
+        
+        function composeOldKorean(initial, medial, final) {
+            // Special handling for old Korean composition
+            // This is a simplified approach - real old Korean composition is more complex
+            const combinations = {
+                'ㅂㆍ': 'ㅂㆍ',
+                'ㅁㆍ': 'ㅁㆍ',
+                'ㄴㆍ': 'ㄴㆍ',
+                'ㅅㆍ': 'ㅅㆍ',
+                'ㅇㆍ': 'ㅇㆍ',
+                'ㄱㆍ': 'ㄱㆍ',
+                'ㄷㆍ': 'ㄷㆍ',
+                'ㅈㆍ': 'ㅈㆍ',
+                'ㅊㆍ': 'ㅊㆍ',
+                'ㅋㆍ': 'ㅋㆍ',
+                'ㅌㆍ': 'ㅌㆍ',
+                'ㅍㆍ': 'ㅍㆍ',
+                'ㅎㆍ': 'ㅎㆍ'
+            };
+            
+            const key = initial + medial;
+            return combinations[key] || null;
         }
 
         function getInitialCode(char) {
@@ -387,7 +469,14 @@
 
         function getMedialCode(char) {
             const medials = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ'];
-            return medials.indexOf(char);
+            const index = medials.indexOf(char);
+            if (index !== -1) return index;
+            
+            // Handle old Korean vowels - return -1 to indicate non-standard composition
+            if (extendedVowels.includes(char)) {
+                return -1;
+            }
+            return -1;
         }
 
         function getFinalCode(char) {
