@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Korean Virtual Keyboard</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .output-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border: 2px solid #e9ecef;
+        }
+
+        .output-display {
+            width: 100%;
+            min-height: 80px;
+            font-size: 2rem;
+            font-family: 'Noto Sans CJK KR', 'Malgun Gothic', 'Apple SD Gothic Neo', 'NanumGothic', 'Dotum', sans-serif;
+            padding: 15px;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            background: white;
+            resize: none;
+            line-height: 1.4;
+            word-wrap: break-word;
+            unicode-bidi: bidi-override;
+            direction: ltr;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #545b62;
+            transform: translateY(-2px);
+        }
+
+        .keyboard-section {
+            margin-bottom: 20px;
+        }
+
+        .keyboard-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #495057;
+            text-align: center;
+            padding: 10px;
+            background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+            border-radius: 8px;
+        }
+
+        .keyboard-grid {
+            display: grid;
+            gap: 5px;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .consonants {
+            grid-template-columns: repeat(auto-fit, minmax(45px, 1fr));
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .vowels {
+            grid-template-columns: repeat(auto-fit, minmax(45px, 1fr));
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .old-chars {
+            grid-template-columns: repeat(auto-fit, minmax(45px, 1fr));
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .key {
+            width: 45px;
+            height: 45px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            transition: all 0.2s ease;
+            user-select: none;
+            color: #333;
+        }
+
+        .key:hover {
+            background: linear-gradient(145deg, #667eea, #764ba2);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .key:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(102, 126, 234, 0.3);
+        }
+
+        .composition-area {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .current-syllable {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .syllable-parts {
+            display: flex;
+            gap: 20px;
+            font-family: 'Malgun Gothic', sans-serif;
+        }
+
+        .part {
+            padding: 8px 12px;
+            background: rgba(255, 193, 7, 0.2);
+            border-radius: 6px;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .output-display {
+                font-size: 1.5rem;
+                min-height: 60px;
+            }
+            
+            .key {
+                width: 35px;
+                height: 35px;
+                font-size: 14px;
+            }
+            
+            .consonants, .vowels, .old-chars {
+                grid-template-columns: repeat(auto-fit, minmax(35px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🇰🇷 Korean Virtual Keyboard</h1>
+        
+        <div class="output-section">
+            <textarea id="output" class="output-display" placeholder="Your Korean text will appear here..." readonly></textarea>
+            <div class="controls">
+                <button class="btn btn-primary" onclick="copyToClipboard()">📋 Copy to Clipboard</button>
+                <button class="btn btn-secondary" onclick="clearOutput()">🗑️ Clear</button>
+                <button class="btn btn-secondary" onclick="deleteLast()">⌫ Delete Last</button>
+                <button class="btn btn-secondary" onclick="addSpace()">␣ Space</button>
+            </div>
+        </div>
+
+        <div class="composition-area">
+            <div class="current-syllable">Current Syllable: <span id="currentSyllable">-</span></div>
+            <div class="syllable-parts">
+                <div class="part">Initial: <span id="initial">-</span></div>
+                <div class="part">Medial: <span id="medial">-</span></div>
+                <div class="part">Final: <span id="final">-</span></div>
+            </div>
+            <button class="btn btn-primary" onclick="completeSyllable()" style="margin-top: 10px;">✅ Complete Syllable</button>
+        </div>
+
+        <div class="keyboard-section">
+            <div class="keyboard-title">Modern Consonants (자음)</div>
+            <div class="keyboard-grid consonants" id="modernConsonants"></div>
+        </div>
+
+        <div class="keyboard-section">
+            <div class="keyboard-title">Modern Vowels (모음)</div>
+            <div class="keyboard-grid vowels" id="modernVowels"></div>
+        </div>
+
+        <div class="keyboard-section">
+            <div class="keyboard-title">Historical/Old Korean Characters (옛한글)</div>
+            <div class="keyboard-grid old-chars" id="oldChars"></div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast">Copied to clipboard!</div>
+
+    <script>
+        // Modern Korean characters
+        const modernConsonants = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+        const modernVowels = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ'];
+        const modernFinals = ['', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+
+        // Historical Korean consonants (initials)
+        const oldInitials = ['ᄼ', 'ᄽ', 'ᄾ', 'ᄿ', 'ᅀ', 'ᅁ', 'ᅂ', 'ᅃ', 'ᅄ', 'ᅅ', 'ᅆ', 'ᅇ', 'ᅈ', 'ᅉ', 'ᅊ', 'ᅋ', 'ᅌ', 'ᅍ', 'ᅎ', 'ᅏ', 'ᅐ', 'ᅑ', 'ᅒ', 'ᅓ', 'ᅔ', 'ᅕ', 'ᅖ', 'ᅗ', 'ᅘ', 'ᅙ', 'ㅿ', 'ㆁ', 'ㆂ', 'ㆃ', 'ㆄ', 'ㆅ', 'ㆆ'];
+        
+        // Historical Korean vowels (medials)
+        const oldVowels = ['ᅶ', 'ᅷ', 'ᅸ', 'ᅹ', 'ᅺ', 'ᅻ', 'ᅼ', 'ᅽ', 'ᅾ', 'ᅿ', 'ᆀ', 'ᆁ', 'ᆂ', 'ᆃ', 'ᆄ', 'ᆅ', 'ᆆ', 'ᆇ', 'ᆈ', 'ᆉ', 'ᆊ', 'ᆋ', 'ᆌ', 'ᆍ', 'ᆎ', 'ᆏ', 'ᆐ', 'ᆑ', 'ᆒ', 'ᆓ', 'ㆍ'];
+        
+        // Historical Korean finals (including compound finals)
+        const oldFinals = ['ᆪ', 'ᆫ', 'ᆬ', 'ᆭ', 'ᆮ', 'ᆯ', 'ᆰ', 'ᆱ', 'ᆲ', 'ᆳ', 'ᆴ', 'ᆵ', 'ᆶ', 'ᆷ', 'ᆸ', 'ᆹ', 'ᆺ', 'ᆻ', 'ᆼ', 'ᆽ', 'ᆾ', 'ᆿ', 'ᇀ', 'ᇁ', 'ᇂ', 'ㆁ', 'ㆂ', 'ㆃ'];
+        
+        // Combined old characters for direct input
+        const oldChars = [...oldInitials, ...oldVowels, ...oldFinals];
+
+        // Syllable composition state
+        let currentInitial = '';
+        let currentMedial = '';
+        let currentFinal = '';
+
+        // Initialize keyboards
+        function initializeKeyboards() {
+            createKeyboard('modernConsonants', modernConsonants, 'consonant');
+            createKeyboard('modernVowels', modernVowels, 'vowel');
+            createKeyboard('oldChars', oldChars, 'character');
+        }
+
+        function createKeyboard(containerId, characters, type) {
+            const container = document.getElementById(containerId);
+            characters.forEach(char => {
+                const key = document.createElement('div');
+                key.className = 'key';
+                key.textContent = char;
+                key.onclick = () => handleKeyClick(char, type);
+                container.appendChild(key);
+            });
+        }
+
+        function handleKeyClick(char, type) {
+            if (type === 'character') {
+                // Direct character input for old Korean
+                addToOutput(char);
+            } else if (type === 'consonant') {
+                if (!currentInitial) {
+                    currentInitial = char;
+                } else if (!currentFinal && canBeFinal(char)) {
+                    currentFinal = char;
+                } else {
+                    // Start new syllable
+                    completeSyllable();
+                    currentInitial = char;
+                }
+            } else if (type === 'vowel') {
+                if (!currentMedial) {
+                    currentMedial = char;
+                } else {
+                    // Complete current and start new
+                    completeSyllable();
+                    currentMedial = char;
+                }
+            }
+            updateSyllableDisplay();
+        }
+        
+        function canBeFinal(char) {
+            return modernFinals.includes(char);
+        }
+
+        function updateSyllableDisplay() {
+            document.getElementById('initial').textContent = currentInitial || '-';
+            document.getElementById('medial').textContent = currentMedial || '-';
+            document.getElementById('final').textContent = currentFinal || '-';
+            
+            if (currentInitial && currentMedial) {
+                const syllable = composeSyllable(currentInitial, currentMedial, currentFinal);
+                document.getElementById('currentSyllable').textContent = syllable;
+            } else {
+                document.getElementById('currentSyllable').textContent = '-';
+            }
+        }
+
+        function composeSyllable(initial, medial, final = '') {
+            const initialCode = getInitialCode(initial);
+            const medialCode = getMedialCode(medial);
+            const finalCode = getFinalCode(final);
+            
+            if (initialCode === -1 || medialCode === -1) {
+                return initial + medial + final; // Fallback for old characters
+            }
+            
+            const syllableCode = 0xAC00 + (initialCode * 588) + (medialCode * 28) + finalCode;
+            return String.fromCharCode(syllableCode);
+        }
+
+        function getInitialCode(char) {
+            const initials = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+            return initials.indexOf(char);
+        }
+
+        function getMedialCode(char) {
+            const medials = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ'];
+            return medials.indexOf(char);
+        }
+
+        function getFinalCode(char) {
+            if (!char) return 0;
+            const finals = ['', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+            return finals.indexOf(char);
+        }
+
+        function completeSyllable() {
+            if (currentInitial && currentMedial) {
+                const syllable = composeSyllable(currentInitial, currentMedial, currentFinal);
+                addToOutput(syllable);
+            } else if (currentInitial) {
+                addToOutput(currentInitial);
+            } else if (currentMedial) {
+                addToOutput(currentMedial);
+            } else if (currentFinal) {
+                addToOutput(currentFinal);
+            }
+            
+            // Reset syllable state
+            currentInitial = '';
+            currentMedial = '';
+            currentFinal = '';
+            updateSyllableDisplay();
+        }
+
+        function addToOutput(text) {
+            const output = document.getElementById('output');
+            output.value += text;
+        }
+
+        function clearOutput() {
+            document.getElementById('output').value = '';
+            currentInitial = '';
+            currentMedial = '';
+            currentFinal = '';
+            updateSyllableDisplay();
+        }
+
+        function deleteLast() {
+            const output = document.getElementById('output');
+            output.value = output.value.slice(0, -1);
+        }
+
+        function addSpace() {
+            completeSyllable();
+            addToOutput(' ');
+        }
+
+        async function copyToClipboard() {
+            const output = document.getElementById('output');
+            try {
+                await navigator.clipboard.writeText(output.value);
+                showToast();
+            } catch (err) {
+                // Fallback for older browsers
+                output.select();
+                document.execCommand('copy');
+                showToast();
+            }
+        }
+
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        // Initialize the application
+        initializeKeyboards();
+    </script>
+</body>
+</html>
