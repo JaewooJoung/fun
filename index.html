@@ -3,729 +3,371 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Seoul Tour Guide</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <title>5-Hour Reset Timer</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0a0a0a;
-            color: #ffffff;
-            overflow-x: hidden;
-        }
-
-        .hero {
-            height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: #fff;
+            min-height: 100vh;
             display: flex;
-            align-items: center;
+            flex-direction: column;
             justify-content: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hero::before {
-            content: '';
-            position: absolute;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
-            background-size: 50px 50px;
-            animation: drift 20s linear infinite;
-        }
-
-        @keyframes drift {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(50px, 50px); }
-        }
-
-        .hero-content {
+            align-items: center;
+            padding: 20px;
             text-align: center;
-            z-index: 10;
-            animation: fadeInUp 1s ease-out;
         }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .hero h1 {
-            font-size: 5rem;
-            font-weight: 800;
-            margin-bottom: 1rem;
-            background: linear-gradient(to right, #ffffff, #e0e0e0);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: -2px;
-        }
-
-        .hero p {
-            font-size: 1.5rem;
-            opacity: 0.9;
-            margin-bottom: 2rem;
-        }
-
-        .cta-button {
-            display: inline-block;
-            padding: 1rem 3rem;
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.5);
-            border-radius: 50px;
-            color: white;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-
-        .cta-button:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-
-        .section {
-            padding: 100px 0;
-            position: relative;
-        }
-
+        
         .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        .section-title {
-            font-size: 3rem;
-            text-align: center;
-            margin-bottom: 4rem;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .map-section {
-            background: #111111;
-        }
-
-        #map {
+            max-width: 800px;
             width: 100%;
-            height: 600px;
+            background-color: rgba(0, 0, 0, 0.4);
             border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.2);
-            position: relative;
-        }
-
-        .location-status {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            background: rgba(0, 0, 0, 0.8);
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(10px);
-            padding: 15px 25px;
-            border-radius: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .location-status.active {
-            background: rgba(76, 175, 80, 0.2);
-            border-color: #4CAF50;
-        }
-
-        .location-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #ff5252;
-            animation: pulse 2s infinite;
-        }
-
-        .location-status.active .location-dot {
-            background: #4CAF50;
-        }
-
-        @keyframes pulse {
-            0% {
-                box-shadow: 0 0 0 0 rgba(255, 82, 82, 0.7);
-            }
-            70% {
-                box-shadow: 0 0 0 10px rgba(255, 82, 82, 0);
-            }
-            100% {
-                box-shadow: 0 0 0 0 rgba(255, 82, 82, 0);
-            }
-        }
-
-        .places-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 30px;
-            margin-top: 80px;
-        }
-
-        .place-card {
-            background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
-            border-radius: 20px;
-            padding: 30px;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
         }
-
-        .place-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at var(--mouse-x) var(--mouse-y), rgba(102, 126, 234, 0.15), transparent);
-            opacity: 0;
-            transition: opacity 0.3s ease;
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #00b4db, #0083b0);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
-
-        .place-card:hover::before {
-            opacity: 1;
-        }
-
-        .place-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
-        }
-
-        .place-card h3 {
-            font-size: 1.8rem;
-            margin-bottom: 15px;
-            color: #ffffff;
-        }
-
-        .place-card .category {
-            display: inline-block;
-            padding: 5px 15px;
-            background: rgba(102, 126, 234, 0.2);
-            border-radius: 20px;
-            font-size: 0.9rem;
-            margin-bottom: 15px;
-            color: #667eea;
-        }
-
-        .place-card p {
-            color: #b0b0b0;
-            line-height: 1.6;
-            margin-bottom: 20px;
-        }
-
-        .place-card .distance {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            margin: 15px 0;
-            color: #4CAF50;
-            font-weight: 600;
-        }
-
-        .place-card .distance::before {
-            content: '📍';
+        
+        .subtitle {
             font-size: 1.2rem;
+            color: #a0d2eb;
+            margin-bottom: 30px;
+            font-weight: 300;
         }
-
-        .place-card .details {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 20px;
-        }
-
-        .place-card .time {
-            color: #667eea;
-            font-weight: 600;
-        }
-
-        .place-card .visit-btn {
-            padding: 8px 20px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border: none;
-            border-radius: 25px;
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .place-card .visit-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        .filter-container {
+        
+        .timer-container {
             display: flex;
             justify-content: center;
-            gap: 20px;
-            margin-bottom: 50px;
+            gap: 25px;
+            margin: 40px 0;
             flex-wrap: wrap;
         }
-
-        .filter-btn {
-            padding: 10px 25px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 30px;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-
-        .filter-btn:hover {
-            background: rgba(102, 126, 234, 0.3);
-            border-color: #667eea;
-        }
-
-        .filter-btn.active {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-color: transparent;
-        }
-
-        .sort-container {
+        
+        .time-unit {
             display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-bottom: 30px;
+            flex-direction: column;
             align-items: center;
+            min-width: 120px;
         }
-
-        .sort-label {
-            color: #888;
+        
+        .time-value {
+            font-size: 4.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00b4db, #0083b0);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            line-height: 1;
+            text-shadow: 0 0 10px rgba(0, 180, 219, 0.3);
+        }
+        
+        .time-label {
+            font-size: 1.2rem;
+            margin-top: 10px;
+            color: #a0d2eb;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .progress-container {
+            width: 100%;
+            height: 12px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            margin: 30px 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, #00b4db, #0083b0);
+            border-radius: 6px;
+            width: 0%;
+            transition: width 1s linear;
+        }
+        
+        .info-box {
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+            border-left: 4px solid #00b4db;
+        }
+        
+        .info-box h3 {
+            color: #00b4db;
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+        }
+        
+        .info-box p {
+            color: #d6eaf0;
+            line-height: 1.6;
+        }
+        
+        .reset-details {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .detail-item {
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .detail-item h4 {
+            color: #a0d2eb;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+        
+        .detail-item p {
+            font-size: 1.1rem;
             font-weight: 600;
         }
-
-        .sort-btn {
-            padding: 8px 20px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
+        
+        .footer {
+            margin-top: 30px;
+            color: rgba(255, 255, 255, 0.5);
             font-size: 0.9rem;
         }
-
-        .sort-btn.active {
-            background: rgba(76, 175, 80, 0.2);
-            border-color: #4CAF50;
-            color: #4CAF50;
+        
+        .last-next {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #a0d2eb;
         }
-
-        .footer {
-            text-align: center;
-            padding: 50px 0;
-            background: #0a0a0a;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .footer p {
-            color: #666;
-        }
-
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
+        
         @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 3rem;
+            .container {
+                padding: 25px;
             }
             
-            .hero p {
-                font-size: 1.2rem;
+            h1 {
+                font-size: 2.2rem;
             }
             
-            .section-title {
-                font-size: 2rem;
+            .time-value {
+                font-size: 3.5rem;
             }
             
-            #map {
-                height: 400px;
+            .timer-container {
+                gap: 15px;
             }
-
-            .location-status {
-                top: 10px;
-                right: 10px;
-                padding: 10px 15px;
-                font-size: 0.9rem;
+            
+            .time-unit {
+                min-width: 90px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .time-value {
+                font-size: 2.8rem;
+            }
+            
+            .time-unit {
+                min-width: 70px;
+            }
+            
+            .timer-container {
+                gap: 10px;
             }
         }
     </style>
 </head>
 <body>
-    <section class="hero">
-        <div class="hero-content">
-            <h1>Seoul</h1>
-            <p>Discover the vibrant heart of South Korea</p>
-            <a href="#map-section" class="cta-button">Explore Places</a>
-        </div>
-    </section>
-
-    <section class="section map-section" id="map-section">
-        <div class="container">
-            <h2 class="section-title">Interactive Map</h2>
-            <div style="position: relative;">
-                <div id="map"></div>
-                <div class="location-status" id="location-status">
-                    <div class="location-dot"></div>
-                    <span id="location-text">Getting location...</span>
-                </div>
+    <div class="container">
+        <h1>5-Hour Reset Timer</h1>
+        <p class="subtitle">Resets every 5 hours starting from Jan 26, 2026, 4:00 PM CET</p>
+        
+        <div class="timer-container">
+            <div class="time-unit">
+                <div class="time-value" id="hours">00</div>
+                <div class="time-label">Hours</div>
             </div>
-            
-            <div class="filter-container">
-                <button class="filter-btn active" onclick="filterPlaces('all')">All Places</button>
-                <button class="filter-btn" onclick="filterPlaces('palace')">Palaces</button>
-                <button class="filter-btn" onclick="filterPlaces('shopping')">Shopping</button>
-                <button class="filter-btn" onclick="filterPlaces('culture')">Culture</button>
-                <button class="filter-btn" onclick="filterPlaces('nature')">Nature</button>
+            <div class="time-unit">
+                <div class="time-value" id="minutes">00</div>
+                <div class="time-label">Minutes</div>
             </div>
-
-            <div class="sort-container">
-                <span class="sort-label">Sort by:</span>
-                <button class="sort-btn" id="sort-distance" onclick="sortByDistance()">Distance</button>
-                <button class="sort-btn" id="sort-name" onclick="sortByName()">Name</button>
-            </div>
-
-            <div class="places-grid" id="places-grid">
-                <!-- Place cards will be dynamically inserted here -->
+            <div class="time-unit">
+                <div class="time-value" id="seconds">00</div>
+                <div class="time-label">Seconds</div>
             </div>
         </div>
-    </section>
-
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2024 Seoul Tour Guide. Explore the best of Seoul.</p>
+        
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
         </div>
-    </footer>
+        
+        <div class="last-next">
+            <div>
+                <span>Last reset: </span><span id="last-reset">--:--:--</span>
+            </div>
+            <div>
+                <span>Next reset: </span><span id="next-reset">--:--:--</span>
+            </div>
+        </div>
+        
+        <div class="info-box">
+            <h3>How This Timer Works</h3>
+            <p>This timer resets every 5 hours starting from January 26, 2026, 4:00 PM CET. It displays the time remaining until the next reset. The timer works in any timezone - it will always show the same countdown regardless of your location.</p>
+        </div>
+        
+        <div class="reset-details">
+            <div class="detail-item">
+                <h4>Reset Frequency</h4>
+                <p>Every 5 Hours</p>
+            </div>
+            <div class="detail-item">
+                <h4>Base Timezone</h4>
+                <p>CET (Central European Time)</p>
+            </div>
+            <div class="detail-item">
+                <h4>Current Time (CET)</h4>
+                <p id="current-time">Loading...</p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Timer updates in real-time | Works worldwide in any timezone</p>
+        </div>
+    </div>
 
     <script>
-        // Global variables
-        let places = [];
-        let userLocation = null;
-        let userMarker = null;
-        let currentFilter = 'all';
-        let currentSort = null;
-        let markers = [];
-
-        // Initialize map
-        const map = L.map('map').setView([37.5665, 126.9780], 12);
+        // Base time: January 26, 2026, 4:00 PM CET
+        const BASE_TIME_CET = new Date(Date.UTC(2026, 0, 26, 15, 0, 0)); // 4 PM CET = 3 PM UTC (CET is UTC+1 in winter)
+        const RESET_INTERVAL = 5 * 60 * 60 * 1000; // 5 hours in milliseconds
         
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            attribution: '© OpenStreetMap contributors © CARTO',
-            subdomains: 'abcd',
-            maxZoom: 19
-        }).addTo(map);
-
-        // Load places from JSON
-        async function loadPlaces() {
-            try {
-                const response = await fetch('places.json');
-                places = await response.json();
-                initializePlaces();
-            } catch (error) {
-                console.error('Error loading places:', error);
-                // Fallback to embedded data if JSON fails to load
-                places = [
-                    {
-                        "id": 1,
-                        "name": "Gyeongbokgung Palace",
-                        "category": "palace",
-                        "coordinates": {
-                            "latitude": 37.579617,
-                            "longitude": 126.977041
-                        },
-                        "description": "The largest and most iconic of Seoul's Five Grand Palaces, featuring stunning architecture and the famous changing of the guard ceremony.",
-                        "hours": "9:00 AM - 6:00 PM",
-                        "admission": "3,000 KRW",
-                        "website": "http://www.royalpalace.go.kr",
-                        "color": "#ff6b6b"
-                    }
-                ];
-                initializePlaces();
-            }
+        // DOM elements
+        const hoursElement = document.getElementById('hours');
+        const minutesElement = document.getElementById('minutes');
+        const secondsElement = document.getElementById('seconds');
+        const progressBar = document.getElementById('progress-bar');
+        const lastResetElement = document.getElementById('last-reset');
+        const nextResetElement = document.getElementById('next-reset');
+        const currentTimeElement = document.getElementById('current-time');
+        
+        // Function to format time values with leading zeros
+        function formatTime(value) {
+            return value < 10 ? `0${value}` : value;
         }
-
-        // Calculate distance between two points using Haversine formula
-        function calculateDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371; // Radius of the Earth in kilometers
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = 
-                Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                Math.sin(dLon/2) * Math.sin(dLon/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            const distance = R * c;
-            return distance.toFixed(1);
-        }
-
-        // Get user's current location
-        function getUserLocation() {
-            const statusEl = document.getElementById('location-status');
-            const textEl = document.getElementById('location-text');
-
-            if (navigator.geolocation) {
-                textEl.innerHTML = '<div class="loading"></div> Getting location...';
-                
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        userLocation = {
-                            lat: position.coords.latitude,
-                            lng: position.coords.longitude
-                        };
-                        
-                        statusEl.classList.add('active');
-                        textEl.textContent = 'Location found';
-                        
-                        // Add user marker to map
-                        if (userMarker) {
-                            map.removeLayer(userMarker);
-                        }
-                        
-                        const userIcon = L.divIcon({
-                            className: 'user-marker',
-                            html: `<div style="background: #4CAF50; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 3px 10px rgba(0,0,0,0.5); position: relative;">
-                                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; border: 2px solid #4CAF50; border-radius: 50%; animation: radar 2s infinite;"></div>
-                                  </div>`,
-                            iconSize: [20, 20],
-                            iconAnchor: [10, 10]
-                        });
-                        
-                        userMarker = L.marker([userLocation.lat, userLocation.lng], {
-                            icon: userIcon
-                        }).addTo(map);
-                        
-                        userMarker.bindPopup('Your current location');
-                        
-                        // Update distances
-                        updateDistances();
-                        
-                        // Re-render place cards to show distances
-                        renderPlaceCards();
-                    },
-                    (error) => {
-                        textEl.textContent = 'Location unavailable';
-                        console.error('Error getting location:', error);
-                    }
-                );
-            } else {
-                textEl.textContent = 'Geolocation not supported';
-            }
-        }
-
-        // Update distances for all places
-        function updateDistances() {
-            if (!userLocation) return;
+        
+        // Function to calculate time until next reset
+        function calculateTimeUntilReset() {
+            const now = new Date();
             
-            places.forEach(place => {
-                place.distance = calculateDistance(
-                    userLocation.lat,
-                    userLocation.lng,
-                    place.coordinates.latitude,
-                    place.coordinates.longitude
-                );
-            });
+            // Convert current time to CET (UTC+1) for display purposes
+            const cetOffset = 1 * 60 * 60 * 1000; // CET is UTC+1
+            const nowCET = new Date(now.getTime() + cetOffset);
+            
+            // Calculate time elapsed since base time
+            const timeElapsed = now.getTime() - BASE_TIME_CET.getTime();
+            
+            // Calculate the number of complete intervals that have passed
+            const intervalsPassed = Math.floor(timeElapsed / RESET_INTERVAL);
+            
+            // Calculate the time of the last reset
+            const lastResetTime = new Date(BASE_TIME_CET.getTime() + (intervalsPassed * RESET_INTERVAL));
+            
+            // Calculate the time of the next reset
+            const nextResetTime = new Date(lastResetTime.getTime() + RESET_INTERVAL);
+            
+            // Calculate time remaining until next reset
+            const timeRemaining = nextResetTime.getTime() - now.getTime();
+            
+            // Calculate progress percentage (0% to 100%)
+            const progressPercentage = 100 - (timeRemaining / RESET_INTERVAL * 100);
+            
+            return {
+                timeRemaining,
+                lastResetTime,
+                nextResetTime,
+                progressPercentage,
+                nowCET
+            };
         }
-
-        // Custom icon
-        const createCustomIcon = (color) => {
-            return L.divIcon({
-                className: 'custom-marker',
-                html: `<div style="background: ${color}; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; box-shadow: 0 3px 10px rgba(0,0,0,0.3);"></div>`,
-                iconSize: [30, 30],
-                iconAnchor: [15, 15]
-            });
-        };
-
-        // Initialize places on map and cards
-        function initializePlaces() {
-            // Add markers
-            places.forEach(place => {
-                const marker = L.marker([place.coordinates.latitude, place.coordinates.longitude], {
-                    icon: createCustomIcon(place.color)
-                }).addTo(map);
-                
-                marker.bindPopup(`
-                    <div style="color: black; font-size: 16px;">
-                        <strong>${place.name}</strong><br>
-                        <span style="color: #666;">${place.category}</span><br>
-                        <span style="color: #666;">${place.hours}</span><br>
-                        ${place.admission ? `<span style="color: #666;">Admission: ${place.admission}</span>` : ''}
-                    </div>
-                `);
-                
-                marker.category = place.category;
-                markers.push(marker);
+        
+        // Function to update the timer display
+        function updateTimer() {
+            const { timeRemaining, lastResetTime, nextResetTime, progressPercentage, nowCET } = calculateTimeUntilReset();
+            
+            // Calculate hours, minutes, seconds
+            const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
+            const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
+            
+            // Update the timer display
+            hoursElement.textContent = formatTime(hours);
+            minutesElement.textContent = formatTime(minutes);
+            secondsElement.textContent = formatTime(seconds);
+            
+            // Update the progress bar
+            progressBar.style.width = `${progressPercentage}%`;
+            
+            // Format times for display
+            const timeFormatter = new Intl.DateTimeFormat('en-GB', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                timeZone: 'UTC'
             });
             
-            // Get user location
-            getUserLocation();
+            // Format last and next reset times (these are already in UTC from our calculation)
+            lastResetElement.textContent = timeFormatter.format(lastResetTime);
+            nextResetElement.textContent = timeFormatter.format(nextResetTime);
             
-            // Render place cards
-            renderPlaceCards();
-        }
-
-        // Get filtered and sorted places
-        function getProcessedPlaces() {
-            let processedPlaces = [...places];
-            
-            // Apply filter
-            if (currentFilter !== 'all') {
-                processedPlaces = processedPlaces.filter(place => place.category === currentFilter);
-            }
-            
-            // Apply sort
-            if (currentSort === 'distance' && userLocation) {
-                processedPlaces.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
-            } else if (currentSort === 'name') {
-                processedPlaces.sort((a, b) => a.name.localeCompare(b.name));
-            }
-            
-            return processedPlaces;
-        }
-
-        // Render place cards
-        function renderPlaceCards() {
-            const grid = document.getElementById('places-grid');
-            grid.innerHTML = '';
-            
-            const processedPlaces = getProcessedPlaces();
-            
-            processedPlaces.forEach((place, index) => {
-                const card = document.createElement('div');
-                card.className = 'place-card';
-                card.style.animationDelay = `${index * 0.1}s`;
-                card.innerHTML = `
-                    <h3>${place.name}</h3>
-                    <span class="category">${place.category}</span>
-                    ${place.distance ? `<div class="distance">${place.distance} km away</div>` : ''}
-                    <p>${place.description}</p>
-                    <div class="details">
-                        <span class="time">${place.hours}</span>
-                        <button class="visit-btn" onclick="focusPlace(${place.coordinates.latitude}, ${place.coordinates.longitude})">View on Map</button>
-                    </div>
-                `;
-                
-                // Add mouse move effect
-                card.addEventListener('mousemove', (e) => {
-                    const rect = card.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
-                    card.style.setProperty('--mouse-x', `${x}px`);
-                    card.style.setProperty('--mouse-y', `${y}px`);
-                });
-                
-                grid.appendChild(card);
-            });
-        }
-
-        // Filter places
-        function filterPlaces(category) {
-            currentFilter = category;
-            
-            const buttons = document.querySelectorAll('.filter-btn');
-            buttons.forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            // Update markers visibility
-            markers.forEach(marker => {
-                if (category === 'all' || marker.category === category) {
-                    marker.addTo(map);
-                } else {
-                    marker.remove();
-                }
+            // Display current CET time
+            const cetTimeFormatter = new Intl.DateTimeFormat('en-GB', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                timeZone: 'Europe/Paris'
             });
             
-            renderPlaceCards();
+            currentTimeElement.textContent = cetTimeFormatter.format(nowCET);
         }
-
-        // Sort by distance
-        function sortByDistance() {
-            if (!userLocation) {
-                alert('Please enable location services to sort by distance');
-                return;
-            }
-            
-            currentSort = 'distance';
-            document.getElementById('sort-distance').classList.add('active');
-            document.getElementById('sort-name').classList.remove('active');
-            renderPlaceCards();
-        }
-
-        // Sort by name
-        function sortByName() {
-            currentSort = 'name';
-            document.getElementById('sort-name').classList.add('active');
-            document.getElementById('sort-distance').classList.remove('active');
-            renderPlaceCards();
-        }
-
-        // Focus on specific place
-        function focusPlace(lat, lng) {
-            map.setView([lat, lng], 16);
-            document.getElementById('map-section').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        // Smooth scroll
-        document.querySelector('.cta-button').addEventListener('click', (e) => {
-            e.preventDefault();
-            document.getElementById('map-section').scrollIntoView({ behavior: 'smooth' });
-        });
-
-        // Add radar animation CSS
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes radar {
-                0% {
-                    opacity: 1;
-                    transform: translate(-50%, -50%) scale(0);
-                }
-                100% {
-                    opacity: 0;
-                    transform: translate(-50%, -50%) scale(1);
-                }
-            }
-        `;
-        document.head.appendChild(style);
-
-        // Load places when page loads
-        loadPlaces();
+        
+        // Initialize the timer
+        updateTimer();
+        
+        // Update the timer every second
+        setInterval(updateTimer, 1000);
+        
+        // Initial update
+        window.addEventListener('load', updateTimer);
     </script>
 </body>
 </html>
