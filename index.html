@@ -137,15 +137,21 @@
             margin-top: 10px;
             font-style: italic;
         }
+        
+        .schedule {
+            margin-top: 15px;
+            font-size: 12px;
+            color: #8892b0;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>5-Hour Reset Timer</h1>
-        <div class="subtitle">Resets every 5 hours from Jan 26, 2026, 4:00 PM CET</div>
+        <div class="subtitle">Resets every 5 hours from Jan 27, 2026, 15:00 PM CET</div>
         
         <div class="timer">
-            <span id="hours">03</span>:<span id="minutes">55</span>:<span id="seconds">00</span>
+            <span id="hours">04</span>:<span id="minutes">00</span>:<span id="seconds">00</span>
         </div>
         
         <div class="labels">
@@ -164,29 +170,33 @@
         <div class="reset-times">
             <div class="reset-time">
                 Last reset
-                <span id="last-reset">16:00</span>
+                <span id="last-reset">15:00</span>
             </div>
             <div class="reset-time">
                 Next reset
-                <span id="next-reset">15:00</span>
+                <span id="next-reset">20:00</span>
             </div>
             <div class="reset-time">
                 After next
-                <span id="after-next">20:00</span>
+                <span id="after-next">01:00</span>
             </div>
         </div>
         
         <div class="info">
-            <p>Next reset in: <span class="highlight" id="time-left">3 hours 55 minutes</span></p>
-            <p>Current CET time: <span class="highlight" id="current-time">11:05</span></p>
+            <p>Next reset in: <span class="highlight" id="time-left">4 hours 0 minutes</span></p>
+            <p>Current CET time: <span class="highlight" id="current-time">11:00</span></p>
             <p>Reset happens every <span class="highlight">5 hours</span></p>
             <p>Manual reset time: <span class="highlight" id="manual-reset-time">-</span></p>
+        </div>
+        
+        <div class="schedule">
+            Reset schedule: 15:00 → 20:00 → 01:00 → 06:00 → 11:00 → 16:00 → 21:00 → 02:00 → ...
         </div>
     </div>
 
     <script>
-        // Base time: January 26, 2026, 4:00 PM CET (UTC+1)
-        const BASE_TIME = new Date('2026-01-26T16:00:00+01:00');
+        // Base time: January 27, 2026, 3:00 PM CET (15:00) (UTC+1)
+        const BASE_TIME = new Date('2026-01-27T15:00:00+01:00');
         const RESET_INTERVAL = 5 * 60 * 60 * 1000; // 5 hours in milliseconds
         
         // DOM elements
@@ -205,8 +215,9 @@
         let manualResetTime = null;
         
         function formatTime(time) {
-            return time.getHours().toString().padStart(2, '0') + ':' + 
-                   time.getMinutes().toString().padStart(2, '0');
+            const hours = time.getHours();
+            const minutes = time.getMinutes().toString().padStart(2, '0');
+            return `${hours}:${minutes}`;
         }
         
         function updateTimer() {
@@ -220,7 +231,7 @@
                 const resetsPassed = Math.floor(timeSinceManualReset / RESET_INTERVAL);
                 lastResetTime = new Date(manualResetTime.getTime() + (resetsPassed * RESET_INTERVAL));
             } else {
-                // Calculate based on original base time
+                // Calculate based on original base time (Jan 27, 2026, 15:00 CET)
                 const timeSinceBase = now.getTime() - BASE_TIME.getTime();
                 const resetsPassed = Math.floor(timeSinceBase / RESET_INTERVAL);
                 lastResetTime = new Date(BASE_TIME.getTime() + (resetsPassed * RESET_INTERVAL));
