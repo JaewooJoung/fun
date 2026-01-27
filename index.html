@@ -5,369 +5,140 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>5-Hour Reset Timer</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
         body {
-            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-            color: #fff;
-            min-height: 100vh;
+            background: #0a192f;
+            color: #e6f1ff;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 20px;
-            text-align: center;
+            min-height: 100vh;
         }
         
         .container {
-            max-width: 800px;
+            text-align: center;
+            background: #112240;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
             width: 100%;
-            background-color: rgba(0, 0, 0, 0.4);
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         h1 {
-            font-size: 2.8rem;
+            color: #64ffda;
             margin-bottom: 10px;
-            background: linear-gradient(to right, #00b4db, #0083b0);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            font-size: 28px;
         }
         
         .subtitle {
-            font-size: 1.2rem;
-            color: #a0d2eb;
+            color: #8892b0;
             margin-bottom: 30px;
-            font-weight: 300;
+            font-size: 14px;
         }
         
-        .timer-container {
+        .timer {
+            font-size: 72px;
+            font-weight: bold;
+            color: #64ffda;
+            margin: 20px 0;
+            text-shadow: 0 0 10px rgba(100, 255, 218, 0.3);
+        }
+        
+        .labels {
             display: flex;
-            justify-content: center;
-            gap: 25px;
-            margin: 40px 0;
-            flex-wrap: wrap;
+            justify-content: space-between;
+            margin: 0 15px 30px 15px;
+            color: #8892b0;
         }
         
-        .time-unit {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-width: 120px;
-        }
-        
-        .time-value {
-            font-size: 4.5rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #00b4db, #0083b0);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            line-height: 1;
-            text-shadow: 0 0 10px rgba(0, 180, 219, 0.3);
-        }
-        
-        .time-label {
-            font-size: 1.2rem;
-            margin-top: 10px;
-            color: #a0d2eb;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-        
-        .progress-container {
-            width: 100%;
-            height: 12px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 6px;
-            margin: 30px 0;
-            overflow: hidden;
-        }
-        
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(to right, #00b4db, #0083b0);
-            border-radius: 6px;
-            width: 0%;
-            transition: width 1s linear;
-        }
-        
-        .info-box {
-            background-color: rgba(0, 0, 0, 0.3);
+        .info {
+            background: rgba(100, 255, 218, 0.1);
             border-radius: 10px;
-            padding: 20px;
-            margin-top: 30px;
-            border-left: 4px solid #00b4db;
-        }
-        
-        .info-box h3 {
-            color: #00b4db;
-            margin-bottom: 10px;
-            font-size: 1.3rem;
-        }
-        
-        .info-box p {
-            color: #d6eaf0;
-            line-height: 1.6;
-        }
-        
-        .reset-details {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 25px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        
-        .detail-item {
-            background-color: rgba(0, 0, 0, 0.2);
             padding: 15px;
-            border-radius: 8px;
-            flex: 1;
-            min-width: 200px;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #ccd6f6;
         }
         
-        .detail-item h4 {
-            color: #a0d2eb;
-            margin-bottom: 8px;
-            font-size: 1rem;
+        .info p {
+            margin: 5px 0;
         }
         
-        .detail-item p {
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-        
-        .footer {
-            margin-top: 30px;
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 0.9rem;
-        }
-        
-        .last-next {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 15px;
-            font-size: 0.9rem;
-            color: #a0d2eb;
-        }
-        
-        @media (max-width: 768px) {
-            .container {
-                padding: 25px;
-            }
-            
-            h1 {
-                font-size: 2.2rem;
-            }
-            
-            .time-value {
-                font-size: 3.5rem;
-            }
-            
-            .timer-container {
-                gap: 15px;
-            }
-            
-            .time-unit {
-                min-width: 90px;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .container {
-                padding: 20px;
-            }
-            
-            h1 {
-                font-size: 1.8rem;
-            }
-            
-            .time-value {
-                font-size: 2.8rem;
-            }
-            
-            .time-unit {
-                min-width: 70px;
-            }
-            
-            .timer-container {
-                gap: 10px;
-            }
+        .highlight {
+            color: #64ffda;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>5-Hour Reset Timer</h1>
-        <p class="subtitle">Resets every 5 hours starting from Jan 26, 2026, 4:00 PM CET</p>
+        <div class="subtitle">Resets every 5 hours from Jan 26, 2026, 4:00 PM CET</div>
         
-        <div class="timer-container">
-            <div class="time-unit">
-                <div class="time-value" id="hours">00</div>
-                <div class="time-label">Hours</div>
-            </div>
-            <div class="time-unit">
-                <div class="time-value" id="minutes">00</div>
-                <div class="time-label">Minutes</div>
-            </div>
-            <div class="time-unit">
-                <div class="time-value" id="seconds">00</div>
-                <div class="time-label">Seconds</div>
-            </div>
+        <div class="timer">
+            <span id="hours">04</span>:<span id="minutes">00</span>:<span id="seconds">00</span>
         </div>
         
-        <div class="progress-container">
-            <div class="progress-bar" id="progress-bar"></div>
+        <div class="labels">
+            <span>HOURS</span>
+            <span>MINUTES</span>
+            <span>SECONDS</span>
         </div>
         
-        <div class="last-next">
-            <div>
-                <span>Last reset: </span><span id="last-reset">--:--:--</span>
-            </div>
-            <div>
-                <span>Next reset: </span><span id="next-reset">--:--:--</span>
-            </div>
-        </div>
-        
-        <div class="info-box">
-            <h3>How This Timer Works</h3>
-            <p>This timer resets every 5 hours starting from January 26, 2026, 4:00 PM CET. It displays the time remaining until the next reset. The timer works in any timezone - it will always show the same countdown regardless of your location.</p>
-        </div>
-        
-        <div class="reset-details">
-            <div class="detail-item">
-                <h4>Reset Frequency</h4>
-                <p>Every 5 Hours</p>
-            </div>
-            <div class="detail-item">
-                <h4>Base Timezone</h4>
-                <p>CET (Central European Time)</p>
-            </div>
-            <div class="detail-item">
-                <h4>Current Time (CET)</h4>
-                <p id="current-time">Loading...</p>
-            </div>
-        </div>
-        
-        <div class="footer">
-            <p>Timer updates in real-time | Works worldwide in any timezone</p>
+        <div class="info">
+            <p>Next reset in: <span class="highlight" id="next-reset">4 hours</span></p>
+            <p>Current CET time: <span class="highlight" id="current-time">11:00</span></p>
+            <p>Reset happens every 5 hours</p>
         </div>
     </div>
 
     <script>
-        // Base time: January 26, 2026, 4:00 PM CET
-        const BASE_TIME_CET = new Date(Date.UTC(2026, 0, 26, 15, 0, 0)); // 4 PM CET = 3 PM UTC (CET is UTC+1 in winter)
+        // Base time: January 26, 2026, 4:00 PM CET (UTC+1)
+        const BASE_TIME = new Date('2026-01-26T16:00:00+01:00');
         const RESET_INTERVAL = 5 * 60 * 60 * 1000; // 5 hours in milliseconds
         
         // DOM elements
         const hoursElement = document.getElementById('hours');
         const minutesElement = document.getElementById('minutes');
         const secondsElement = document.getElementById('seconds');
-        const progressBar = document.getElementById('progress-bar');
-        const lastResetElement = document.getElementById('last-reset');
         const nextResetElement = document.getElementById('next-reset');
         const currentTimeElement = document.getElementById('current-time');
         
-        // Function to format time values with leading zeros
-        function formatTime(value) {
-            return value < 10 ? `0${value}` : value;
-        }
-        
-        // Function to calculate time until next reset
-        function calculateTimeUntilReset() {
+        function updateTimer() {
             const now = new Date();
             
-            // Convert current time to CET (UTC+1) for display purposes
-            const cetOffset = 1 * 60 * 60 * 1000; // CET is UTC+1
-            const nowCET = new Date(now.getTime() + cetOffset);
+            // Calculate time since base time
+            const timeSinceBase = now.getTime() - BASE_TIME.getTime();
             
-            // Calculate time elapsed since base time
-            const timeElapsed = now.getTime() - BASE_TIME_CET.getTime();
+            // Calculate time until next reset
+            const timeUntilNextReset = RESET_INTERVAL - (timeSinceBase % RESET_INTERVAL);
             
-            // Calculate the number of complete intervals that have passed
-            const intervalsPassed = Math.floor(timeElapsed / RESET_INTERVAL);
+            // Convert to hours, minutes, seconds
+            const hours = Math.floor(timeUntilNextReset / (1000 * 60 * 60));
+            const minutes = Math.floor((timeUntilNextReset % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeUntilNextReset % (1000 * 60)) / 1000);
             
-            // Calculate the time of the last reset
-            const lastResetTime = new Date(BASE_TIME_CET.getTime() + (intervalsPassed * RESET_INTERVAL));
+            // Update display
+            hoursElement.textContent = hours.toString().padStart(2, '0');
+            minutesElement.textContent = minutes.toString().padStart(2, '0');
+            secondsElement.textContent = seconds.toString().padStart(2, '0');
             
-            // Calculate the time of the next reset
-            const nextResetTime = new Date(lastResetTime.getTime() + RESET_INTERVAL);
+            // Update next reset text
+            nextResetElement.textContent = `${hours} hours, ${minutes} minutes`;
             
-            // Calculate time remaining until next reset
-            const timeRemaining = nextResetTime.getTime() - now.getTime();
-            
-            // Calculate progress percentage (0% to 100%)
-            const progressPercentage = 100 - (timeRemaining / RESET_INTERVAL * 100);
-            
-            return {
-                timeRemaining,
-                lastResetTime,
-                nextResetTime,
-                progressPercentage,
-                nowCET
-            };
+            // Update current CET time
+            const cetTime = new Date(now.toLocaleString("en-US", {timeZone: "Europe/Paris"}));
+            const hoursCET = cetTime.getHours().toString().padStart(2, '0');
+            const minutesCET = cetTime.getMinutes().toString().padStart(2, '0');
+            currentTimeElement.textContent = `${hoursCET}:${minutesCET}`;
         }
         
-        // Function to update the timer display
-        function updateTimer() {
-            const { timeRemaining, lastResetTime, nextResetTime, progressPercentage, nowCET } = calculateTimeUntilReset();
-            
-            // Calculate hours, minutes, seconds
-            const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
-            const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
-            
-            // Update the timer display
-            hoursElement.textContent = formatTime(hours);
-            minutesElement.textContent = formatTime(minutes);
-            secondsElement.textContent = formatTime(seconds);
-            
-            // Update the progress bar
-            progressBar.style.width = `${progressPercentage}%`;
-            
-            // Format times for display
-            const timeFormatter = new Intl.DateTimeFormat('en-GB', {
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                timeZone: 'UTC'
-            });
-            
-            // Format last and next reset times (these are already in UTC from our calculation)
-            lastResetElement.textContent = timeFormatter.format(lastResetTime);
-            nextResetElement.textContent = timeFormatter.format(nextResetTime);
-            
-            // Display current CET time
-            const cetTimeFormatter = new Intl.DateTimeFormat('en-GB', {
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                timeZone: 'Europe/Paris'
-            });
-            
-            currentTimeElement.textContent = cetTimeFormatter.format(nowCET);
-        }
-        
-        // Initialize the timer
+        // Update immediately and then every second
         updateTimer();
-        
-        // Update the timer every second
         setInterval(updateTimer, 1000);
-        
-        // Initial update
-        window.addEventListener('load', updateTimer);
     </script>
 </body>
 </html>
