@@ -85,7 +85,57 @@
             height: 100%;
             background: #64ffda;
             border-radius: 4px;
-            width: 21.7%; /* 3:55 out of 5 hours = 21.7% remaining */
+            width: 21.7%;
+        }
+        
+        .reset-times {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(100, 255, 218, 0.2);
+        }
+        
+        .reset-time {
+            font-size: 12px;
+            color: #8892b0;
+        }
+        
+        .reset-time span {
+            display: block;
+            color: #64ffda;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        .reset-button {
+            background: #64ffda;
+            color: #0a192f;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .reset-button:hover {
+            background: #52d3a9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(100, 255, 218, 0.3);
+        }
+        
+        .reset-button:active {
+            transform: translateY(0);
+        }
+        
+        .reset-note {
+            font-size: 12px;
+            color: #8892b0;
+            margin-top: 10px;
+            font-style: italic;
         }
     </style>
 </head>
@@ -108,10 +158,29 @@
             <div class="progress-bar" id="progress-bar"></div>
         </div>
         
+        <button class="reset-button" id="manual-reset-btn">MANUAL RESET</button>
+        <div class="reset-note">Click to restart the 5-hour countdown from now</div>
+        
+        <div class="reset-times">
+            <div class="reset-time">
+                Last reset
+                <span id="last-reset">16:00</span>
+            </div>
+            <div class="reset-time">
+                Next reset
+                <span id="next-reset">15:00</span>
+            </div>
+            <div class="reset-time">
+                After next
+                <span id="after-next">20:00</span>
+            </div>
+        </div>
+        
         <div class="info">
-            <p>Next reset in: <span class="highlight" id="next-reset">3 hours 55 minutes</span></p>
+            <p>Next reset in: <span class="highlight" id="time-left">3 hours 55 minutes</span></p>
             <p>Current CET time: <span class="highlight" id="current-time">11:05</span></p>
-            <p>Reset happens every 5 hours</p>
+            <p>Reset happens every <span class="highlight">5 hours</span></p>
+            <p>Manual reset time: <span class="highlight" id="manual-reset-time">-</span></p>
         </div>
     </div>
 
@@ -124,18 +193,45 @@
         const hoursElement = document.getElementById('hours');
         const minutesElement = document.getElementById('minutes');
         const secondsElement = document.getElementById('seconds');
-        const nextResetElement = document.getElementById('next-reset');
+        const timeLeftElement = document.getElementById('time-left');
         const currentTimeElement = document.getElementById('current-time');
         const progressBar = document.getElementById('progress-bar');
+        const lastResetElement = document.getElementById('last-reset');
+        const nextResetElement = document.getElementById('next-reset');
+        const afterNextElement = document.getElementById('after-next');
+        const manualResetBtn = document.getElementById('manual-reset-btn');
+        const manualResetTimeElement = document.getElementById('manual-reset-time');
+        
+        let manualResetTime = null;
+        
+        function formatTime(time) {
+            return time.getHours().toString().padStart(2, '0') + ':' + 
+                   time.getMinutes().toString().padStart(2, '0');
+        }
         
         function updateTimer() {
             const now = new Date();
             
-            // Calculate time since base time
-            const timeSinceBase = now.getTime() - BASE_TIME.getTime();
+            // Use manual reset time if set, otherwise use base time
+            let lastResetTime;
+            if (manualResetTime) {
+                // Calculate based on manual reset
+                const timeSinceManualReset = now.getTime() - manualResetTime.getTime();
+                const resetsPassed = Math.floor(timeSinceManualReset / RESET_INTERVAL);
+                lastResetTime = new Date(manualResetTime.getTime() + (resetsPassed * RESET_INTERVAL));
+            } else {
+                // Calculate based on original base time
+                const timeSinceBase = now.getTime() - BASE_TIME.getTime();
+                const resetsPassed = Math.floor(timeSinceBase / RESET_INTERVAL);
+                lastResetTime = new Date(BASE_TIME.getTime() + (resetsPassed * RESET_INTERVAL));
+            }
             
             // Calculate time until next reset
-            const timeUntilNextReset = RESET_INTERVAL - (timeSinceBase % RESET_INTERVAL);
+            const nextResetTime = new Date(lastResetTime.getTime() + RESET_INTERVAL);
+            const timeUntilNextReset = nextResetTime.getTime() - now.getTime();
+            
+            // Calculate time of reset after next
+            const afterNextResetTime = new Date(nextResetTime.getTime() + RESET_INTERVAL);
             
             // Convert to hours, minutes, seconds
             const hours = Math.floor(timeUntilNextReset / (1000 * 60 * 60));
@@ -147,19 +243,47 @@
             minutesElement.textContent = minutes.toString().padStart(2, '0');
             secondsElement.textContent = seconds.toString().padStart(2, '0');
             
-            // Update next reset text
-            nextResetElement.textContent = `${hours} hours, ${minutes} minutes`;
+            // Update time left text
+            timeLeftElement.textContent = `${hours} hours, ${minutes} minutes`;
             
             // Update progress bar (percentage of time remaining)
             const progressPercentage = (timeUntilNextReset / RESET_INTERVAL) * 100;
             progressBar.style.width = `${progressPercentage}%`;
+            
+            // Update reset times
+            lastResetElement.textContent = formatTime(lastResetTime);
+            nextResetElement.textContent = formatTime(nextResetTime);
+            afterNextElement.textContent = formatTime(afterNextResetTime);
             
             // Update current CET time
             const cetTime = new Date(now.toLocaleString("en-US", {timeZone: "Europe/Paris"}));
             const hoursCET = cetTime.getHours().toString().padStart(2, '0');
             const minutesCET = cetTime.getMinutes().toString().padStart(2, '0');
             currentTimeElement.textContent = `${hoursCET}:${minutesCET}`;
+            
+            // Update manual reset time display
+            if (manualResetTime) {
+                const manualCET = new Date(manualResetTime.toLocaleString("en-US", {timeZone: "Europe/Paris"}));
+                manualResetTimeElement.textContent = formatTime(manualCET);
+            }
         }
+        
+        // Manual reset button handler
+        manualResetBtn.addEventListener('click', function() {
+            const now = new Date();
+            manualResetTime = now;
+            
+            // Visual feedback
+            manualResetBtn.textContent = "RESETTING...";
+            manualResetBtn.style.background = "#ff6b6b";
+            
+            setTimeout(() => {
+                manualResetBtn.textContent = "MANUAL RESET";
+                manualResetBtn.style.background = "#64ffda";
+            }, 500);
+            
+            updateTimer();
+        });
         
         // Update immediately and then every second
         updateTimer();
