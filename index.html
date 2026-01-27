@@ -71,6 +71,22 @@
             color: #64ffda;
             font-weight: bold;
         }
+        
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(100, 255, 218, 0.1);
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: #64ffda;
+            border-radius: 4px;
+            width: 21.7%; /* 3:55 out of 5 hours = 21.7% remaining */
+        }
     </style>
 </head>
 <body>
@@ -79,7 +95,7 @@
         <div class="subtitle">Resets every 5 hours from Jan 26, 2026, 4:00 PM CET</div>
         
         <div class="timer">
-            <span id="hours">04</span>:<span id="minutes">00</span>:<span id="seconds">00</span>
+            <span id="hours">03</span>:<span id="minutes">55</span>:<span id="seconds">00</span>
         </div>
         
         <div class="labels">
@@ -88,9 +104,13 @@
             <span>SECONDS</span>
         </div>
         
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        
         <div class="info">
-            <p>Next reset in: <span class="highlight" id="next-reset">4 hours</span></p>
-            <p>Current CET time: <span class="highlight" id="current-time">11:00</span></p>
+            <p>Next reset in: <span class="highlight" id="next-reset">3 hours 55 minutes</span></p>
+            <p>Current CET time: <span class="highlight" id="current-time">11:05</span></p>
             <p>Reset happens every 5 hours</p>
         </div>
     </div>
@@ -106,6 +126,7 @@
         const secondsElement = document.getElementById('seconds');
         const nextResetElement = document.getElementById('next-reset');
         const currentTimeElement = document.getElementById('current-time');
+        const progressBar = document.getElementById('progress-bar');
         
         function updateTimer() {
             const now = new Date();
@@ -128,6 +149,10 @@
             
             // Update next reset text
             nextResetElement.textContent = `${hours} hours, ${minutes} minutes`;
+            
+            // Update progress bar (percentage of time remaining)
+            const progressPercentage = (timeUntilNextReset / RESET_INTERVAL) * 100;
+            progressBar.style.width = `${progressPercentage}%`;
             
             // Update current CET time
             const cetTime = new Date(now.toLocaleString("en-US", {timeZone: "Europe/Paris"}));
