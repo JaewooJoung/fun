@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>5-Hour Reset Timer</title>
+    <title>Work Timer</title>
     <style>
         body {
             background: #0a192f;
@@ -33,18 +33,27 @@
             font-size: 28px;
         }
         
-        .subtitle {
-            color: #8892b0;
-            margin-bottom: 30px;
-            font-size: 14px;
-        }
-        
         .timer {
             font-size: 72px;
             font-weight: bold;
             color: #64ffda;
             margin: 20px 0;
             text-shadow: 0 0 10px rgba(100, 255, 218, 0.3);
+            transition: color 0.3s ease;
+        }
+        
+        .timer.overtime {
+            color: #ffd700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+        
+        .timer.blink {
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
         }
         
         .labels {
@@ -52,24 +61,6 @@
             justify-content: space-between;
             margin: 0 15px 30px 15px;
             color: #8892b0;
-        }
-        
-        .info {
-            background: rgba(100, 255, 218, 0.1);
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 20px;
-            font-size: 14px;
-            color: #ccd6f6;
-        }
-        
-        .info p {
-            margin: 5px 0;
-        }
-        
-        .highlight {
-            color: #64ffda;
-            font-weight: bold;
         }
         
         .progress-container {
@@ -85,27 +76,11 @@
             height: 100%;
             background: #64ffda;
             border-radius: 4px;
-            width: 21.7%;
+            transition: background 0.3s ease;
         }
         
-        .reset-times {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-            padding-top: 15px;
-            border-top: 1px solid rgba(100, 255, 218, 0.2);
-        }
-        
-        .reset-time {
-            font-size: 12px;
-            color: #8892b0;
-        }
-        
-        .reset-time span {
-            display: block;
-            color: #64ffda;
-            font-size: 14px;
-            margin-top: 5px;
+        .progress-bar.overtime {
+            background: #ffd700;
         }
         
         .reset-button {
@@ -131,27 +106,53 @@
             transform: translateY(0);
         }
         
-        .reset-note {
-            font-size: 12px;
-            color: #8892b0;
-            margin-top: 10px;
-            font-style: italic;
+        .info {
+            background: rgba(100, 255, 218, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #ccd6f6;
         }
         
-        .schedule {
+        .info p {
+            margin: 5px 0;
+        }
+        
+        .highlight {
+            color: #64ffda;
+            font-weight: bold;
+        }
+        
+        .highlight.overtime {
+            color: #ffd700;
+        }
+        
+        .status {
+            font-size: 18px;
             margin-top: 15px;
-            font-size: 12px;
-            color: #8892b0;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        .status.working {
+            background: rgba(100, 255, 218, 0.1);
+            color: #64ffda;
+        }
+        
+        .status.overtime {
+            background: rgba(255, 215, 0, 0.2);
+            color: #ffd700;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>5-Hour Reset Timer</h1>
-        <div class="subtitle">Resets every 5 hours from Jan 27, 2026, 15:00 PM CET</div>
+        <h1>Work Timer</h1>
         
-        <div class="timer">
-            <span id="hours">04</span>:<span id="minutes">00</span>:<span id="seconds">00</span>
+        <div class="timer" id="timer">
+            <span id="hours">00</span>:<span id="minutes">00</span>:<span id="seconds">00</span>
         </div>
         
         <div class="labels">
@@ -164,137 +165,138 @@
             <div class="progress-bar" id="progress-bar"></div>
         </div>
         
-        <button class="reset-button" id="manual-reset-btn">MANUAL RESET</button>
-        <div class="reset-note">Click to restart the 5-hour countdown from now</div>
+        <button class="reset-button" id="start-btn">START WORK</button>
         
-        <div class="reset-times">
-            <div class="reset-time">
-                Last reset
-                <span id="last-reset">15:00</span>
-            </div>
-            <div class="reset-time">
-                Next reset
-                <span id="next-reset">20:00</span>
-            </div>
-            <div class="reset-time">
-                After next
-                <span id="after-next">01:00</span>
-            </div>
-        </div>
+        <div class="status working" id="status">Not started</div>
         
         <div class="info">
-            <p>Next reset in: <span class="highlight" id="time-left">4 hours 0 minutes</span></p>
-            <p>Current CET time: <span class="highlight" id="current-time">11:00</span></p>
-            <p>Reset happens every <span class="highlight">5 hours</span></p>
-            <p>Manual reset time: <span class="highlight" id="manual-reset-time">-</span></p>
-        </div>
-        
-        <div class="schedule">
-            Reset schedule: 15:00 → 20:00 → 01:00 → 06:00 → 11:00 → 16:00 → 21:00 → 02:00 → ...
+            <p>Started: <span class="highlight" id="start-time">-</span></p>
+            <p>End target: <span class="highlight" id="end-time">-</span></p>
+            <p>Current: <span class="highlight" id="current-time">-</span></p>
         </div>
     </div>
 
     <script>
-        // Base time: January 27, 2026, 3:00 PM CET (15:00) (UTC+1)
-        const BASE_TIME = new Date('2026-01-27T15:00:00+01:00');
-        const RESET_INTERVAL = 5 * 60 * 60 * 1000; // 5 hours in milliseconds
+        const WORK_DURATION = 9 * 60 * 60 * 1000; // 9 hours in milliseconds
+        const STORAGE_KEY = 'workStartTime';
         
-        // DOM elements
         const hoursElement = document.getElementById('hours');
         const minutesElement = document.getElementById('minutes');
         const secondsElement = document.getElementById('seconds');
-        const timeLeftElement = document.getElementById('time-left');
-        const currentTimeElement = document.getElementById('current-time');
+        const timerElement = document.getElementById('timer');
         const progressBar = document.getElementById('progress-bar');
-        const lastResetElement = document.getElementById('last-reset');
-        const nextResetElement = document.getElementById('next-reset');
-        const afterNextElement = document.getElementById('after-next');
-        const manualResetBtn = document.getElementById('manual-reset-btn');
-        const manualResetTimeElement = document.getElementById('manual-reset-time');
+        const startBtn = document.getElementById('start-btn');
+        const statusElement = document.getElementById('status');
+        const startTimeElement = document.getElementById('start-time');
+        const endTimeElement = document.getElementById('end-time');
+        const currentTimeElement = document.getElementById('current-time');
         
-        let manualResetTime = null;
+        let startTime = null;
         
-        function formatTime(time) {
-            const hours = time.getHours();
-            const minutes = time.getMinutes().toString().padStart(2, '0');
-            return `${hours}:${minutes}`;
+        function formatTime(date) {
+            return date.toLocaleTimeString('sv-SE', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                timeZone: 'Europe/Stockholm'
+            });
+        }
+        
+        function loadStartTime() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                startTime = new Date(parseInt(saved));
+            }
+        }
+        
+        function saveStartTime() {
+            if (startTime) {
+                localStorage.setItem(STORAGE_KEY, startTime.getTime().toString());
+            }
+        }
+        
+        function clearStartTime() {
+            localStorage.removeItem(STORAGE_KEY);
+            startTime = null;
         }
         
         function updateTimer() {
             const now = new Date();
+            currentTimeElement.textContent = formatTime(now);
             
-            // Use manual reset time if set, otherwise use base time
-            let lastResetTime;
-            if (manualResetTime) {
-                // Calculate based on manual reset
-                const timeSinceManualReset = now.getTime() - manualResetTime.getTime();
-                const resetsPassed = Math.floor(timeSinceManualReset / RESET_INTERVAL);
-                lastResetTime = new Date(manualResetTime.getTime() + (resetsPassed * RESET_INTERVAL));
-            } else {
-                // Calculate based on original base time (Jan 27, 2026, 15:00 CET)
-                const timeSinceBase = now.getTime() - BASE_TIME.getTime();
-                const resetsPassed = Math.floor(timeSinceBase / RESET_INTERVAL);
-                lastResetTime = new Date(BASE_TIME.getTime() + (resetsPassed * RESET_INTERVAL));
+            if (!startTime) {
+                hoursElement.textContent = '00';
+                minutesElement.textContent = '00';
+                secondsElement.textContent = '00';
+                progressBar.style.width = '0%';
+                statusElement.textContent = 'Not started';
+                statusElement.className = 'status working';
+                startTimeElement.textContent = '-';
+                endTimeElement.textContent = '-';
+                return;
             }
             
-            // Calculate time until next reset
-            const nextResetTime = new Date(lastResetTime.getTime() + RESET_INTERVAL);
-            const timeUntilNextReset = nextResetTime.getTime() - now.getTime();
+            const elapsed = now.getTime() - startTime.getTime();
+            const isOvertime = elapsed >= WORK_DURATION;
             
-            // Calculate time of reset after next
-            const afterNextResetTime = new Date(nextResetTime.getTime() + RESET_INTERVAL);
+            // Calculate display time
+            const displayTime = isOvertime ? elapsed - WORK_DURATION : WORK_DURATION - elapsed;
+            const hours = Math.floor(displayTime / (1000 * 60 * 60));
+            const minutes = Math.floor((displayTime % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((displayTime % (1000 * 60)) / 1000);
             
-            // Convert to hours, minutes, seconds
-            const hours = Math.floor(timeUntilNextReset / (1000 * 60 * 60));
-            const minutes = Math.floor((timeUntilNextReset % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((timeUntilNextReset % (1000 * 60)) / 1000);
-            
-            // Update display
             hoursElement.textContent = hours.toString().padStart(2, '0');
             minutesElement.textContent = minutes.toString().padStart(2, '0');
             secondsElement.textContent = seconds.toString().padStart(2, '0');
             
-            // Update time left text
-            timeLeftElement.textContent = `${hours} hours, ${minutes} minutes`;
-            
-            // Update progress bar (percentage of time remaining)
-            const progressPercentage = (timeUntilNextReset / RESET_INTERVAL) * 100;
+            // Update progress
+            const progressPercentage = Math.min((elapsed / WORK_DURATION) * 100, 100);
             progressBar.style.width = `${progressPercentage}%`;
             
-            // Update reset times
-            lastResetElement.textContent = formatTime(lastResetTime);
-            nextResetElement.textContent = formatTime(nextResetTime);
-            afterNextElement.textContent = formatTime(afterNextResetTime);
-            
-            // Update current CET time
-            const cetTime = new Date(now.toLocaleString("en-US", {timeZone: "Europe/Paris"}));
-            const hoursCET = cetTime.getHours().toString().padStart(2, '0');
-            const minutesCET = cetTime.getMinutes().toString().padStart(2, '0');
-            currentTimeElement.textContent = `${hoursCET}:${minutesCET}`;
-            
-            // Update manual reset time display
-            if (manualResetTime) {
-                const manualCET = new Date(manualResetTime.toLocaleString("en-US", {timeZone: "Europe/Paris"}));
-                manualResetTimeElement.textContent = formatTime(manualCET);
+            // Update styling based on overtime
+            if (isOvertime) {
+                timerElement.classList.add('overtime', 'blink');
+                progressBar.classList.add('overtime');
+                statusElement.textContent = `+${hours}h ${minutes}m OVERTIME`;
+                statusElement.className = 'status overtime';
+                startBtn.textContent = 'RESET';
+            } else {
+                timerElement.classList.remove('overtime', 'blink');
+                progressBar.classList.remove('overtime');
+                statusElement.textContent = 'Working...';
+                statusElement.className = 'status working';
+                startBtn.textContent = 'RESET';
             }
+            
+            // Update info
+            startTimeElement.textContent = formatTime(startTime);
+            const endTarget = new Date(startTime.getTime() + WORK_DURATION);
+            endTimeElement.textContent = formatTime(endTarget);
+            
+            // Update highlight colors
+            document.querySelectorAll('.highlight').forEach(el => {
+                if (isOvertime) {
+                    el.classList.add('overtime');
+                } else {
+                    el.classList.remove('overtime');
+                }
+            });
         }
         
-        // Manual reset button handler
-        manualResetBtn.addEventListener('click', function() {
-            const now = new Date();
-            manualResetTime = now;
-            
-            // Visual feedback
-            manualResetBtn.textContent = "RESETTING...";
-            manualResetBtn.style.background = "#ff6b6b";
-            
-            setTimeout(() => {
-                manualResetBtn.textContent = "MANUAL RESET";
-                manualResetBtn.style.background = "#64ffda";
-            }, 500);
-            
+        startBtn.addEventListener('click', function() {
+            if (startTime) {
+                // Reset
+                clearStartTime();
+                startBtn.textContent = 'START WORK';
+            } else {
+                // Start
+                startTime = new Date();
+                saveStartTime();
+            }
             updateTimer();
         });
+        
+        // Load saved start time
+        loadStartTime();
         
         // Update immediately and then every second
         updateTimer();
