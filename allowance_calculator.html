@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Traktamente & Restid Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f6f8;
+  --white: #ffffff;
+  --border: #e2e5ea;
+  --border-light: #eef0f3;
+  --text: #1e2330;
+  --text-dim: #6b7280;
+  --text-label: #4a5060;
+  --accent: #5046e5;
+  --accent-light: #ede9fe;
+  --accent-bg: #f5f3ff;
+  --green: #10b981;
+  --green-bg: #ecfdf5;
+  --orange: #f59e0b;
+  --orange-bg: #fffbeb;
+  --red: #ef4444;
+  --red-bg: #fef2f2;
+  --blue: #3b82f6;
+  --blue-bg: #eff6ff;
+  --radius: 10px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'IBM Plex Sans', -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+.top-bar {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 32px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.top-bar .logo { font-weight: 700; font-size: 1.1rem; color: var(--accent); letter-spacing: -0.5px; }
+.top-bar .logo span { color: var(--text-dim); font-weight: 400; }
+.top-bar .pill {
+  font-size: 0.7rem; background: var(--accent-light); color: var(--accent);
+  padding: 3px 10px; border-radius: 20px; font-weight: 600;
+  letter-spacing: 0.5px; text-transform: uppercase;
+}
+.container { max-width: 1200px; margin: 0 auto; padding: 24px 24px 60px; }
+.card {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 20px; overflow: hidden;
+}
+.card-header {
+  padding: 16px 24px; border-bottom: 1px solid var(--border-light);
+  display: flex; align-items: center; gap: 10px;
+}
+.card-header h2 { font-size: 0.95rem; font-weight: 600; }
+.card-header .icon {
+  width: 28px; height: 28px; border-radius: 7px;
+  display: flex; align-items: center; justify-content: center; font-size: 0.9rem;
+}
+.card-body { padding: 20px 24px; }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+.field label {
+  display: block; font-size: 0.75rem; font-weight: 600; color: var(--text-label);
+  margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.field label .req { color: var(--red); }
+.field input, .field select {
+  width: 100%; padding: 9px 12px; border: 1px solid var(--border);
+  border-radius: 7px; font-family: inherit; font-size: 0.88rem; color: var(--text);
+  background: var(--white); outline: none; transition: border-color 0.15s, box-shadow 0.15s;
+}
+.field input:focus, .field select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(80,70,229,0.1); }
+.field select {
+  cursor: pointer; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px;
+}
+.toggle-group { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+.toggle-group span { font-size: 0.82rem; color: var(--text-dim); }
+.toggle-group span.active { color: var(--accent); font-weight: 600; }
+.toggle {
+  position: relative; width: 44px; height: 24px;
+  background: #d1d5db; border-radius: 12px; cursor: pointer; transition: background 0.2s;
+}
+.toggle.on { background: var(--accent); }
+.toggle .knob {
+  position: absolute; top: 2px; left: 2px; width: 20px; height: 20px;
+  background: white; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.2); transition: left 0.2s;
+}
+.toggle.on .knob { left: 22px; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+thead th {
+  text-align: left; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.8px; color: var(--text-dim); padding: 10px 12px;
+  border-bottom: 2px solid var(--border); white-space: nowrap; background: var(--white);
+}
+tbody td {
+  padding: 8px 12px; border-bottom: 1px solid var(--border-light);
+  vertical-align: middle; white-space: nowrap;
+}
+tbody tr:hover { background: #fafbfc; }
+tbody tr.departure-row { background: var(--blue-bg); }
+tbody tr.return-row { background: var(--green-bg); }
+td select {
+  padding: 6px 28px 6px 10px; border: 1px solid var(--border); border-radius: 6px;
+  font-family: inherit; font-size: 0.82rem; color: var(--text); background: var(--white);
+  cursor: pointer; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 8px center; outline: none; min-width: 110px;
+}
+td select:focus { border-color: var(--accent); }
+.day-name { font-weight: 600; }
+.date-text { color: var(--text-dim); font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; }
+.badge {
+  display: inline-block; padding: 2px 8px; border-radius: 4px;
+  font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px;
+}
+.badge-half { background: var(--orange-bg); color: var(--orange); }
+.badge-full { background: var(--green-bg); color: var(--green); }
+.rate-cell { font-family: 'JetBrains Mono', monospace; font-weight: 500; color: var(--accent); }
+.set-all-row td {
+  background: var(--accent-bg); border-bottom: 2px solid var(--accent); padding: 10px 12px;
+}
+.set-all-label {
+  font-size: 0.78rem; font-weight: 700; color: var(--accent);
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.travel-grid {
+  display: grid; grid-template-columns: 140px 1fr 1fr 100px 80px 40px;
+  gap: 8px; align-items: end; margin-bottom: 6px;
+}
+.travel-grid.header > span {
+  font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.8px; color: var(--text-dim); padding-bottom: 6px;
+}
+.travel-grid input {
+  padding: 8px 10px; border: 1px solid var(--border); border-radius: 7px;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--text);
+  outline: none; width: 100%;
+}
+.travel-grid input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(80,70,229,0.1); }
+.travel-computed {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.88rem;
+  color: var(--green); font-weight: 600; padding: 8px 4px; text-align: right;
+}
+.btn-add {
+  width: 100%; padding: 10px; border: 2px dashed var(--border); border-radius: 8px;
+  background: none; color: var(--text-dim); font-size: 0.82rem; font-weight: 500;
+  cursor: pointer; transition: all 0.15s; margin-top: 10px;
+}
+.btn-add:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
+.btn-remove {
+  background: none; border: none; color: var(--red); cursor: pointer;
+  font-size: 1.1rem; opacity: 0.4; transition: opacity 0.15s; padding: 8px;
+}
+.btn-remove:hover { opacity: 1; }
+.summary-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px;
+}
+.summary-item { padding: 16px; border-radius: 10px; border: 1px solid var(--border-light); }
+.summary-item .label {
+  font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.8px;
+  color: var(--text-dim); font-weight: 600; margin-bottom: 4px;
+}
+.summary-item .value { font-family: 'JetBrains Mono', monospace; font-size: 1.35rem; font-weight: 700; }
+.summary-item.travel { background: var(--blue-bg); }
+.summary-item.travel .value { color: var(--blue); }
+.summary-item.allowance { background: var(--green-bg); }
+.summary-item.allowance .value { color: var(--green); }
+.summary-item.deductions { background: var(--red-bg); }
+.summary-item.deductions .value { color: var(--red); }
+.summary-item.total { background: var(--accent); border-color: var(--accent); }
+.summary-item.total .label { color: rgba(255,255,255,0.7); }
+.summary-item.total .value { color: #fff; }
+.summary-item .detail { font-size: 0.72rem; color: var(--text-dim); margin-top: 2px; }
+@media(max-width: 768px) {
+  .container { padding: 12px; }
+  .card-body { padding: 14px; }
+  .travel-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .travel-grid.header { display: none; }
+  .top-bar { padding: 12px 16px; }
+  .summary-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <div class="logo">Traktamente<span> Calculator</span></div>
+  <div class="pill">Skatteverket 2026</div>
+</div>
+<div class="container">
+  <!-- TRIP SETUP -->
+  <div class="card">
+    <div class="card-header">
+      <div class="icon" style="background:var(--accent-light);color:var(--accent)">✈</div>
+      <h2>Trip Details</h2>
+    </div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="field"><label>Work Order / Reference</label><input type="text" id="workOrder" placeholder="e.g. W2542 – Mekra"></div>
+        <div class="field"><label>Purpose <span class="req">*</span></label><input type="text" id="purpose" placeholder="e.g. Supplier Audit"></div>
+        <div class="field"><label>Current Destination</label><input type="text" id="homeBase" value="Göteborg" placeholder="Your home base"></div>
+      </div>
+      <div class="form-grid" style="margin-top:16px">
+        <div class="field"><label>From <span class="req">*</span></label><input type="date" id="startDate"></div>
+        <div class="field"><label>To <span class="req">*</span></label><input type="date" id="endDate"></div>
+        <div class="field">
+          <label>Did you leave before or after 12 PM?</label>
+          <div class="toggle-group">
+            <span id="depBeforeLabel" class="active">Before</span>
+            <div class="toggle on" id="depToggle" onclick="toggleDep()"><div class="knob"></div></div>
+            <span id="depAfterLabel">After</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Did you return before or after 7 PM?</label>
+          <div class="toggle-group">
+            <span id="retBeforeLabel">Before</span>
+            <div class="toggle" id="retToggle" onclick="toggleRet()"><div class="knob"></div></div>
+            <span id="retAfterLabel" class="active">After</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DAY TABLE -->
+  <div class="card">
+    <div class="card-header">
+      <div class="icon" style="background:var(--green-bg);color:var(--green)">📋</div>
+      <h2>Daily Allowance</h2>
+    </div>
+    <div class="card-body" style="padding:0">
+      <div class="table-wrap">
+        <table><thead><tr>
+          <th>Date</th><th>Day</th><th>Country</th><th>Day Type</th><th>Rate (SEK)</th>
+          <th>Breakfast</th><th>Lunch</th><th>Dinner</th><th>Net (SEK)</th>
+        </tr></thead><tbody id="dayTableBody"></tbody></table>
+      </div>
+      <div id="noDays" style="padding:32px;text-align:center;color:var(--text-dim);font-size:0.88rem;">
+        Set departure and return dates to generate days.
+      </div>
+    </div>
+  </div>
+
+  <!-- TRAVEL TIME -->
+  <div class="card">
+    <div class="card-header">
+      <div class="icon" style="background:var(--blue-bg);color:var(--blue)">⏱</div>
+      <h2>Travel Time (Restid)</h2>
+      <span style="margin-left:auto;font-size:0.78rem;color:var(--text-dim)">8 work hours subtracted per day</span>
+    </div>
+    <div class="card-body">
+      <div class="field" style="max-width:200px;margin-bottom:16px">
+        <label>Hourly Rate (SEK)</label>
+        <input type="number" id="travelRate" value="250" step="10" onchange="recalcAll()">
+      </div>
+      <div class="travel-grid header">
+        <span>Date</span><span>Departure</span><span>Arrival</span><span>Extra hrs</span><span>SEK</span><span></span>
+      </div>
+      <div id="travelRows"></div>
+      <button class="btn-add" onclick="addTravelRow()">+ Add travel day</button>
+    </div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="card">
+    <div class="card-header">
+      <div class="icon" style="background:var(--accent-light);color:var(--accent)">💰</div>
+      <h2>Summary</h2>
+    </div>
+    <div class="card-body">
+      <div class="summary-grid">
+        <div class="summary-item travel"><div class="label">Travel Time</div><div class="value" id="sumTravel">0</div><div class="detail">SEK</div></div>
+        <div class="summary-item allowance"><div class="label">Gross Allowance</div><div class="value" id="sumGross">0</div><div class="detail">SEK</div></div>
+        <div class="summary-item deductions"><div class="label">Meal Deductions</div><div class="value" id="sumDeductions">0</div><div class="detail" id="sumDeductionDetail">B: 0 · L: 0 · D: 0</div></div>
+        <div class="summary-item allowance"><div class="label">Net Allowance</div><div class="value" id="sumNet">0</div><div class="detail">SEK</div></div>
+        <div class="summary-item total"><div class="label">Total Claim</div><div class="value" id="sumTotal">0</div><div class="detail" style="color:rgba(255,255,255,0.6)">SEK</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const RATES = {
+"Albanien":351,"Algeriet":334,"Amerikanska Samoa":889,"Angola":540,"Anguilla":1037,"Antigua och Barbuda":742,"Argentina":388,"Armenien":469,"Aruba":864,"Australien":727,"Azerbajdzjan":437,
+"Bahamas":1146,"Bahrain":881,"Bangladesh":399,"Barbados":930,"Belarus":300,"Belgien":897,"Belize":591,"Benin":562,"Bermuda":1217,"Bolivia":406,"Bonaire":722,"Bosnien-Hercegovina":355,"Botswana":358,"Brasilien":376,"Brunei Darussalam":458,"Bulgarien":459,"Burkina Faso":421,"Burundi":426,
+"Caymanöarna":887,"Centralafrikanska republiken":459,"Chile":479,"Colombia":378,"Cooköarna":557,"Costa Rica":677,"Curacao":645,"Cypern":601,
+"Danmark":1226,"Djibouti":619,"Dominikanska republiken":457,
+"Ecuador":573,"Egypten":300,"Ekvatorialguinea":652,"Elfenbenskusten":755,"El Salvador":462,"Eritrea":399,"Estland":683,"Eswatini":300,"Etiopien":300,
+"Fiji":415,"Filippinerna":466,"Finland":968,"Frankrike":850,"Franska Guyana":735,"Franska Polynesien":926,"Förenade Arabemiraten":883,
+"Gabon":650,"Gambia":304,"Georgien":331,"Ghana":580,"Gibraltar":654,"Grekland":695,"Grenada":603,"Guadeloupe":749,"Guam":765,"Guatemala":561,"Guinea":566,"Guyana":716,
+"Haiti":870,"Honduras":423,"Hong Kong":895,
+"Indien":300,"Indonesien":418,"Irak":590,"Irland":1038,"Island":1125,"Israel":956,"Italien":802,
+"Jamaica":425,"Japan":386,"Jordanien":803,
+"Kambodja":532,"Kamerun":524,"Kanada":895,"Kazakstan":353,"Kenya":472,"Kina":581,"Kirgizistan":300,"Kiribati":309,"Kongo (Brazzaville)":734,"Kongo (Demokratiska Rep.)":990,"Kosovo":300,"Kroatien":550,"Kuba":587,"Kuwait":849,
+"Laos":300,"Lesotho":300,"Lettland":763,"Liberia":649,"Libyen":300,"Liechtenstein":1120,"Litauen":635,"Luxemburg":953,
+"Macao":590,"Madagaskar":300,"Malawi":308,"Malaysia":319,"Maldiverna":503,"Mali":488,"Malta":659,"Marocko":507,"Martinique":753,"Mauretanien":350,"Mauritius":349,"Mexiko":562,"Mikronesiska federationen":560,"Mocambique":403,"Moldavien":414,"Monaco":1073,"Mongoliet":307,"Montenegro":391,"Myanmar":367,
+"Namibia":300,"Nederländerna":745,"Nepal":300,"Nicaragua":469,"Niger":394,"Nigeria":470,"Nordmakedonien":312,"Norge":1054,"Nya Kaledonien":862,"Nya Zeeland":525,
+"Oman":822,
+"Pakistan":300,"Panama":673,"Papua Nya Guinea":507,"Paraguay":349,"Peru":482,"Polen":597,"Portugal":616,"Puerto Rico":701,
+"Qatar":837,
+"Réunion":751,"Rumänien":414,"Rwanda":300,"Ryssland":661,
+"Saint Lucia":706,"Saint Vincent och Grenadinerna":441,"Salomonöarna":648,"Samoa":537,"Saudiarabien":1016,"Schweiz":1332,"Senegal":626,"Serbien":533,"Seychellerna":846,"Sierra Leone":345,"Singapore":845,"Sint Maarten":724,"Slovakien":737,"Slovenien":574,"Spanien":635,"Sri Lanka":424,"Storbritannien":901,"Surinam":424,"Sydafrika":349,"Sydkorea":517,
+"Tadzjikistan":300,"Taiwan":554,"Tanzania":331,"Tchad":580,"Thailand":521,"Tjeckien":695,"Togo":533,"Tonga":438,"Trinidad och Tobago":801,"Tunisien":300,"Turkiet":366,"Turkmenistan":1454,"Tyskland":760,
+"Uganda":446,"Ukraina":300,"Ungern":679,"Uruguay":595,"USA":1049,"Uzbekistan":324,
+"Vanuatu":603,"Venezuela":300,"Vietnam":328,
+"Zambia":384,"Österrike":730,"Östtimor":451,"Övriga länder":470
+};
+const DOMESTIC_RATE = 260;
+const WEEKDAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const sorted = Object.keys(RATES).sort((a,b)=>a.localeCompare(b,'sv'));
+
+let depBefore12 = true, retAfter7 = true;
+
+function toggleDep(){
+  depBefore12=!depBefore12;
+  document.getElementById('depToggle').classList.toggle('on',depBefore12);
+  document.getElementById('depBeforeLabel').classList.toggle('active',depBefore12);
+  document.getElementById('depAfterLabel').classList.toggle('active',!depBefore12);
+  buildDays();
+}
+function toggleRet(){
+  retAfter7=!retAfter7;
+  document.getElementById('retToggle').classList.toggle('on',retAfter7);
+  document.getElementById('retBeforeLabel').classList.toggle('active',!retAfter7);
+  document.getElementById('retAfterLabel').classList.toggle('active',retAfter7);
+  buildDays();
+}
+
+function countryOpts(sel){
+  let h='<option value="__domestic__">Domestic</option>';
+  sorted.forEach(c=>{const s=c===sel?' selected':'';h+=`<option value="${c}"${s}>${c} (${RATES[c]})</option>`;});
+  return h;
+}
+function mealOpts(){
+  return '<option value="paid_self">Paid myself</option><option value="included">Included in…</option><option value="paid_by">Paid for by…</option>';
+}
+
+function buildDays(){
+  const s=document.getElementById('startDate').value,e=document.getElementById('endDate').value;
+  const body=document.getElementById('dayTableBody'),noDays=document.getElementById('noDays');
+  if(!s||!e){body.innerHTML='';noDays.style.display='';recalcAll();return;}
+  noDays.style.display='none';
+  const start=new Date(s),end=new Date(e);
+  if(end<start){body.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--red);padding:20px">Return date must be after departure</td></tr>';return;}
+  const days=[];let d=new Date(start);while(d<=end){days.push(new Date(d));d.setDate(d.getDate()+1);}
+
+  let html=`<tr class="set-all-row">
+    <td colspan="2"><span class="set-all-label">Set all:</span></td>
+    <td><select id="setAllCountry" onchange="setAllField('country')"><option value="">—</option>${countryOpts('')}</select></td>
+    <td></td><td></td>
+    <td><select id="setAllBreakfast" onchange="setAllField('breakfast')"><option value="">—</option>${mealOpts()}</select></td>
+    <td><select id="setAllLunch" onchange="setAllField('lunch')"><option value="">—</option>${mealOpts()}</select></td>
+    <td><select id="setAllDinner" onchange="setAllField('dinner')"><option value="">—</option>${mealOpts()}</select></td>
+    <td></td></tr>`;
+
+  days.forEach((day,i)=>{
+    const isFirst=i===0,isLast=i===days.length-1,isSingle=days.length===1;
+    let dayType;
+    if(isSingle) dayType=(depBefore12&&retAfter7)?'full':'half';
+    else if(isFirst) dayType=depBefore12?'full':'half';
+    else if(isLast) dayType=retAfter7?'full':'half';
+    else dayType='full';
+    const dateStr=day.toISOString().slice(0,10);
+    const wd=WEEKDAYS[day.getDay()];
+    const rc=isFirst?'departure-row':isLast?'return-row':'';
+    html+=`<tr class="${rc}" data-idx="${i}">
+      <td><span class="date-text">${dateStr}</span></td>
+      <td><span class="day-name">${wd}</span></td>
+      <td><select class="day-country" data-idx="${i}" onchange="recalcAll()">${countryOpts('Tyskland')}</select></td>
+      <td><span class="badge ${dayType==='full'?'badge-full':'badge-half'}" id="dtb${i}">${dayType==='full'?'FULL DAY':'HALF DAY'}</span></td>
+      <td class="rate-cell" id="dr${i}">—</td>
+      <td><select class="day-breakfast" data-idx="${i}" onchange="recalcAll()">${mealOpts()}</select></td>
+      <td><select class="day-lunch" data-idx="${i}" onchange="recalcAll()">${mealOpts()}</select></td>
+      <td><select class="day-dinner" data-idx="${i}" onchange="recalcAll()">${mealOpts()}</select></td>
+      <td class="rate-cell" id="dn${i}">—</td></tr>`;
+  });
+  body.innerHTML=html;
+  recalcAll();
+}
+
+function setAllField(field){
+  const map={country:'Country',breakfast:'Breakfast',lunch:'Lunch',dinner:'Dinner'};
+  const val=document.getElementById(`setAll${map[field]}`).value;
+  if(!val)return;
+  document.querySelectorAll(`.day-${field}`).forEach(s=>{s.value=val;});
+  recalcAll();
+}
+
+let trId=0;
+function addTravelRow(){
+  trId++;const id=trId;
+  const div=document.createElement('div');div.className='travel-grid';div.id=`tr-${id}`;
+  div.innerHTML=`<input type="date" class="tr-date" onchange="recalcAll()">
+    <input type="time" class="tr-dep" onchange="recalcAll()">
+    <input type="time" class="tr-arr" onchange="recalcAll()">
+    <div class="travel-computed tr-hours">—</div>
+    <div class="travel-computed tr-sek">—</div>
+    <button class="btn-remove" onclick="document.getElementById('tr-${id}').remove();recalcAll()">✕</button>`;
+  document.getElementById('travelRows').appendChild(div);
+}
+addTravelRow();addTravelRow();
+
+function recalcAll(){
+  const hourlyRate=parseFloat(document.getElementById('travelRate').value)||250;
+  const s=document.getElementById('startDate').value,e=document.getElementById('endDate').value;
+  let numDays=0;
+  if(s&&e){const st=new Date(s),en=new Date(e);let d=new Date(st);while(d<=en){numDays++;d.setDate(d.getDate()+1);}}
+
+  let grossAllowance=0,totB=0,totL=0,totD=0;
+  for(let i=0;i<numDays;i++){
+    const cEl=document.querySelector(`.day-country[data-idx="${i}"]`);
+    const bEl=document.querySelector(`.day-breakfast[data-idx="${i}"]`);
+    const lEl=document.querySelector(`.day-lunch[data-idx="${i}"]`);
+    const dEl=document.querySelector(`.day-dinner[data-idx="${i}"]`);
+    if(!cEl)continue;
+    const country=cEl.value;
+    const isDom=country==='__domestic__';
+    const baseRate=isDom?DOMESTIC_RATE:(RATES[country]||470);
+
+    const isFirst=i===0,isLast=i===numDays-1,isSingle=numDays===1;
+    let dayType;
+    if(isSingle) dayType=(depBefore12&&retAfter7)?'full':'half';
+    else if(isFirst) dayType=depBefore12?'full':'half';
+    else if(isLast) dayType=retAfter7?'full':'half';
+    else dayType='full';
+
+    const badge=document.getElementById(`dtb${i}`);
+    badge.textContent=dayType==='full'?'FULL DAY':'HALF DAY';
+    badge.className=`badge ${dayType==='full'?'badge-full':'badge-half'}`;
+
+    const mult=dayType==='full'?1:0.5;
+    const dayAmt=Math.round(baseRate*mult);
+    document.getElementById(`dr${i}`).textContent=dayAmt;
+
+    let bDed=0,lDed=0,dDed=0;
+    if(bEl.value!=='paid_self') bDed=Math.round(dayAmt*0.15);
+    if(lEl.value!=='paid_self') lDed=Math.round(dayAmt*0.35);
+    if(dEl.value!=='paid_self') dDed=Math.round(dayAmt*0.35);
+    document.getElementById(`dn${i}`).textContent=dayAmt-bDed-lDed-dDed;
+
+    grossAllowance+=dayAmt;totB+=bDed;totL+=lDed;totD+=dDed;
+  }
+  const totalMealDed=totB+totL+totD;
+  const netAllowance=grossAllowance-totalMealDed;
+
+  let totalTravelSEK=0;
+  document.querySelectorAll('#travelRows .travel-grid').forEach(row=>{
+    const dep=row.querySelector('.tr-dep')?.value;
+    const arr=row.querySelector('.tr-arr')?.value;
+    const hEl=row.querySelector('.tr-hours'),sEl=row.querySelector('.tr-sek');
+    if(dep&&arr){
+      const[dh,dm]=dep.split(':').map(Number),[ah,am]=arr.split(':').map(Number);
+      let t=(ah*60+am)-(dh*60+dm);if(t<0)t+=1440;
+      const extra=Math.max(0,t/60-8);const sek=Math.round(extra*hourlyRate);
+      hEl.textContent=extra.toFixed(1)+'h';sEl.textContent=sek.toLocaleString();
+      totalTravelSEK+=sek;
+    }else{hEl.textContent='—';sEl.textContent='—';}
+  });
+
+  document.getElementById('sumTravel').textContent=totalTravelSEK.toLocaleString();
+  document.getElementById('sumGross').textContent=grossAllowance.toLocaleString();
+  document.getElementById('sumDeductions').textContent=totalMealDed>0?'−'+totalMealDed.toLocaleString():'0';
+  document.getElementById('sumDeductionDetail').textContent=`B: −${totB} · L: −${totL} · D: −${totD}`;
+  document.getElementById('sumNet').textContent=netAllowance.toLocaleString();
+  document.getElementById('sumTotal').textContent=(totalTravelSEK+netAllowance).toLocaleString();
+}
+
+document.getElementById('startDate').addEventListener('change',buildDays);
+document.getElementById('endDate').addEventListener('change',buildDays);
+buildDays();
+</script>
+</body>
+</html>
