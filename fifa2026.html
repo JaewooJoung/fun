@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>World Cup 2026 — actual results + live prediction</title>
+<style>
+  :root{
+    --bg:#0d1117; --bg2:#161b22; --line:#283040; --fg:#e6edf3; --dim:#8b949e;
+    --acc:#3fb950; --gold:#d4a017; --bet:#58a6ff; --crim:#f85149;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+       font:14px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  a{color:var(--bet)}
+  header{position:sticky;top:0;z-index:10;background:rgba(13,17,23,.92);
+         backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:12px 16px}
+  h1{margin:0;font-size:18px;letter-spacing:.5px}
+  h1 b{color:var(--acc)} h1 i{color:var(--gold);font-style:normal}
+  .wrap{max-width:880px;margin:0 auto;padding:16px}
+  .controls{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end;margin-top:10px}
+  .ctl{display:flex;flex-direction:column;gap:2px}
+  .ctl label{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.6px}
+  .ctl input{width:84px;background:var(--bg2);border:1px solid var(--line);color:var(--fg);
+             border-radius:6px;padding:6px 8px;font:inherit}
+  button{background:var(--acc);color:#08260f;border:0;border-radius:6px;padding:9px 16px;
+         font:inherit;font-weight:700;cursor:pointer}
+  button:hover{filter:brightness(1.1)}
+  .meta{color:var(--dim);font-size:12px;margin:4px 0 0}
+  .warn{color:var(--gold)}
+  section{margin:22px 0}
+  .bar{display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line);
+       padding-bottom:6px;margin-bottom:10px}
+  .bar h2{margin:0;font-size:15px;letter-spacing:1px;color:var(--fg)}
+  .bar .sub{color:var(--dim);font-size:11px}
+  table{border-collapse:collapse;width:100%;font-size:13px}
+  th,td{padding:4px 8px;text-align:left} th{color:var(--dim);font-weight:600;font-size:11px}
+  td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+  .grp{margin:0 0 16px;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .grp .gh{background:var(--bg2);padding:6px 10px;font-weight:700;letter-spacing:.5px}
+  .grp tr:nth-child(even){background:rgba(255,255,255,.02)}
+  .adv{color:var(--acc)} .adv3{color:var(--bet)}
+  .match{display:grid;grid-template-columns:1fr 96px 1fr auto;align-items:center;
+         gap:8px;padding:6px 8px;border-bottom:1px solid var(--line)}
+  .match:last-child{border-bottom:0}
+  .home{text-align:right} .away{text-align:left}
+  .score{text-align:center;font-weight:700;font-variant-numeric:tabular-nums}
+  .score .d{color:var(--dim);margin:0 4px}
+  .tag{font-size:9px;padding:2px 6px;border-radius:10px;justify-self:end;white-space:nowrap}
+  .tag.a{background:rgba(63,185,80,.15);color:var(--acc);border:1px solid rgba(63,185,80,.4)}
+  .tag.p{background:rgba(88,166,255,.12);color:var(--bet);border:1px solid rgba(88,166,255,.35)}
+  .pens{grid-column:1/-1;text-align:center;font-size:11px;color:var(--gold)}
+  .ko{border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .final{text-align:center;padding:18px;border:1px solid var(--gold);border-radius:10px;
+         background:linear-gradient(180deg,rgba(212,160,23,.10),transparent)}
+  .final .c{font-size:26px;font-weight:800;margin:2px 0}
+  .final .r{color:var(--dim);margin:2px 0}
+  .loading{color:var(--dim);padding:40px;text-align:center}
+  .err{color:var(--crim)}
+  .legend{font-size:11px;color:var(--dim);margin-top:6px}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap" style="padding:0">
+    <h1>⚽ WORLD CUP <b>2026</b> — actual results + <i>prediction</i></h1>
+    <div class="controls">
+      <div class="ctl"><label>w_elo</label><input id="w_elo" type="number" step="0.05" value="0.4"></div>
+      <div class="ctl"><label>w_rating</label><input id="w_rating" type="number" step="0.05" value="0.6"></div>
+      <div class="ctl"><label>form_sigma</label><input id="form_sigma" type="number" step="0.05" value="0.6"></div>
+      <div class="ctl"><label>goal_k</label><input id="goal_k" type="number" step="0.05" value="0.6"></div>
+      <div class="ctl"><label>base_goals</label><input id="base_goals" type="number" step="0.1" value="1.3"></div>
+      <div class="ctl"><label>host_bonus</label><input id="host_bonus" type="number" step="0.05" value="0.4"></div>
+      <div class="ctl"><label>seed (blank=random)</label><input id="seed" type="text" placeholder="random"></div>
+      <button id="run">↻ Simulate</button>
+    </div>
+    <div class="legend">Refresh the page or press <b>Simulate</b> to replay the tournament.
+      Played matches use real scores <span class="tag a">ACTUAL</span>; the rest are predicted
+      <span class="tag p">PRED</span>. Set a seed to reproduce a run.</div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div id="status" class="meta"></div>
+  <div id="out"><div class="loading">Loading feeds…</div></div>
+</div>
+
+<script>
+"use strict";
+const FIFA_URL = "https://raw.githubusercontent.com/JaewooJoung/db/main/f/fifa2026.json";
+const WC_URL   = "https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026/worldcup.json";
+
+// ---- flags ---------------------------------------------------------------
+const ISO2 = {
+ "Mexico":"MX","South Korea":"KR","Korea Republic":"KR","Czech Republic":"CZ","Czechia":"CZ",
+ "South Africa":"ZA","Switzerland":"CH","Canada":"CA","Bosnia & Herzegovina":"BA",
+ "Bosnia and Herzegovina":"BA","Qatar":"QA","Brazil":"BR","Morocco":"MA","Haiti":"HT",
+ "USA":"US","United States":"US","Australia":"AU","Turkey":"TR","Türkiye":"TR","Turkiye":"TR",
+ "Paraguay":"PY","Germany":"DE","Ecuador":"EC","Ivory Coast":"CI","Côte d'Ivoire":"CI",
+ "Cote d'Ivoire":"CI","Curaçao":"CW","Curacao":"CW","Netherlands":"NL","Japan":"JP","Sweden":"SE",
+ "Tunisia":"TN","France":"FR","Spain":"ES","Argentina":"AR","Portugal":"PT","Colombia":"CO",
+ "Belgium":"BE","Croatia":"HR","Uruguay":"UY","Denmark":"DK","Senegal":"SN","Nigeria":"NG",
+ "Ghana":"GH","Panama":"PA","Norway":"NO","Italy":"IT","Poland":"PL","Egypt":"EG","Algeria":"DZ",
+ "Cameroon":"CM","Serbia":"RS","Austria":"AT","Peru":"PE","Chile":"CL","Saudi Arabia":"SA",
+ "Iran":"IR","IR Iran":"IR","Iraq":"IQ","United Arab Emirates":"AE","UAE":"AE","Jordan":"JO",
+ "Uzbekistan":"UZ","New Zealand":"NZ","Costa Rica":"CR","Jamaica":"JM","Honduras":"HN",
+ "Cape Verde":"CV","Cabo Verde":"CV","DR Congo":"CD","Congo DR":"CD","Ukraine":"UA","Greece":"GR"
+};
+const SPECIAL = {"England":"🏴\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}",
+                 "Scotland":"🏴\u{E0067}\u{E0062}\u{E0073}\u{E0063}\u{E0074}\u{E007F}",
+                 "Wales":"🏴\u{E0067}\u{E0062}\u{E0077}\u{E006C}\u{E0073}\u{E007F}"};
+const SYN = {"unitedstates":"usa","korearepublic":"southkorea","cotedivoire":"ivorycoast",
+             "turkiye":"turkey","czechia":"czechrepublic","congodr":"drcongo"};
+const norm = s => (s||"").normalize("NFKD").replace(/[^A-Za-z]/g,"").toLowerCase();
+const flagCC = cc => [...cc].map(c=>String.fromCodePoint(0x1F1E6 + c.charCodeAt(0)-65)).join("");
+function flagFor(name){ name=(name||"").trim(); if(SPECIAL[name])return SPECIAL[name];
+  if(ISO2[name])return flagCC(ISO2[name]); return ""; }
+
+// ---- seeded RNG + distributions -----------------------------------------
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0;
+  let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t;
+  return ((t^t>>>14)>>>0)/4294967296; }; }
+let RND = Math.random;
+function gauss(){ let u=0,v=0; while(u===0)u=RND(); while(v===0)v=RND();
+  return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+function poisson(l){ if(l<=0)return 0; const L=Math.exp(-l); let k=0,p=1;
+  do{ k++; p*=RND(); }while(p>L); return k-1; }
+const clamp=(x,lo,hi)=>Math.max(lo,Math.min(hi,x));
+const esc=s=>(""+s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const disp=t=>(t.flag?t.flag+" ":"")+esc(t.name);
+
+// ---- team strengths from fifa2026.json -----------------------------------
+function buildTeams(fifa, P){
+  const teams=[];
+  for(const g of fifa.groups) for(const t of g.teams){
+    const rs=(t.players||[]).map(p=>p.overall_rating).filter(x=>typeof x==="number");
+    const avg=rs.length? rs.reduce((a,b)=>a+b,0)/rs.length : null;
+    teams.push({name:t.team_name, group:t.group_code,
+      elo:(typeof t.elo==="number"?t.elo:null), rating:avg, host:!!t.is_host,
+      flag:flagFor(t.team_name)});
+  }
+  const mean=a=>a.reduce((x,y)=>x+y,0)/a.length;
+  const std=a=>{ if(a.length<2)return 1; const m=mean(a);
+    return Math.sqrt(a.reduce((s,x)=>s+(x-m)**2,0)/(a.length-1)); };
+  const E=teams.map(t=>t.elo).filter(x=>x!=null), R=teams.map(t=>t.rating).filter(x=>x!=null);
+  const me=mean(E),se=std(E),mr=mean(R),sr=std(R);
+  for(const t of teams){
+    const ze=(t.elo==null||se===0)?0:(t.elo-me)/se;
+    const zr=(t.rating==null||sr===0)?0:(t.rating-mr)/sr;
+    t.strength=P.w_elo*ze + P.w_rating*zr + (t.host?P.host_bonus:0);
+  }
+  const byName=new Map(); for(const t of teams) byName.set(norm(t.name),t);
+  return {teams,byName,unmatched:new Set()};
+}
+function getTeam(name,tm){
+  const k=norm(name);
+  if(tm.byName.has(k))return tm.byName.get(k);
+  if(SYN[k]&&tm.byName.has(SYN[k]))return tm.byName.get(SYN[k]);
+  tm.unmatched.add(name);
+  const fb={name,group:"",elo:null,rating:null,host:false,flag:flagFor(name),strength:0};
+  tm.byName.set(k,fb); return fb;
+}
+
+// ---- match prediction ----------------------------------------------------
+function shootout(a,b){
+  const pa=clamp(0.75+0.015*(a.strength-b.strength),0.55,0.92);
+  const pb=clamp(0.75+0.015*(b.strength-a.strength),0.55,0.92);
+  let sa=0,sb=0; for(let i=0;i<5;i++){ if(RND()<pa)sa++; if(RND()<pb)sb++; }
+  while(sa===sb){ if(RND()<pa)sa++; if(RND()<pb)sb++; }
+  return [sa,sb];
+}
+function predict(a,b,P,knockout){
+  const d=(a.strength+P.form_sigma*gauss())-(b.strength+P.form_sigma*gauss());
+  let ga=poisson(P.base_goals*Math.exp(P.goal_k*d));
+  let gb=poisson(P.base_goals*Math.exp(-P.goal_k*d));
+  let pens=null;
+  if(knockout && ga===gb){
+    ga+=poisson(P.base_goals*P.et_factor*Math.exp(P.goal_k*d));
+    gb+=poisson(P.base_goals*P.et_factor*Math.exp(-P.goal_k*d));
+    if(ga===gb){ const [sa,sb]=shootout(a,b); return {ga,gb,winner:sa>sb?'a':'b',pens:[sa,sb]}; }
+  }
+  return {ga,gb,winner:ga>gb?'a':(gb>ga?'b':'draw'),pens};
+}
+
+// ---- assign best-third teams to their R32 slots --------------------------
+function assignThirds(slots,qual){
+  const opts=slots.map(s=>({num:s.num,gs:qual.filter(g=>s.cands.has(g))}))
+                  .sort((a,b)=>a.gs.length-b.gs.length);
+  const assign={},used=new Set();
+  (function bt(i){ if(i>=opts.length)return true;
+    for(const g of opts[i].gs){ if(used.has(g))continue;
+      assign[opts[i].num]=g; used.add(g); if(bt(i+1))return true;
+      delete assign[opts[i].num]; used.delete(g); } return false; })(0)
+   || slots.forEach((s,i)=>{ if(i<qual.length)assign[s.num]=qual[i]; });
+  return assign;
+}
+
+// ---- full tournament -----------------------------------------------------
+function simulate(matches,tm,P){
+  const gm=matches.filter(m=>m.group);
+  const km=matches.filter(m=>m.num!=null).sort((a,b)=>a.num-b.num);
+  const st={},gteams={},played=[]; let greal=0,gpred=0;
+  const ensure=(gl,nm)=>{ if(!st[gl]){st[gl]={};gteams[gl]=[];}
+    if(!st[gl][nm]){st[gl][nm]={pts:0,w:0,d:0,l:0,gf:0,ga:0};gteams[gl].push(nm);} };
+  for(const m of gm){
+    const gl=m.group.slice(-1),a=m.team1,b=m.team2; ensure(gl,a); ensure(gl,b);
+    let g1,g2,real=false;
+    if(m.score&&m.score.ft){ [g1,g2]=m.score.ft; greal++; real=true; }
+    else{ const r=predict(getTeam(a,tm),getTeam(b,tm),P,false); g1=r.ga; g2=r.gb; gpred++; }
+    const sa=st[gl][a],sb=st[gl][b];
+    sa.gf+=g1; sa.ga+=g2; sb.gf+=g2; sb.ga+=g1;
+    if(g1>g2){sa.pts+=3;sa.w++;sb.l++;} else if(g2>g1){sb.pts+=3;sb.w++;sa.l++;}
+    else{sa.pts++;sb.pts++;sa.d++;sb.d++;}
+    if(real)played.push({date:m.date||"",time:m.time||"",label:"Group "+gl,
+      t1:getTeam(a,tm),t2:getTeam(b,tm),g1,g2});
+  }
+  const gd=(gl,nm)=>st[gl][nm].gf-st[gl][nm].ga;
+  const ranks={},thirds=[];
+  for(const gl of Object.keys(gteams).sort()){
+    const r=gteams[gl].slice().sort((x,y)=>
+      st[gl][y].pts-st[gl][x].pts || gd(gl,y)-gd(gl,x) ||
+      st[gl][y].gf-st[gl][x].gf || getTeam(y,tm).strength-getTeam(x,tm).strength);
+    ranks[gl]=r;
+    if(r.length>=3){const n=r[2];thirds.push({gl,name:n,pts:st[gl][n].pts,gd:gd(gl,n),gf:st[gl][n].gf});}
+  }
+  thirds.sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf);
+  const best=thirds.slice(0,8),thirdName={},qual=[];
+  for(const x of best){thirdName[x.gl]=x.name; qual.push(x.gl);}
+  const slots=[];
+  for(const m of km) if(m.round==="Round of 32") for(const s of [m.team1,m.team2])
+    if(typeof s==="string"&&s[0]==="3")slots.push({num:m.num,cands:new Set(s.slice(1).split("/"))});
+  const assign=assignThirds(slots,qual);
+
+  const winner={},loser={},results={}; let kreal=0,kpred=0;
+  const resolve=(s,num)=>{ s=String(s);
+    if(s[0]==="W")return winner[+s.slice(1)];
+    if(s[0]==="L")return loser[+s.slice(1)];
+    if(s[0]==="3")return getTeam(thirdName[assign[num]],tm);
+    if(s[0]==="1")return getTeam(ranks[s.slice(1)][0],tm);
+    if(s[0]==="2")return getTeam(ranks[s.slice(1)][1],tm);
+    return getTeam(s,tm); };
+  for(const m of km){
+    const num=m.num,rnd=m.round,t1=resolve(m.team1,num),t2=resolve(m.team2,num);
+    let g1,g2,wsym,pens=null,real=false;
+    if(m.score&&m.score.ft){ [g1,g2]=m.score.ft; real=true; kreal++;
+      if(g1===g2){const[sa,sb]=shootout(t1,t2);pens=[sa,sb];wsym=sa>sb?'a':'b';}else wsym=g1>g2?'a':'b';
+      played.push({date:m.date||"",time:m.time||"",label:rnd,t1,t2,g1,g2});
+    } else { const r=predict(t1,t2,P,true); g1=r.ga;g2=r.gb;wsym=r.winner;pens=r.pens; kpred++; }
+    const w=wsym==='a'?t1:t2, l=wsym==='a'?t2:t1; winner[num]=w; loser[num]=l;
+    (results[rnd]=results[rnd]||[]).push({num,t1,t2,g1,g2,pens,real,winner:w});
+  }
+  return {played,greal,gpred,kreal,kpred,st,ranks,qual,gteams,gd,results,winner,loser};
+}
+
+// ---- rendering -----------------------------------------------------------
+function matchHTML(t1,t2,g1,g2,real,pens){
+  let h=`<div class="match"><span class="t home">${disp(t1)}</span>`+
+    `<span class="score">${g1}<span class="d">-</span>${g2}</span>`+
+    `<span class="t away">${disp(t2)}</span>`+
+    `<span class="tag ${real?'a':'p'}">${real?'ACTUAL':'PRED'}</span>`;
+  if(pens)h+=`<span class="pens">penalty shootout ${pens[0]}-${pens[1]} · ${disp(pens[0]>pens[1]?t1:t2)} win</span>`;
+  return h+`</div>`;
+}
+function render(res,P,seed,tm){
+  const KO=[["Round of 32","Round of 32"],["Round of 16","Round of 16"],
+            ["Quarter-final","Quarter-finals"],["Semi-final","Semi-finals"],
+            ["Match for third place","Third-place playoff"],["Final","Final"]];
+  let h="";
+
+  // actual results
+  const pl=res.played.slice().sort((a,b)=>(a.date+a.time<b.date+b.time?-1:1));
+  h+=`<section><div class="bar"><h2>ACTUAL RESULTS SO FAR</h2><span class="sub">${pl.length} matches played</span></div><div class="ko">`;
+  for(const m of pl){
+    const d=m.date.length>=10?m.date.slice(5):m.date;
+    h+=`<div class="match"><span class="t home">${disp(m.t1)}</span>`+
+       `<span class="score">${m.g1}<span class="d">-</span>${m.g2}</span>`+
+       `<span class="t away">${disp(m.t2)}</span>`+
+       `<span class="tag a">${esc(d)} ${esc(m.label)}</span></div>`;
+  }
+  h+=`</div></section>`;
+
+  // group tables
+  h+=`<section><div class="bar"><h2>GROUP STAGE</h2><span class="sub">final table · actual + predicted</span></div>`;
+  for(const gl of Object.keys(res.ranks).sort()){
+    h+=`<div class="grp"><div class="gh">Group ${gl}</div><table><tr><th>#</th><th>Team</th>`+
+       `<th class="n">P</th><th class="n">W</th><th class="n">D</th><th class="n">L</th>`+
+       `<th class="n">GD</th><th class="n">Pts</th><th></th></tr>`;
+    res.ranks[gl].forEach((nm,i)=>{
+      const s=res.st[gl][nm],g=res.gd(gl,nm),t=getTeam(nm,tm);
+      const adv=i<2?`<span class="adv">✓</span>`:(i===2&&res.qual.includes(gl)?`<span class="adv3">✓ 3rd</span>`:"");
+      h+=`<tr><td class="n">${i+1}</td><td>${disp(t)}</td><td class="n">${s.w+s.d+s.l}</td>`+
+         `<td class="n">${s.w}</td><td class="n">${s.d}</td><td class="n">${s.l}</td>`+
+         `<td class="n">${g>=0?"+"+g:g}</td><td class="n">${s.pts}</td><td>${adv}</td></tr>`;
+    });
+    h+=`</table></div>`;
+  }
+  h+=`</section>`;
+
+  // knockout
+  for(const [key,title] of KO){
+    const ms=res.results[key]; if(!ms)continue;
+    h+=`<section><div class="bar"><h2>${title.toUpperCase()}</h2></div><div class="ko">`;
+    for(const m of ms.slice().sort((a,b)=>a.num-b.num)) h+=matchHTML(m.t1,m.t2,m.g1,m.g2,m.real,m.pens);
+    h+=`</div></section>`;
+  }
+
+  // final standings
+  const ch=res.winner[104],ru=res.loser[104],th=res.winner[103],fo=res.loser[103];
+  h+=`<section><div class="bar"><h2>FINAL STANDINGS</h2></div><div class="final">`+
+     `<div class="r">🥈 Runner-up · ${ru?disp(ru):"?"}</div>`+
+     `<div class="c">🏆 ${ch?disp(ch):"?"}</div>`+
+     (th?`<div class="r">🥉 Third · ${disp(th)}</div>`:"")+
+     (fo?`<div class="r">4th · ${disp(fo)}</div>`:"")+`</div></section>`;
+
+  document.getElementById("out").innerHTML=h;
+  const warn=tm.unmatched.size?` <span class="warn">⚠ no DB match: ${[...tm.unmatched].map(esc).join(", ")}</span>`:"";
+  document.getElementById("status").innerHTML=
+    `seed=<b>${seed}</b> · groups ${res.greal}/${res.greal+res.gpred} actual · `+
+    `knockouts ${res.kreal}/${res.kreal+res.kpred} actual · `+
+    `model w_elo=${P.w_elo} w_rating=${P.w_rating} form_sigma=${P.form_sigma} `+
+    `goal_k=${P.goal_k} host_bonus=${P.host_bonus}`+warn;
+}
+
+// ---- wiring --------------------------------------------------------------
+let DATA=null;
+const num=(id,def)=>{ const v=parseFloat(document.getElementById(id).value); return isFinite(v)?v:def; };
+function run(){
+  if(!DATA)return;
+  const P={ w_elo:num("w_elo",0.4), w_rating:num("w_rating",0.6), form_sigma:num("form_sigma",0.6),
+            goal_k:num("goal_k",0.6), base_goals:num("base_goals",1.3),
+            host_bonus:num("host_bonus",0.4), et_factor:0.35 };
+  const sv=document.getElementById("seed").value.trim();
+  const seed=sv!==""? (parseInt(sv,10)>>>0) : (Math.random()*2**32)>>>0;
+  RND=mulberry32(seed);
+  const tm=buildTeams(DATA.fifa,P);
+  const res=simulate(DATA.matches,tm,P);
+  render(res,P,seed,tm);
+}
+async function init(){
+  try{
+    const bust="?t="+Date.now();
+    const [fifa,wc]=await Promise.all([
+      fetch(FIFA_URL+bust).then(r=>{if(!r.ok)throw Error("fifa2026.json "+r.status);return r.json();}),
+      fetch(WC_URL+bust).then(r=>{if(!r.ok)throw Error("worldcup.json "+r.status);return r.json();})
+    ]);
+    DATA={fifa, matches:wc.matches};
+    document.getElementById("run").addEventListener("click",run);
+    run();
+  }catch(e){
+    document.getElementById("out").innerHTML=
+      `<div class="loading err">Failed to load feeds: ${esc(e.message)}<br><br>`+
+      `If opened from file://, some browsers block fetch — serve it instead, e.g.<br>`+
+      `<code>python3 -m http.server</code> then open http://localhost:8000/fifa2026.html</div>`;
+  }
+}
+init();
+</script>
+</body>
+</html>
