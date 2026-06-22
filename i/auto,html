@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>자동차 산업 전환 시뮬레이터 2045</title>
+<style>
+  :root{
+    --bg:#0a0e14; --panel:#10151f; --panel-2:#161d2b; --line:#212a3a;
+    --ink:#e6edf6; --ink-dim:#8a98ad;
+    --enable:#36c6a0; --demand:#e8a13a; --accent:#5b9dff; --warn:#ff6b6b;
+    --mono:"SF Mono",ui-monospace,"Cascadia Code","Roboto Mono",Menlo,Consolas,monospace;
+    --sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:radial-gradient(1200px 600px at 80% -10%, rgba(91,157,255,.08), transparent 60%),var(--bg);
+    color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased;
+    padding:28px 20px 80px;
+  }
+  .wrap{max-width:1200px;margin:0 auto}
+  header{border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:24px}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+  h1{font-size:26px;font-weight:700;letter-spacing:-.01em}
+  .sub{color:var(--ink-dim);font-size:14px;margin-top:8px;max-width:800px}
+  .layout{display:grid;grid-template-columns:minmax(0,500px) 1fr;gap:24px;align-items:start}
+  @media(max-width:980px){.layout{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px}
+  .card h2{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim);display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+  .group-label{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;margin:20px 0 6px;padding-top:14px;border-top:1px dashed var(--line)}
+  .group-label:first-of-type{border-top:none;padding-top:4px;margin-top:8px}
+  .dot{width:8px;height:8px;border-radius:2px;flex:none}
+  .dot.e{background:var(--enable)} .dot.d{background:var(--demand)}
+
+  /* parent driver block */
+  .driver{margin-bottom:6px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .driver .phead{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 13px;background:var(--panel-2);cursor:pointer;user-select:none}
+  .driver .pname{font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:8px}
+  .driver .pname .num{font-family:var(--mono);font-size:10px;color:var(--ink-dim)}
+  .driver .pname .chev{font-size:10px;color:var(--ink-dim);transition:transform .15s}
+  .driver.collapsed .pname .chev{transform:rotate(-90deg)}
+  .driver .pval{font-family:var(--mono);font-size:14px;font-weight:600}
+  .driver.e .pval{color:var(--enable)} .driver.d .pval{color:var(--demand)}
+  .driver .pbody{padding:6px 13px 13px}
+  .driver.collapsed .pbody{display:none}
+
+  /* sub variable */
+  .sub-var{margin-top:13px}
+  .sub-var .stop{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .sub-var .sname{font-size:12.5px;font-weight:600;color:var(--ink)}
+  .sub-var .sval{font-family:var(--mono);font-size:12px;color:var(--ink);min-width:40px;text-align:right}
+  .sub-var .poles{display:flex;justify-content:space-between;font-size:10.5px;color:var(--ink-dim);margin:3px 0 6px;font-family:var(--mono)}
+  .sub-var .poles .p1{color:var(--enable-dim,#6fd9bd)}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:4px;background:var(--line);outline:none;cursor:pointer}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--ink);border:3px solid var(--panel-2);box-shadow:0 0 0 1px var(--line);transition:transform .1s}
+  input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.18)}
+  input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;background:var(--ink);border:3px solid var(--panel-2);box-shadow:0 0 0 1px var(--line)}
+  .driver.e .sub-var input[type=range]{background:linear-gradient(90deg,var(--enable) var(--fill,50%),var(--line) var(--fill,50%))}
+  .driver.d .sub-var input[type=range]{background:linear-gradient(90deg,var(--demand) var(--fill,50%),var(--line) var(--fill,50%))}
+
+  .presets{display:flex;flex-wrap:wrap;gap:6px;margin-top:18px}
+  .result-card{margin-top:24px}
+  .preset-label{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin-top:10px}
+  .presets button,.btn{font-family:var(--mono);font-size:11px;letter-spacing:.04em;background:var(--panel-2);color:var(--ink);border:1px solid var(--line);padding:6px 10px;border-radius:7px;cursor:pointer;transition:.12s}
+  .presets button:hover,.btn:hover{border-color:var(--accent);color:#fff}
+  .presets button.active{background:var(--accent);border-color:var(--accent);color:#08101e;font-weight:600}
+
+  .scoreboard{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+  @media(max-width:560px){.scoreboard{grid-template-columns:1fr 1fr}}
+  .stat{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:14px}
+  .stat .k{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim)}
+  .stat .v{font-size:28px;font-weight:700;font-family:var(--mono);margin-top:6px;letter-spacing:-.02em}
+  .stat .v small{font-size:13px;color:var(--ink-dim);font-weight:400}
+  .stat .tag{font-size:11px;margin-top:4px;font-weight:600}
+  canvas{width:100%;display:block}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px;font-size:11.5px;color:var(--ink-dim)}
+  .legend span{display:flex;align-items:center;gap:6px}
+  .legend i{width:14px;height:3px;border-radius:2px;display:inline-block}
+  .note{font-size:11.5px;color:var(--ink-dim);margin-top:16px;border-left:2px solid var(--line);padding-left:12px}
+  .formula{font-family:var(--mono);font-size:11px;color:var(--accent)}
+  .region-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .region-row .lbl{width:78px;font-size:12px;font-weight:600}
+  .bar{flex:1;height:10px;background:var(--line);border-radius:6px;overflow:hidden}
+  .bar > i{display:block;height:100%;border-radius:6px;transition:width .35s cubic-bezier(.2,.7,.2,1)}
+  .region-row .pct{font-family:var(--mono);font-size:12px;width:46px;text-align:right;color:var(--ink-dim)}
+  .datatable{display:grid;grid-template-columns:1.4fr repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:11.5px}
+  .datatable .dcell{background:var(--panel-2);padding:7px 9px}
+  .datatable .dhead{background:var(--panel);font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-dim)}
+  .datatable .dlabel{font-weight:600;color:var(--ink)}
+  .datatable .dnum{font-family:var(--mono);color:var(--ink-dim);text-align:right}
+  .datatable .dnum.hi{color:var(--enable)} .datatable .dnum.lo{color:var(--warn)}
+  .events{margin-top:8px}
+  .event{display:flex;flex-direction:column;gap:8px;padding:10px 11px;border:1px solid var(--line);border-radius:8px;margin-bottom:7px;background:var(--panel-2)}
+  .event.on{border-color:var(--warn);background:rgba(255,107,107,.06)}
+  .event .ec{flex:1}.event .et{font-size:12.5px;font-weight:600}
+  .event .ed{font-size:11px;color:var(--ink-dim);margin-top:1px}
+  .event .ey{font-family:var(--mono);font-size:11px;color:var(--warn);white-space:nowrap;min-width:48px;text-align:right}
+  .event .evyear{display:flex;align-items:center;gap:9px;padding-left:44px}
+  .event .evyear label{font-family:var(--mono);font-size:10px;color:var(--ink-dim);white-space:nowrap}
+  .event .evyear input[type=range]{height:3px;background:linear-gradient(90deg,var(--warn) var(--fill,0%),var(--line) var(--fill,0%))}
+  .event .evyear input[type=range]::-webkit-slider-thumb{width:12px;height:12px;background:var(--warn);border-width:2px}
+  .switch{display:flex;align-items:center;gap:7px;cursor:pointer;user-select:none}
+  .switch input{display:none}
+  .switch .track{width:34px;height:18px;border-radius:10px;background:var(--line);position:relative;transition:.15s}
+  .switch .track::after{content:"";position:absolute;width:14px;height:14px;border-radius:50%;background:var(--ink-dim);top:2px;left:2px;transition:.15s}
+  .switch input:checked + .track{background:var(--warn)}
+  .switch input:checked + .track::after{left:18px;background:#fff}
+  .langbar{display:flex;justify-content:flex-end;margin-bottom:8px}
+  #langSelect{font-family:var(--mono);font-size:12px;background:var(--panel-2);color:var(--ink);border:1px solid var(--line);border-radius:7px;padding:6px 10px;cursor:pointer;outline:none}
+  #langSelect:hover{border-color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="langbar">
+    <select id="langSelect" aria-label="Language">
+      <option value="ja">🇯🇵 日本語</option>
+      <option value="en">🇬🇧 English</option>
+      <option value="zh">🇨🇳 中文</option>
+      <option value="ko">🇰🇷 한국어</option>
+    </select>
+  </div>
+  <header>
+    <div class="eyebrow">Automotive Transition Model · 2025 → 2045 · v9</div>
+    <h1 data-i18n="ui.title">自動車産業トランジション・シミュレーター</h1>
+    <p class="sub" data-i18n-html="ui.subtitle"></p>
+  </header>
+
+  <div class="layout">
+    <div class="card">
+      <h2><span data-i18n="ui.driversTitle">変化ドライバー・サブ変数</span> <span class="formula" id="readout">T = 0.00</span></h2>
+      <div class="preset-label" data-i18n="ui.presetLabel">国 / 地域プリセット</div>
+      <div class="presets" id="presets" style="margin-top:8px;margin-bottom:6px">
+        <button data-p="eu">🇪🇺 <span data-i18n="preset.eu">EU</span></button>
+        <button data-p="us">🇺🇸 <span data-i18n="preset.us">米国</span></button>
+        <button data-p="cn">🇨🇳 <span data-i18n="preset.cn">中国</span></button>
+        <button data-p="jp">🇯🇵 <span data-i18n="preset.jp">日本</span></button>
+        <button data-p="kr">🇰🇷 <span data-i18n="preset.kr">韓国</span></button>
+        <button data-p="asia">🌏 <span data-i18n="preset.asia">その他アジア</span></button>
+        <button data-p="reset" data-i18n="preset.reset">リセット</button>
+      </div>
+      <div class="group-label"><span class="dot e"></span><span data-i18n="ui.enabling">Enabling Constraints</span></div>
+      <div id="enabling"></div>
+      <div class="group-label"><span class="dot d"></span><span data-i18n="ui.demandG">Demand & Value Drivers</span></div>
+      <div id="demand"></div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:24px">
+      <div class="card" style="border-color:rgba(255,107,107,.4)">
+        <h2><span data-i18n="icts.title">ICTS 体制</span> <span style="color:var(--warn)" id="ictsStatus"></span></h2>
+        <div class="event on" style="margin-top:10px">
+          <label class="switch"><input type="checkbox" id="ictsTog" checked><span class="track"></span></label>
+          <div class="ec">
+            <div class="et" data-i18n="icts.evt.title"></div>
+            <div class="ed" data-i18n="icts.evt.desc"></div>
+          </div>
+          <div class="ey" data-i18n="icts.always">常時</div>
+        </div>
+        <div class="note" id="ictsNote" style="margin-top:10px"></div>
+      </div>
+
+      <div class="card">
+        <h2 data-i18n="events.title">ショックイベント</h2>
+        <div class="events" id="events"></div>
+        <div class="note" data-i18n="events.note"></div>
+      </div>
+
+      <div class="card">
+        <h2 data-i18n="region.title">地域比較(ベースライン)</h2>
+        <div id="regionBars"></div>
+        <div class="note" data-i18n-html="region.note"></div>
+      </div>
+
+      <div class="card">
+        <h2><span data-i18n="data.title">アンカリングデータ(2025 実測)</span> <span style="color:var(--ink-dim);font-size:10px">IEA · BNEF · Benchmark</span></h2>
+        <div class="datatable" id="dataTable"></div>
+        <div class="note" data-i18n-html="data.note"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 결과: 맨 아래 ===== -->
+  <div class="card result-card">
+    <h2><span data-i18n="result.title">トランジション進捗</span> <span id="profile-name" style="color:var(--accent)"></span></h2>
+    <div class="scoreboard">
+      <div class="stat"><div class="k" data-i18n="result.ev">2045 EV 転換率</div><div class="v" id="evScore" style="color:var(--accent)">—</div><div class="tag" id="evTag"></div></div>
+      <div class="stat"><div class="k" data-i18n="result.ad">2045 AD 転換率 (L3+)</div><div class="v" id="adScore" style="color:var(--demand)">—</div><div class="tag" id="adTag"></div></div>
+      <div class="stat"><div class="k" data-i18n="result.mkt">車両販売需要 (2045 投影)</div><div class="v" id="mktScore">—</div><div class="tag" id="mktTag"></div></div>
+    </div>
+    <canvas id="chart" height="300"></canvas>
+    <div class="legend">
+      <span><i style="background:var(--accent)"></i> <span data-i18n="result.lg.ev">EV 転換率</span></span>
+      <span><i style="background:var(--demand)"></i> <span data-i18n="result.lg.ad">AD 転換率 (L3+)</span></span>
+      <span><i style="background:var(--enable)"></i> <span data-i18n="result.lg.ceiling">実現条件の上限</span></span>
+      <span><i style="background:var(--warn)"></i> <span data-i18n="result.lg.event">ショックイベント時点</span></span>
+    </div>
+    <div class="note" data-i18n-html="result.note"></div>
+
+    <h2 style="margin-top:22px"><span data-i18n="demand.title">車両販売需要の投影</span> <span id="demandMode" style="color:var(--ink-dim);font-size:10px"></span></h2>
+    <canvas id="demandChart" height="260"></canvas>
+    <div class="legend" id="demandLegend"></div>
+    <div class="note" data-i18n-html="demand.note"></div>
+  </div>
+</div>
+<script>
+const I18N={
+  "_meta": {"langs": ["ja","en","zh","ko"], "default": "ja"},
+
+  "ui.title":        {"ja":"自動車産業トランジション・シミュレーター","en":"Automotive Industry Transition Simulator","zh":"汽车产业转型模拟器","ko":"자동차 산업 전환 시뮬레이터"},
+  "ui.subtitle":     {"ja":"各変化ドライバーを構成サブ変数に細分化。すべてのスライダーは <strong>0〜1</strong> で、両端の意味が表示されます。<strong style=\"color:var(--enable)\">実現条件</strong>は乗算(ボトルネック)、<strong style=\"color:var(--demand)\">需要・価値</strong>は加重平均で結合。上位ドライバー値はサブ変数の平均で自動計算されます。","en":"Each change driver is broken into sub-variables. All sliders are <strong>0–1</strong> with both poles labeled. <strong style=\"color:var(--enable)\">Enabling constraints</strong> combine by multiplication (bottleneck); <strong style=\"color:var(--demand)\">demand & value</strong> by weighted average. Parent values are auto-computed from sub-variable means.","zh":"将各变革驱动因素细分为子变量。所有滑块为 <strong>0〜1</strong>，并标注两端含义。<strong style=\"color:var(--enable)\">使能条件</strong>以乘法(瓶颈)结合，<strong style=\"color:var(--demand)\">需求与价值</strong>以加权平均结合。上级驱动值由子变量均值自动计算。","ko":"각 변화 동인을 구성 하위 변수로 세분화했습니다. 모든 슬라이더는 <strong>0~1</strong>이며 양 끝의 의미가 표시됩니다. <strong style=\"color:var(--enable)\">가능 조건</strong>은 곱셈(병목), <strong style=\"color:var(--demand)\">수요·가치</strong>는 가중 평균으로 결합됩니다. 상위 동인 값은 하위 변수의 평균으로 자동 계산됩니다."},
+
+  "ui.driversTitle": {"ja":"変化ドライバー・サブ変数","en":"Change Drivers · Sub-variables","zh":"变革驱动·子变量","ko":"변화 동인 · 하위 변수"},
+  "ui.presetLabel":  {"ja":"国 / 地域プリセット","en":"Country / Region Presets","zh":"国家 / 地区预设","ko":"국가 / 지역 프리셋"},
+  "ui.enabling":     {"ja":"Enabling Constraints — 実現条件(ボトルネック)","en":"Enabling Constraints — bottleneck","zh":"Enabling Constraints — 使能条件(瓶颈)","ko":"Enabling Constraints — 가능 조건 (병목)"},
+  "ui.demandG":      {"ja":"Demand & Value Drivers — 需要・価値ドライバー","en":"Demand & Value Drivers","zh":"Demand & Value Drivers — 需求与价值驱动","ko":"Demand & Value Drivers — 수요·가치 동인"},
+
+  "preset.eu":   {"ja":"EU","en":"EU","zh":"欧盟","ko":"EU"},
+  "preset.us":   {"ja":"米国","en":"USA","zh":"美国","ko":"미국"},
+  "preset.cn":   {"ja":"中国","en":"China","zh":"中国","ko":"중국"},
+  "preset.jp":   {"ja":"日本","en":"Japan","zh":"日本","ko":"일본"},
+  "preset.kr":   {"ja":"韓国","en":"Korea","zh":"韩国","ko":"한국"},
+  "preset.asia": {"ja":"その他アジア","en":"Other Asia","zh":"其他亚洲","ko":"기타 아시아"},
+  "preset.reset":{"ja":"リセット","en":"Reset","zh":"重置","ko":"초기화"},
+  "preset.custom":{"ja":"カスタム設定","en":"Custom","zh":"自定义","ko":"사용자 설정"},
+
+  "icts.title":   {"ja":"ICTS 体制","en":"ICTS Regime","zh":"ICTS 体制","ko":"ICTS 체제"},
+  "icts.status.on":{"ja":"発効済 · MY2027〜","en":"In force · MY2027+","zh":"已生效 · MY2027起","ko":"발효됨 · MY2027~"},
+  "icts.status.off":{"ja":"解除(仮定)","en":"Lifted (hypothetical)","zh":"解除(假设)","ko":"해제(가정)"},
+  "icts.evt.title":{"ja":"コネクテッド車両 ICTS 規制の適用","en":"Connected Vehicle ICTS rule applied","zh":"适用联网车辆 ICTS 法规","ko":"커넥티드 차량 ICTS 규정 적용"},
+  "icts.evt.desc":{"ja":"ADS/VCS ソフトの陣営分断。米国圏の車両は米国・友好国 SW のみ、中国メーカーは米国市場参入を遮断。陣営不一致時は SW(05)・地政学(01) に上限。","en":"ADS/VCS software bloc split. US-bloc vehicles use US/allied SW only; Chinese makers blocked from the US market. On bloc mismatch, SW(05) & geopolitics(01) are capped.","zh":"ADS/VCS 软件阵营分裂。美国阵营车辆仅用美国/盟友软件；中国厂商被挡在美国市场外。阵营不符时，软件(05)与地缘政治(01)受上限约束。","ko":"ADS/VCS 소프트웨어 진영 분단. 미국권 차량은 미국·우방 SW만, 중국 제조사는 미국 시장 진입 차단. 진영 불일치 시 SW(05)·지정학(01) 상한."},
+  "icts.always":  {"ja":"常時","en":"Always","zh":"常时","ko":"상시"},
+  "icts.note.us": {"ja":"米国圏 — 規制の設計者かつ保護対象のため ICTS ペナルティなし。","en":"US bloc — rule designer and protected market; no ICTS penalty.","zh":"美国阵营 — 规则制定者兼受保护市场；无 ICTS 惩罚。","ko":"미국권 — 규정 설계자이자 보호 대상으로 ICTS 페널티 없음."},
+  "icts.note.cn": {"ja":"中国圏 — 米国・友好国市場および先端半導体へのアクセスが遮断され、友好国調達・演算に上限。","en":"China bloc — cut off from US/allied markets and advanced chips; ally sourcing & compute capped.","zh":"中国阵营 — 被切断美国/盟友市场及先进芯片；盟友采购与算力受限。","ko":"중국권 — 미국·우방 시장 및 첨단 반도체 접근이 차단되어 우방국 조달·연산에 상한."},
+  "icts.note.neutral":{"ja":"整合した ADS SW 陣営がなく、ソフトウェア・演算アクセスに上限。","en":"No aligned ADS SW bloc; software & compute access capped.","zh":"无对齐的 ADS 软件阵营；软件与算力受限。","ko":"정렬된 ADS SW 공급 진영이 없어 소프트웨어·연산 접근성에 상한이 걸립니다."},
+  "icts.note.off":{"ja":"ICTS 非適用の仮定 — 陣営に関係なく SW を自由調達する反事実シナリオ。","en":"ICTS not applied — counterfactual where SW is sourced freely regardless of bloc.","zh":"未应用 ICTS — 不论阵营自由采购软件的反事实情景。","ko":"ICTS 미적용 가정 — 진영 무관하게 SW를 자유 조달하는 반사실 시나리오."},
+  "icts.bloc.us":{"ja":"米国圏","en":"US bloc","zh":"美国阵营","ko":"미국권"},
+  "icts.bloc.cn":{"ja":"中国圏","en":"China bloc","zh":"中国阵营","ko":"중국권"},
+  "icts.bloc.neutral":{"ja":"中立(陣営未整合)","en":"Neutral (unaligned)","zh":"中立(未对齐)","ko":"중립(진영 미정렬)"},
+  "icts.curbloc": {"ja":"現在の陣営","en":"Current bloc","zh":"当前阵营","ko":"현재 진영"},
+
+  "events.title": {"ja":"ショックイベント","en":"Shock Events","zh":"冲击事件","ko":"충격 이벤트"},
+  "events.note":  {"ja":"イベントを ON にすると指定年に該当サブ変数が一時的に低下し、その後回復します。","en":"Toggling an event drops the relevant sub-variable at the set year, then recovers.","zh":"开启事件后，指定年份相关子变量临时下降，随后恢复。","ko":"이벤트를 켜면 지정 연도에 해당 하위 변수가 일시 하락 후 회복합니다."},
+  "events.year":  {"ja":"発生年","en":"Year","zh":"发生年份","ko":"발생 연도"},
+  "ui.yrsuffix": {"ja":"年","en":"","zh":"年","ko":"년"},
+
+  "evt.war.title":   {"ja":"地政学的紛争の激化(進行中)","en":"Geopolitical conflict escalation (ongoing)","zh":"地缘政治冲突升级(进行中)","ko":"지정학 분쟁 격화 (진행 중)"},
+  "evt.war.desc":    {"ja":"中東・ウクライナの拡大 → エネルギー・原材料ショック。2026年に大半が発生、緩やかに回復。","en":"Middle East / Ukraine escalation → energy & raw-material shock. Mostly hit in 2026, gradual recovery.","zh":"中东・乌克兰扩大 → 能源与原材料冲击。2026年大部分发生，缓慢恢复。","ko":"중동·우크라이나 확전 → 에너지·원자재 충격. 2026년 충격 대부분 발생, 점진 회복."},
+  "evt.tariff.title":{"ja":"関税の全面化","en":"Full tariff escalation","zh":"全面关税","ko":"관세 전면화"},
+  "evt.tariff.desc": {"ja":"相互関税・ブロック保護主義 → サプライチェーン分断。","en":"Reciprocal tariffs / bloc protectionism → supply-chain rupture.","zh":"对等关税・阵营保护主义 → 供应链断裂。","ko":"상호 관세·블록 보호주의 → 공급망 단절."},
+  "evt.mineral.title":{"ja":"重要鉱物の輸出規制(施行中)","en":"Critical-mineral export controls (in force)","zh":"关键矿产出口管制(施行中)","ko":"핵심 광물 수출 통제 (시행 중)"},
+  "evt.mineral.desc":{"ja":"中国発のレアアース・ガリウム・ゲルマニウム規制 → 輸入国に打撃。施行中。中国は規制主体で影響なし(レバレッジ獲得)、韓国は代替調達で免除。","en":"China's rare-earth / gallium / germanium controls → hits importers. In force. China is the controller (no impact, gains leverage); Korea exempt via alternative sourcing.","zh":"中国的稀土・镓・锗管制 → 打击进口国。施行中。中国为管制主体(无影响，获得筹码)，韩国通过替代采购获豁免。","ko":"중국發 희토류·갈륨·게르마늄 통제 → 수입국 타격. 현재 적용 중. 중국은 통제 주체로 영향 없음(레버리지 확보), 한국은 대체 조달로 면제."},
+  "evt.accident.title":{"ja":"大規模 AD 事故","en":"Major AD accident","zh":"重大自动驾驶事故","ko":"대형 AD 사고"},
+  "evt.accident.desc":{"ja":"自動運転の死亡事故 → 信頼・規制の後退。","en":"Fatal autonomous-driving crash → trust & regulation setback.","zh":"自动驾驶致死事故 → 信任与监管倒退。","ko":"자율주행 사망사고 → 신뢰·규제 후퇴."},
+
+  "region.title": {"ja":"地域比較(ベースライン)","en":"Region Comparison (baseline)","zh":"地区对比(基线)","ko":"지역 비교 (기준선)"},
+  "region.note":  {"ja":"<span style=\"color:var(--warn)\">赤</span> = 需要が実現条件の上限に頭打ち。","en":"<span style=\"color:var(--warn)\">Red</span> = demand capped by the enabling-constraint ceiling.","zh":"<span style=\"color:var(--warn)\">红色</span> = 需求受使能条件上限封顶。","ko":"<span style=\"color:var(--warn)\">적색</span> = 수요가 가능 조건 천장에 막힘."},
+
+  "data.title":   {"ja":"アンカリングデータ(2025 実測)","en":"Anchoring Data (2025 actuals)","zh":"锚定数据(2025 实测)","ko":"앵커링 데이터 (2025 실측)"},
+  "data.note":    {"ja":"プリセット値は下記の実測指標にアンカリング。0〜1 スコアは指標間の相対位置を正規化した推定で、精密予測ではなく <span class=\"formula\">方向・順位</span> を読む用途です。","en":"Presets are anchored to the actuals below. 0–1 scores normalize relative position across indicators — read them as <span class=\"formula\">direction & rank</span>, not precise forecasts.","zh":"预设值锚定于下方实测指标。0〜1 分数为指标间相对位置的归一化估计，用于读取 <span class=\"formula\">方向与排名</span>，而非精确预测。","ko":"프리셋 값은 아래 실측 지표에 앵커링했습니다. 0~1 점수는 지표 간 상대 위치를 정규화한 추정이며, 정밀 예측이 아니라 <span class=\"formula\">방향·순위</span>를 읽는 용도입니다."},
+  "data.col.metric":{"ja":"指標(2025)","en":"Indicator (2025)","zh":"指标(2025)","ko":"지표 (2025)"},
+  "data.row.evshare":{"ja":"EV 新車シェア","en":"EV new-car share","zh":"EV 新车份额","ko":"EV 신차 점유율"},
+  "data.row.battery":{"ja":"バッテリーパック原価","en":"Battery pack cost","zh":"电池包成本","ko":"배터리 팩 원가"},
+  "data.row.lfp":   {"ja":"LFP・化学自立","en":"LFP / chemistry self-sufficiency","zh":"LFP・化学自给","ko":"LFP·화학 자립"},
+  "data.row.policy":{"ja":"政策・補助金","en":"Policy & subsidies","zh":"政策与补贴","ko":"정책·보조금"},
+  "data.v.low":  {"ja":"低","en":"Low","zh":"低","ko":"낮음"},
+  "data.v.mid":  {"ja":"中","en":"Mid","zh":"中","ko":"중간"},
+  "data.v.high": {"ja":"高","en":"High","zh":"高","ko":"높음"},
+  "data.v.dominant":{"ja":"支配的","en":"Dominant","zh":"主导","ko":"지배적"},
+  "data.v.co2":  {"ja":"CO₂規制","en":"CO₂ rules","zh":"CO₂法规","ko":"CO₂규제"},
+  "data.v.expired":{"ja":"税額控除失効","en":"Credit expired","zh":"税收抵免失效","ko":"세액공제 만료"},
+  "data.v.strong":{"ja":"強力","en":"Strong","zh":"强力","ko":"강력"},
+  "data.v.weak": {"ja":"弱い","en":"Weak","zh":"较弱","ko":"약함"},
+  "data.v.zev":  {"ja":"ZEV50%目標","en":"ZEV 50% target","zh":"ZEV 50%目标","ko":"ZEV50%"},
+
+  "result.title":  {"ja":"トランジション進捗","en":"Transition Progress","zh":"转型进度","ko":"전환 진척도"},
+  "result.ev":     {"ja":"2045 EV 転換率","en":"2045 EV adoption","zh":"2045 EV 转化率","ko":"2045 EV 전환율"},
+  "result.ad":     {"ja":"2045 AD 転換率 (L3+)","en":"2045 AD adoption (L3+)","zh":"2045 AD 转化率 (L3+)","ko":"2045 AD 전환율 (L3+)"},
+  "result.mkt":    {"ja":"車両販売需要 (2045 投影)","en":"Vehicle sales demand (2045 proj.)","zh":"汽车销售需求 (2045 预测)","ko":"차량 판매 수요 (2045 투영)"},
+  "result.note":   {"ja":"EV と AD は <span class=\"formula\">別々の曲線</span> です — ノルウェーのように EV 90% でも AD はほぼ 0 という分岐が核心。EV はインフラ・電池原価・需要が、AD は規制・SW・信頼・地政学(ICTS)が主導します。","en":"EV and AD are <span class=\"formula\">separate curves</span> — like Norway with 90% EV yet near-zero AD. EV is driven by infrastructure, battery cost & demand; AD by regulation, SW, trust & geopolitics (ICTS).","zh":"EV 与 AD 是 <span class=\"formula\">不同曲线</span> — 如挪威 EV 达 90% 而 AD 近乎 0。EV 由基础设施・电池成本・需求驱动；AD 由监管・软件・信任・地缘政治(ICTS)主导。","ko":"EV와 AD는 <span class=\"formula\">서로 다른 곡선</span>입니다 — 노르웨이처럼 EV는 90%인데 AD는 0에 가까운 분기가 핵심. EV는 인프라·배터리원가·수요가, AD는 규제·SW·신뢰·지정학(ICTS)이 주도합니다."},
+  "result.lg.ev":  {"ja":"EV 転換率","en":"EV adoption","zh":"EV 转化率","ko":"EV 전환율"},
+  "result.lg.ad":  {"ja":"AD 転換率 (L3+)","en":"AD adoption (L3+)","zh":"AD 转化率 (L3+)","ko":"AD 전환율 (L3+)"},
+  "result.lg.ceiling":{"ja":"実現条件の上限","en":"Enabling-constraint ceiling","zh":"使能条件上限","ko":"가능 조건 한계"},
+  "result.lg.event":{"ja":"ショックイベント時点","en":"Shock-event point","zh":"冲击事件时点","ko":"충격 이벤트 시점"},
+
+  "demand.title":  {"ja":"車両販売需要の投影 (2025→2045, 百万台)","en":"Vehicle Sales Demand Projection (2025→2045, M units)","zh":"汽车销售需求预测 (2025→2045, 百万辆)","ko":"차량 판매 수요 투영 (2025→2045, 백만 대)"},
+  "demand.mode.overview":{"ja":"全体概要(プリセット選択で分離)","en":"Overview (select a preset to split)","zh":"总览(选择预设以拆分)","ko":"전체 개요 (프리셋 선택 시 분리)"},
+  "demand.mode.detail":{"ja":"詳細","en":"detail","zh":"详情","ko":"상세"},
+  "demand.note":   {"ja":"プリセットを押すとその地域の <span style=\"color:#5b9dff\">乗用車</span> / <span style=\"color:#e8a13a\">商用車</span> / <span style=\"color:#36c6a0\">自国 OEM の輸出</span> に分離されます。輸出は海外で生産・販売される台数 — 米国トヨタが米国で売る分は米国市場に帰属し、韓国・日本・中国のように輸出依存が大きい国は輸出線が内需を上回ります。需要は 20〜50代の中間層人口×購入率、人口動態は出生率(TFR)で投影。出典: CAAM・OICA・S&P Global Mobility 2025、人口・TFR: UN WPP。","en":"Selecting a preset splits that region into <span style=\"color:#5b9dff\">passenger</span> / <span style=\"color:#e8a13a\">commercial</span> / <span style=\"color:#36c6a0\">home-OEM exports</span>. Exports are units built & sold abroad — a US Toyota sold in the US belongs to the US market, while export-reliant countries (Korea, Japan, China) see exports exceed domestic sales. Demand = middle-class population aged 20–50 × purchase rate; population dynamics projected via fertility (TFR). Sources: CAAM·OICA·S&P Global Mobility 2025; population/TFR: UN WPP.","zh":"选择预设后，将该地区拆分为 <span style=\"color:#5b9dff\">乘用车</span> / <span style=\"color:#e8a13a\">商用车</span> / <span style=\"color:#36c6a0\">本国 OEM 出口</span>。出口为海外生产销售的数量 — 美国丰田在美国的销量归属美国市场，而韩国・日本・中国等出口依赖大的国家，出口线超过内需。需求 = 20〜50岁中产人口×购买率，人口动态以生育率(TFR)预测。来源: CAAM・OICA・S&P Global Mobility 2025，人口・TFR: UN WPP。","ko":"프리셋을 누르면 그 지역의 <span style=\"color:#5b9dff\">승용차</span> / <span style=\"color:#e8a13a\">상용차</span> / <span style=\"color:#36c6a0\">자국 OEM 수출</span>로 분리됩니다. 수출은 해외에서 생산·판매되는 물량 — 미국 토요타가 미국에 파는 건 미국 시장에 귀속되고, 한국·일본·중국처럼 수출 의존이 큰 나라는 수출선이 내수를 넘어섭니다. 수요는 20~50대 중산층 인구×구매율, 인구 동학은 출산율(TFR)로 투영. 출처: CAAM·OICA·S&P Global Mobility 2025, 인구·TFR: UN WPP."},
+  "demand.lg.pv":  {"ja":"乗用車(市場)","en":"Passenger (market)","zh":"乘用车(市场)","ko":"승용차 (시장)"},
+  "demand.lg.cv":  {"ja":"商用車(市場)","en":"Commercial (market)","zh":"商用车(市场)","ko":"상용차 (시장)"},
+  "demand.lg.exp": {"ja":"自国 OEM 輸出","en":"Home-OEM exports","zh":"本国 OEM 出口","ko":"자국 OEM 수출"},
+  "demand.lg.total":{"ja":"市場合計","en":"Market total","zh":"市场合计","ko":"시장 총합"},
+  "demand.endpv":  {"ja":"乗用","en":"PV","zh":"乘用","ko":"승용"},
+  "demand.endcv":  {"ja":"商用","en":"CV","zh":"商用","ko":"상용"},
+  "demand.endexp": {"ja":"輸出","en":"Exp","zh":"出口","ko":"수출"},
+  "demand.export": {"ja":"輸出","en":"exports","zh":"出口","ko":"수출"},
+
+  "band.lead":   {"ja":"先導","en":"Leading","zh":"领先","ko":"선도"},
+  "band.progress":{"ja":"進行","en":"Progressing","zh":"推进","ko":"진행"},
+  "band.delay":  {"ja":"遅延","en":"Lagging","zh":"滞后","ko":"지연"},
+  "band.stall":  {"ja":"停滞","en":"Stalled","zh":"停滞","ko":"정체"},
+  "tag.capped":  {"ja":"⚠ 実現条件で頭打ち","en":"⚠ capped by constraints","zh":"⚠ 受条件封顶","ko":"⚠ 가능 조건에 막힘"},
+  "tag.selectPreset":{"ja":"プリセット選択","en":"Select preset","zh":"选择预设","ko":"프리셋 선택"},
+
+  "driver.geo.name":  {"ja":"地政学・サプライチェーン再編","en":"Geopolitics & supply-chain realignment","zh":"地缘政治与供应链重组","ko":"지정학·공급망 재편"},
+  "driver.infra.name":{"ja":"充電・電力網インフラ","en":"Charging & grid infrastructure","zh":"充电与电网基础设施","ko":"충전·전력망 인프라"},
+  "driver.reg.name":  {"ja":"自動運転規制・RSU/V2X","en":"AD regulation · RSU/V2X","zh":"自动驾驶监管·RSU/V2X","ko":"자율주행 규제·RSU/V2X"},
+  "driver.mat.name":  {"ja":"原材料・電池の経済性","en":"Raw materials & battery economics","zh":"原材料与电池经济性","ko":"원자재·배터리 경제성"},
+  "driver.dem.name":  {"ja":"地域需要・人口構造","en":"Regional demand & demographics","zh":"地区需求与人口结构","ko":"지역 수요·인구 구조"},
+  "driver.sw.name":   {"ja":"ソフトウェア・AI・演算","en":"Software · AI · compute","zh":"软件·AI·算力","ko":"소프트웨어·AI·연산"},
+  "driver.maas.name": {"ja":"MaaS・フリートモデル","en":"MaaS & fleet model","zh":"MaaS与车队模式","ko":"MaaS·플릿 모델"},
+  "driver.cap.name":  {"ja":"資本・政策・補助金","en":"Capital · policy · subsidies","zh":"资本·政策·补贴","ko":"자본·정책·보조금"},
+  "driver.trust.name":{"ja":"消費者受容性・信頼","en":"Consumer acceptance & trust","zh":"消费者接受度与信任","ko":"소비자 수용성·신뢰"},
+
+  "sub.geo_block.name":  {"ja":"ブロック化・関税","en":"Bloc formation & tariffs","zh":"阵营化与关税","ko":"블록화·관세"},
+  "sub.geo_block.p1":    {"ja":"自由貿易・低関税","en":"Free trade, low tariffs","zh":"自由贸易·低关税","ko":"자유무역·관세 낮음"},
+  "sub.geo_block.p0":    {"ja":"ブロック分断・高関税","en":"Bloc rupture, high tariffs","zh":"阵营分裂·高关税","ko":"블록 단절·고관세"},
+  "sub.geo_ally.name":   {"ja":"友好国調達","en":"Allied sourcing","zh":"盟友采购","ko":"우방국 조달"},
+  "sub.geo_ally.p1":     {"ja":"同盟サプライチェーン確保","en":"Allied supply secured","zh":"盟友供应链确保","ko":"동맹 공급망 확보"},
+  "sub.geo_ally.p0":     {"ja":"調達先の孤立","en":"Sourcing isolated","zh":"采购来源孤立","ko":"조달처 고립"},
+  "sub.geo_mineral.name":{"ja":"重要鉱物/半導体アクセス","en":"Critical mineral / chip access","zh":"关键矿产/芯片获取","ko":"핵심 광물/반도체 접근성"},
+  "sub.geo_mineral.p1":  {"ja":"アクセス良好","en":"Good access","zh":"获取良好","ko":"접근성 좋음"},
+  "sub.geo_mineral.p0":  {"ja":"アクセスなし","en":"No access","zh":"无法获取","ko":"접근성 없음"},
+  "sub.inf_charge.name": {"ja":"急速充電密度","en":"Fast-charging density","zh":"快充密度","ko":"급속충전 밀도"},
+  "sub.inf_charge.p1":   {"ja":"密","en":"Dense","zh":"密集","ko":"촘촘함"},
+  "sub.inf_charge.p0":   {"ja":"希薄","en":"Sparse","zh":"稀疏","ko":"희박함"},
+  "sub.inf_grid.name":   {"ja":"電力網容量","en":"Grid capacity","zh":"电网容量","ko":"전력망 용량"},
+  "sub.inf_grid.p1":     {"ja":"余裕十分","en":"Ample","zh":"充足","ko":"여유 충분"},
+  "sub.inf_grid.p0":     {"ja":"過負荷","en":"Overloaded","zh":"过载","ko":"과부하"},
+  "sub.inf_std.name":    {"ja":"充電規格の収束","en":"Charging standard convergence","zh":"充电标准统一","ko":"충전 표준 수렴"},
+  "sub.inf_std.p1":      {"ja":"単一規格","en":"Single standard","zh":"单一标准","ko":"단일 표준"},
+  "sub.inf_std.p0":      {"ja":"規格分裂","en":"Fragmented","zh":"标准分裂","ko":"표준 분열"},
+  "sub.reg_liab.name":   {"ja":"責任・法的枠組み","en":"Liability & legal framework","zh":"责任与法律框架","ko":"책임·법적 체계"},
+  "sub.reg_liab.p1":     {"ja":"明確・整備済","en":"Clear, established","zh":"明确·完善","ko":"명확·정비됨"},
+  "sub.reg_liab.p0":     {"ja":"不明確・空白","en":"Unclear, gaps","zh":"不明确·空白","ko":"불명확·공백"},
+  "sub.reg_appr.name":   {"ja":"型式認可プロセス","en":"Type-approval process","zh":"型式认证流程","ko":"형식승인 절차"},
+  "sub.reg_appr.p1":     {"ja":"迅速・柔軟","en":"Fast, flexible","zh":"快速·灵活","ko":"신속·유연"},
+  "sub.reg_appr.p0":     {"ja":"硬直・遅延","en":"Rigid, delayed","zh":"僵化·延迟","ko":"경직·지연"},
+  "sub.reg_rsu.name":    {"ja":"RSU/V2X 路側インフラ","en":"RSU/V2X roadside infra","zh":"RSU/V2X 路侧设施","ko":"RSU/V2X 노변 인프라"},
+  "sub.reg_rsu.p1":      {"ja":"全面配備","en":"Fully deployed","zh":"全面部署","ko":"전면 배치"},
+  "sub.reg_rsu.p0":      {"ja":"未配備","en":"Not deployed","zh":"未部署","ko":"미배치"},
+  "sub.mat_cost.name":   {"ja":"セル原価($/kWh)","en":"Cell cost ($/kWh)","zh":"电芯成本($/kWh)","ko":"셀 원가($/kWh)"},
+  "sub.mat_cost.p1":     {"ja":"低原価","en":"Low cost","zh":"低成本","ko":"저원가"},
+  "sub.mat_cost.p0":     {"ja":"高原価","en":"High cost","zh":"高成本","ko":"고원가"},
+  "sub.mat_price.name":  {"ja":"リチウム・ニッケル価格安定","en":"Lithium/nickel price stability","zh":"锂镍价格稳定","ko":"리튬·니켈 가격 안정"},
+  "sub.mat_price.p1":    {"ja":"安定・低価","en":"Stable, low","zh":"稳定·低价","ko":"안정·저가"},
+  "sub.mat_price.p0":    {"ja":"急騰・変動","en":"Volatile, spiking","zh":"急涨·波动","ko":"급등·변동"},
+  "sub.mat_chem.name":   {"ja":"化学転換(LFP/全固体)","en":"Chemistry shift (LFP/solid-state)","zh":"化学转型(LFP/固态)","ko":"화학 전환(LFP/전고체)"},
+  "sub.mat_chem.p1":     {"ja":"成熟・量産","en":"Mature, scaled","zh":"成熟·量产","ko":"성숙·양산"},
+  "sub.mat_chem.p0":     {"ja":"未成熟","en":"Immature","zh":"未成熟","ko":"미성숙"},
+  "sub.dem_seg.name":    {"ja":"セグメント適合度","en":"Segment fit","zh":"细分契合度","ko":"세그먼트 적합도"},
+  "sub.dem_seg.p1":      {"ja":"EV/AD 親和","en":"EV/AD-friendly","zh":"EV/AD 友好","ko":"EV/AD 친화"},
+  "sub.dem_seg.p0":      {"ja":"大型・ICE 選好","en":"Large/ICE preference","zh":"偏好大型·ICE","ko":"대형·ICE 선호"},
+  "sub.dem_buy.name":    {"ja":"購買力","en":"Purchasing power","zh":"购买力","ko":"구매력"},
+  "sub.dem_buy.p1":      {"ja":"高い","en":"High","zh":"高","ko":"높음"},
+  "sub.dem_buy.p0":      {"ja":"低い","en":"Low","zh":"低","ko":"낮음"},
+  "sub.dem_growth.name": {"ja":"市場成長性","en":"Market growth","zh":"市场成长性","ko":"시장 성장성"},
+  "sub.dem_growth.p1":   {"ja":"成長市場","en":"Growth market","zh":"成长市场","ko":"성장 시장"},
+  "sub.dem_growth.p0":   {"ja":"縮小・高齢化","en":"Shrinking/aging","zh":"萎缩·老龄化","ko":"축소·고령화"},
+  "sub.sw_sdv.name":     {"ja":"SDV・OTA 能力","en":"SDV/OTA capability","zh":"SDV/OTA 能力","ko":"SDV·OTA 역량"},
+  "sub.sw_sdv.p1":       {"ja":"先導","en":"Leading","zh":"领先","ko":"선도"},
+  "sub.sw_sdv.p0":       {"ja":"不足","en":"Weak","zh":"不足","ko":"미흡"},
+  "sub.sw_ai.name":      {"ja":"AI・認識アルゴリズム","en":"AI / perception algorithms","zh":"AI·感知算法","ko":"AI·인지 알고리즘"},
+  "sub.sw_ai.p1":        {"ja":"高度化","en":"Advanced","zh":"高级","ko":"고도화"},
+  "sub.sw_ai.p0":        {"ja":"初期","en":"Early","zh":"初期","ko":"초기"},
+  "sub.sw_chip.name":    {"ja":"演算・データアクセス","en":"Compute & data access","zh":"算力与数据获取","ko":"연산·데이터 접근성"},
+  "sub.sw_chip.p1":      {"ja":"確保","en":"Secured","zh":"确保","ko":"확보"},
+  "sub.sw_chip.p0":      {"ja":"制約","en":"Constrained","zh":"受限","ko":"제약"},
+  "sub.maas_fleet.name": {"ja":"フリート経済性","en":"Fleet economics","zh":"车队经济性","ko":"플릿 경제성"},
+  "sub.maas_fleet.p1":   {"ja":"収益性確保","en":"Profitable","zh":"盈利","ko":"수익성 확보"},
+  "sub.maas_fleet.p0":   {"ja":"赤字","en":"Loss-making","zh":"亏损","ko":"적자"},
+  "sub.maas_robo.name":  {"ja":"ロボタクシー ODD 拡張","en":"Robotaxi ODD expansion","zh":"Robotaxi ODD 扩展","ko":"로보택시 ODD 확장"},
+  "sub.maas_robo.p1":    {"ja":"広範囲","en":"Broad","zh":"广泛","ko":"광범위"},
+  "sub.maas_robo.p0":    {"ja":"限定的","en":"Limited","zh":"有限","ko":"제한적"},
+  "sub.maas_own.name":   {"ja":"所有→共有への転換","en":"Ownership → sharing shift","zh":"所有→共享转变","ko":"소유→공유 전환"},
+  "sub.maas_own.p1":     {"ja":"速い","en":"Fast","zh":"快","ko":"빠름"},
+  "sub.maas_own.p0":     {"ja":"遅い","en":"Slow","zh":"慢","ko":"느림"},
+  "sub.cap_rate.name":   {"ja":"金利・資本コスト","en":"Rates & cost of capital","zh":"利率与资本成本","ko":"금리·자본 비용"},
+  "sub.cap_rate.p1":     {"ja":"低金利・潤沢","en":"Low rates, ample","zh":"低利率·充裕","ko":"저금리·풍부"},
+  "sub.cap_rate.p0":     {"ja":"高金利・逼迫","en":"High rates, tight","zh":"高利率·紧缩","ko":"고금리·경색"},
+  "sub.cap_sub.name":    {"ja":"補助金・税制(IRA等)","en":"Subsidies & tax (IRA etc.)","zh":"补贴与税收(IRA等)","ko":"보조금·세제(IRA 등)"},
+  "sub.cap_sub.p1":      {"ja":"強力な支援","en":"Strong support","zh":"强力支持","ko":"강력 지원"},
+  "sub.cap_sub.p0":      {"ja":"支援なし","en":"No support","zh":"无支持","ko":"지원 없음"},
+  "sub.cap_rnd.name":    {"ja":"R&D 投資余力","en":"R&D investment capacity","zh":"研发投资能力","ko":"R&D 투자 여력"},
+  "sub.cap_rnd.p1":      {"ja":"十分","en":"Ample","zh":"充足","ko":"충분"},
+  "sub.cap_rnd.p0":      {"ja":"不足","en":"Lacking","zh":"不足","ko":"부족"},
+  "sub.tr_ad.name":      {"ja":"自動運転への信頼","en":"Trust in autonomy","zh":"对自动驾驶的信任","ko":"자율주행 신뢰"},
+  "sub.tr_ad.p1":        {"ja":"高い","en":"High","zh":"高","ko":"높음"},
+  "sub.tr_ad.p0":        {"ja":"不信","en":"Distrust","zh":"不信任","ko":"불신"},
+  "sub.tr_ev.name":      {"ja":"EV 購入意向","en":"EV purchase intent","zh":"EV 购买意向","ko":"EV 구매 의향"},
+  "sub.tr_ev.p1":        {"ja":"積極的","en":"Eager","zh":"积极","ko":"적극적"},
+  "sub.tr_ev.p0":        {"ja":"躊躇","en":"Hesitant","zh":"犹豫","ko":"주저"},
+  "sub.tr_brand.name":   {"ja":"ブランド・転換意志","en":"Brand & switching willingness","zh":"品牌与转换意愿","ko":"브랜드·전환 의지"},
+  "sub.tr_brand.p1":     {"ja":"開放的","en":"Open","zh":"开放","ko":"개방적"},
+  "sub.tr_brand.p0":     {"ja":"保守的","en":"Conservative","zh":"保守","ko":"보수적"}
+}
+;
+let LANG='ja';
+function tr(key){const e=I18N[key];return e?(e[LANG]||e.ja||key):key;}
+const YR0=2025, YR1=2045, SPAN=YR1-YR0; // 20-year horizon
+// ===== driver tree: parent -> sub-variables, each with poles [1 means, 0 means] =====
+const TREE = [
+  {id:'geo', grp:'e', num:'01', subs:[
+    {id:'geo_block'},{id:'geo_ally'},{id:'geo_mineral'},
+  ]},
+  {id:'infra', grp:'e', num:'02', subs:[
+    {id:'inf_charge'},{id:'inf_grid'},{id:'inf_std'},
+  ]},
+  {id:'reg', grp:'e', num:'03', subs:[
+    {id:'reg_liab'},{id:'reg_appr'},{id:'reg_rsu'},
+  ]},
+  {id:'mat', grp:'e', num:'07', subs:[
+    {id:'mat_cost'},{id:'mat_price'},{id:'mat_chem'},
+  ]},
+  {id:'dem', grp:'d', num:'04', subs:[
+    {id:'dem_seg'},{id:'dem_buy'},{id:'dem_growth'},
+  ]},
+  {id:'sw', grp:'d', num:'05', subs:[
+    {id:'sw_sdv'},{id:'sw_ai'},{id:'sw_chip'},
+  ]},
+  {id:'maas', grp:'d', num:'06', subs:[
+    {id:'maas_fleet'},{id:'maas_robo'},{id:'maas_own'},
+  ]},
+  {id:'cap', grp:'d', num:'08', subs:[
+    {id:'cap_rate'},{id:'cap_sub'},{id:'cap_rnd'},
+  ]},
+  {id:'trust', grp:'d', num:'09', subs:[
+    {id:'tr_ad'},{id:'tr_ev'},{id:'tr_brand'},
+  ]},
+];
+// 번역 헬퍼: 동인/하위변수 이름·극
+function dName(id){return tr('driver.'+id+'.name');}
+function sName(id){return tr('sub.'+id+'.name');}
+function sP1(id){return tr('sub.'+id+'.p1');}
+function sP0(id){return tr('sub.'+id+'.p0');}
+
+// flatten subs
+const SUBS=[]; TREE.forEach(p=>p.subs.forEach(s=>SUBS.push({...s,parent:p.id,grp:p.grp})));
+const EPARENTS=TREE.filter(p=>p.grp==='e').map(p=>p.id);
+const DPARENTS=TREE.filter(p=>p.grp==='d').map(p=>p.id);
+const DWEIGHT={dem:0.22, sw:0.26, maas:0.16, cap:0.20, trust:0.16};
+
+// ===== presets: parent-level values, expanded to subs (all subs = parent value) =====
+// 프리셋 값은 2025 실측 데이터에 앵커링(EV침투율·배터리원가·LFP자립·정책). 출처: IEA GEVO 2026, BNEF 2025 배터리 서베이, Benchmark Mineral.
+const PRESET_PARENTS = {
+  eu:   {name:'EU',        geo:0.45,infra:0.70,reg:0.62,mat:0.45, dem:0.58,sw:0.62,maas:0.55,cap:0.62,trust:0.58},
+  us:   {name:'미국',       geo:0.68,infra:0.45,reg:0.40,mat:0.52, dem:0.42,sw:0.85,maas:0.60,cap:0.45,trust:0.42},
+  cn:   {name:'중국',       geo:0.78,infra:0.88,reg:0.80,mat:0.92, dem:0.85,sw:0.78,maas:0.72,cap:0.85,trust:0.70},
+  jp:   {name:'일본',       geo:0.60,infra:0.50,reg:0.50,mat:0.55, dem:0.28,sw:0.52,maas:0.42,cap:0.55,trust:0.40},
+  kr:   {name:'한국',       geo:0.55,infra:0.75,reg:0.65,mat:0.80, dem:0.50,sw:0.80,maas:0.52,cap:0.62,trust:0.55},
+  asia: {name:'기타 아시아', geo:0.38,infra:0.32,reg:0.30,mat:0.40, dem:0.82,sw:0.42,maas:0.40,cap:0.48,trust:0.58},
+  reset:{name:'사용자 설정', geo:0.5,infra:0.5,reg:0.5,mat:0.5, dem:0.5,sw:0.5,maas:0.5,cap:0.5,trust:0.5},
+};
+function pName(key){return tr('preset.'+key);}
+// special-case sub overrides for realism on key presets (mineral access etc.)
+const SUB_OVERRIDES = {
+  us:{geo_mineral:0.45, geo_block:0.55, geo_ally:0.95},   // strong allies, weaker raw mineral access
+  cn:{geo_mineral:0.95, geo_block:0.55, geo_ally:0.75},   // mineral dominance, tariff exposure
+  kr:{geo_mineral:0.40, geo_ally:0.70, mat_chem:0.90},    // battery chem lead, mineral import-dependent
+  jp:{mat_chem:0.75, sw_ai:0.50},
+  eu:{geo_mineral:0.40, inf_grid:0.65},
+  asia:{cap_sub:0.35},
+};
+
+const sval={}; SUBS.forEach(s=>sval[s.id]=0.5);
+
+// shock events hit sub-variables
+const EVENTS=[
+  {id:'war',     hits:{geo_ally:-0.25, mat_price:-0.25}, year:1, recover:4},
+  {id:'tariff',  hits:{geo_block:-0.35, geo_ally:-0.15}, year:1, recover:5},
+  {id:'mineral', hits:{geo_mineral:-0.40, mat_price:-0.20}, year:0, recover:6},
+  {id:'accident',hits:{tr_ad:-0.40, reg_liab:-0.15}, year:4, recover:3},
+];
+const eventState={}; EVENTS.forEach(e=>eventState[e.id]=false);
+eventState['mineral']=true; // 핵심 광물 수출 통제: 이미 시행 중(일본 등 영향) → 기본 ON
+eventState['war']=true;     // 지정학 분쟁 격화: 2026년 충격 대부분 발생 → 기본 ON
+
+// ===== ICTS regime (already in force; structural, not a shock) =====
+// SW sourcing bloc per region preset. US-bloc cars must use US/allied ADS SW;
+// China-bloc cars sell only into China bloc. Mismatch => SW & geo capped.
+const REGION_BLOC = { eu:'us', us:'us', cn:'cn', jp:'us', kr:'us', asia:'neutral' };
+let ictsOn = true; // ICTS in force by default
+
+// 핵심 광물 수출 통제 면제 지역 (중국=통제 주체, 한국=대체 조달/면제 가정)
+// 핵심 광물 수출 통제 영향 구분:
+//  'source' = 통제 주체(중국) → 영향 없음(오히려 레버리지)
+//  'exempt' = 대체 조달로 면제(한국)
+//  그 외 = 수입 의존국 → 통제 적용
+const MINERAL_STATUS = { cn:'source', kr:'exempt' };
+function mineralExempt(region){ return region && (MINERAL_STATUS[region]==='source'||MINERAL_STATUS[region]==='exempt'); }
+// 현재 활성 지역 키 (프리셋). 사용자 설정 시 null → 통제 적용(보수적)
+let activeRegion = null;
+
+
+// ===== build UI =====
+function parentValue(s, pid){
+  const subs=TREE.find(p=>p.id===pid).subs.map(x=>x.id);
+  return subs.reduce((a,k)=>a+s[k],0)/subs.length;
+}
+function buildSliders(){
+  const eW=document.getElementById('enabling'), dW=document.getElementById('demand');
+  TREE.forEach(p=>{
+    const blk=document.createElement('div');
+    blk.className='driver '+p.grp;
+    blk.id='drv-'+p.id;
+    let subsHtml='';
+    p.subs.forEach(s=>{
+      subsHtml+=`
+        <div class="sub-var">
+          <div class="stop"><div class="sname">${sName(s.id)}</div><div class="sval" id="sv-${s.id}">0.50</div></div>
+          <div class="poles"><span>0: ${sP0(s.id)}</span><span class="p1">1: ${sP1(s.id)}</span></div>
+          <input type="range" min="0" max="1" step="0.01" value="0.5" id="sl-${s.id}">
+        </div>`;
+    });
+    blk.innerHTML=`
+      <div class="phead" data-toggle="${p.id}">
+        <div class="pname"><span class="chev">▼</span><span class="num">${p.num}</span>${dName(p.id)}</div>
+        <div class="pval" id="pv-${p.id}">0.50</div>
+      </div>
+      <div class="pbody">${subsHtml}</div>`;
+    (p.grp==='e'?eW:dW).appendChild(blk);
+
+    blk.querySelector('.phead').addEventListener('click',()=>blk.classList.toggle('collapsed'));
+    p.subs.forEach(s=>{
+      blk.querySelector('#sl-'+s.id).addEventListener('input',ev=>{
+        sval[s.id]=parseFloat(ev.target.value); markCustom(); render();
+      });
+    });
+  });
+}
+// ===== 앵커링 실측 데이터 (2025) =====
+// 출처: IEA Global EV Outlook 2026, BNEF 2025 배터리 가격 서베이, Benchmark Mineral
+const REAL_DATA = [
+  {key:'data.row.evshare', unit:'%', vals:{eu:'23',us:'10',cn:'53',jp:'3',kr:'11'}, hi:'cn', lo:'jp'},
+  {key:'data.row.battery', unit:'$/kWh', vals:{eu:'~131',us:'~121',cn:'84',jp:'~125',kr:'~110'}, hi:'cn', lo:'eu'},
+  {key:'data.row.lfp', unit:'·', vals:{eu:'data.v.low',us:'data.v.mid',cn:'data.v.dominant',jp:'data.v.mid',kr:'data.v.high'}, hi:'cn', lo:'eu', tr:true},
+  {key:'data.row.policy', unit:'·', vals:{eu:'data.v.co2',us:'data.v.expired',cn:'data.v.strong',jp:'data.v.weak',kr:'data.v.zev'}, hi:'cn', lo:'us', tr:true},
+];
+function buildDataTable(){
+  const wrap=document.getElementById('dataTable');
+  const cols=['eu','us','cn'];
+  let html='<div class="dcell dhead dlabel">'+tr('data.col.metric')+'</div>';
+  cols.forEach(c=>html+=`<div class="dcell dhead dnum">${pName(c)}</div>`);
+  REAL_DATA.forEach(r=>{
+    html+=`<div class="dcell dlabel">${tr(r.key)}<span style="color:var(--ink-dim);font-weight:400"> ${r.unit!=='·'?'('+r.unit+')':''}</span></div>`;
+    cols.forEach(c=>{
+      const cls = c===r.hi?'hi':(c===r.lo?'lo':'');
+      const raw=r.vals[c]; const val = raw? (r.tr? tr(raw): raw) : '—';
+      html+=`<div class="dcell dnum ${cls}">${val}</div>`;
+    });
+  });
+  wrap.innerHTML=html;
+}
+
+// ===== 국가별 인구·출산율·차량 수요 (2026 인구 데이터 + 2025 판매 실측) =====
+// 인구·TFR 출처: UN WPP (JaewooJoung/db). 차량판매: CPCA·S&P Global Mobility 2025
+// 각 지역: 시장 판매(승용 pv + 상용 cv) / 자국 OEM 수출(해외 생산·판매 export)
+// 단위 백만 대(2025 실측·추정). 출처: CAAM·OICA·S&P·focus2move 2025
+const DEMOG = {
+  cn:   {pop:1411.4, tfr:1.03, pv:30.1, cv:4.3, export:7.1},  // 중국: 국내+수출 분리 명확
+  us:   {pop:349.9,  tfr:1.62, pv:8.5,  cv:8.2, export:1.5},  // 미국: 상용(픽업/LT) 비중 큼, 수출 적음
+  eu:   {pop:447.6,  tfr:1.43, pv:12.8, cv:2.2, export:6.0},  // EU: 승용 중심, 역내외 수출 큼
+  jp:   {pop:122.1,  tfr:1.23, pv:3.84, cv:0.72,export:4.4},  // 일본: 내수 작지만 수출 대국
+  kr:   {pop:51.6,   tfr:0.76, pv:1.45, cv:0.25,export:2.7},  // 한국: 내수 작고 수출 의존 큼
+  asia: {pop:2540.9, tfr:2.08, pv:24.0, cv:4.0, export:1.0},  // 인도+동남아: 내수 성장, 수출 작음
+};
+// 20년간 차량 수요 투영: 인구 동학(TFR 기반) × 중산층 구매층 변화
+// TFR<2.1이면 장기적으로 구매연령층 축소(시차), >2.1이면 확대.
+// 단순화: 연 인구성장률 ≈ (TFR-2.1)/2.1 * 0.7%/yr 의 누적 + 현 구매층 관성
+function growthFactors(key,y){
+  const d=DEMOG[key];
+  const annPopGrowth = (d.tfr-2.1)/2.1 * 0.009;       // TFR 기반 인구 동학
+  const midGrowth = key==='asia' ? 0.018 : (key==='cn'?0.004:0.001); // 중산층 성숙
+  const popFactor = Math.pow(1+annPopGrowth, y);
+  const midFactor = Math.min(1.6, Math.pow(1+midGrowth, y));
+  return popFactor*midFactor;
+}
+// 시장 판매(승용/상용) + 자국 OEM 수출을 각각 20년 투영
+function demandSeries(key){
+  const d=DEMOG[key];
+  const pv=[],cv=[],exp=[],total=[];
+  for(let y=0;y<=SPAN;y++){
+    const f=growthFactors(key,y);
+    // 수출은 인구 동학보다 산업 경쟁력(중국·한국 가속, 미국 둔화) 가정
+    const expGrowth = {cn:0.02,kr:0.012,jp:0.0,eu:0.005,us:-0.005,asia:0.03}[key]||0;
+    const ef=Math.pow(1+expGrowth,y);
+    const pvY=d.pv*f, cvY=d.cv*f, exY=d.export*ef;
+    pv.push(pvY); cv.push(cvY); exp.push(exY); total.push(pvY+cvY);
+  }
+  return {pv,cv,exp,total};
+}
+
+function buildEvents(){
+  const wrap=document.getElementById('events');
+  EVENTS.forEach(e=>{
+    const on=eventState[e.id];
+    const row=document.createElement('div');row.className='event'+(on?' on':'');row.id='ev-'+e.id;
+    row.innerHTML=`
+      <div style="display:flex;align-items:center;gap:10px;width:100%">
+        <label class="switch"><input type="checkbox" id="evtog-${e.id}" ${on?'checked':''}><span class="track"></span></label>
+        <div class="ec"><div class="et">${tr('evt.'+e.id+'.title')}</div><div class="ed">${tr('evt.'+e.id+'.desc')}</div></div>
+        <div class="ey" id="ey-${e.id}">${YR0+e.year}${tr('ui.yrsuffix')}</div>
+      </div>
+      <div class="evyear">
+        <label>${tr('events.year')}</label>
+        <input type="range" min="0" max="${SPAN}" step="1" value="${e.year}" id="eyr-${e.id}">
+      </div>`;
+    wrap.appendChild(row);
+    const cb=row.querySelector('#evtog-'+e.id);
+    cb.addEventListener('change',ev=>{
+      eventState[e.id]=ev.target.checked; row.classList.toggle('on',ev.target.checked); render();
+    });
+    const yr=row.querySelector('#eyr-'+e.id);
+    yr.addEventListener('input',ev=>{
+      e.year=parseInt(ev.target.value);
+      document.getElementById('ey-'+e.id).textContent=(YR0+e.year)+tr('ui.yrsuffix');
+      yr.style.setProperty('--fill',(e.year/SPAN*100)+'%');
+      render();
+    });
+    yr.style.setProperty('--fill',(e.year/SPAN*100)+'%');
+  });
+}
+
+function setFill(){
+  SUBS.forEach(s=>{
+    const sl=document.getElementById('sl-'+s.id);
+    sl.style.setProperty('--fill',(sval[s.id]*100)+'%');
+    document.getElementById('sv-'+s.id).textContent=sval[s.id].toFixed(2);
+  });
+  TREE.forEach(p=>document.getElementById('pv-'+p.id).textContent=parentValue(sval,p.id).toFixed(2));
+}
+
+let activePreset=null;
+let activeBloc='neutral'; // us | cn | neutral
+function applyPreset(key){
+  const pp=PRESET_PARENTS[key], ov=SUB_OVERRIDES[key]||{};
+  TREE.forEach(p=>{
+    p.subs.forEach(s=>{
+      sval[s.id] = (s.id in ov) ? ov[s.id] : pp[p.id];
+      document.getElementById('sl-'+s.id).value=sval[s.id];
+    });
+  });
+  activePreset=key;
+  activeBloc=REGION_BLOC[key]||'neutral';
+  activeRegion=(key==='reset')?null:key;
+  // 핵심 광물 수출 통제: 중국(통제 주체)·한국(면제)이면 자동 OFF, 그 외 수입국이면 ON
+  syncMineralToggle();
+  document.getElementById('profile-name').textContent=pName(key);
+  document.querySelectorAll('#presets button').forEach(b=>b.classList.toggle('active',b.dataset.p===key));
+  render();
+}
+// 활성 지역의 광물 통제 상태를 토글·UI에 반영
+function syncMineralToggle(){
+  const exempt = mineralExempt(activeRegion);
+  eventState['mineral'] = !exempt; // 면제 지역이면 끔
+  const cb=document.getElementById('evtog-mineral');
+  const row=document.getElementById('ev-mineral');
+  if(cb){ cb.checked=eventState['mineral']; }
+  if(row){ row.classList.toggle('on',eventState['mineral']); }
+}
+function markCustom(){
+  activePreset=null;
+  activeRegion=null;
+  document.getElementById('profile-name').textContent=tr('preset.custom');
+  document.querySelectorAll('#presets button').forEach(b=>b.classList.remove('active'));
+}
+
+// ===== ICTS effective-state transform =====
+// Returns a modified copy of sub-values reflecting the ICTS regime.
+function applyICTS(s){
+  if(!ictsOn) return s;
+  const o={...s};
+  if(activeBloc==='neutral'){
+    // No aligned ADS SW bloc: must license foreign SW but blocked from adopting
+    // either side fully -> software & chip access capped, ally sourcing capped.
+    o.sw_sdv  = Math.min(o.sw_sdv, 0.55);
+    o.sw_ai   = Math.min(o.sw_ai,  0.50);
+    o.sw_chip = Math.min(o.sw_chip,0.45);
+    o.geo_ally= Math.min(o.geo_ally,0.55);
+  } else if(activeBloc==='cn'){
+    // China bloc: strong domestic SW, but cut off from US/allied market & chips.
+    o.geo_ally  = Math.min(o.geo_ally, 0.45);
+    o.sw_chip   = Math.min(o.sw_chip, 0.55); // advanced-node chip access constrained
+    o.geo_block = Math.min(o.geo_block,0.45);
+  } else if(activeBloc==='us'){
+    // US bloc: 규정 설계자이자 보호 대상 → ICTS 페널티 없음.
+  }
+  return o;
+}
+
+// ===== model (parent values derived from subs) =====
+function parentVals(s){const o={};TREE.forEach(p=>o[p.id]=parentValue(s,p.id));return o;}
+function computeEnabling(pv){
+  const vals=EPARENTS.map(k=>Math.max(pv[k],0.001));
+  return Math.pow(vals.reduce((a,b)=>a*b,1),1/vals.length);
+}
+function computeDemand(pv){ return DPARENTS.reduce((a,k)=>a+pv[k]*DWEIGHT[k],0); }
+function computeTotal(sRaw){
+  const s=applyICTS(sRaw);
+  const pv=parentVals(s), e=computeEnabling(pv), d=computeDemand(pv);
+  return {e,d,total:Math.min(d,e)*(0.6+0.4*Math.min(d,e))};
+}
+
+// ===== EV 전환축 vs AD 전환축 분리 =====
+// EV: 충전 인프라·배터리 원가·수요·자본/정책이 주도. 규제는 약하게.
+// AD: 자율주행 규제·SW/AI·MaaS·신뢰·지정학(ICTS)이 주도. 인프라는 약하게.
+function computeEVAD(sRaw){
+  const s=applyICTS(sRaw);
+  const pv=parentVals(s);
+  // EV 가능 조건: 인프라·원자재가 병목 (충전 없으면 못 굴림)
+  const evCeiling = Math.pow(Math.max(pv.infra,.001)*Math.max(pv.mat,.001),0.5);
+  // EV 수요: 수요구조·자본정책 중심
+  const evDemand = pv.dem*0.40 + pv.cap*0.35 + pv.infra*0.15 + pv.mat*0.10;
+  const ev = Math.min(evDemand, evCeiling)*(0.65+0.35*Math.min(evDemand,evCeiling));
+
+  // AD 가능 조건: 규제·지정학(SW 진영)이 병목
+  const adCeiling = Math.pow(Math.max(pv.reg,.001)*Math.max(pv.geo,.001),0.5);
+  // AD 수요·역량: SW/AI·MaaS·신뢰 중심
+  const adDemand = pv.sw*0.40 + pv.maas*0.25 + pv.trust*0.20 + pv.reg*0.15;
+  const ad = Math.min(adDemand, adCeiling)*(0.55+0.45*Math.min(adDemand,adCeiling));
+
+  return {ev, ad, evCeiling, adCeiling};
+}
+
+function eventDelta(subId,yearIdx,regionKey){
+  let delta=0;
+  const region = (regionKey!==undefined)?regionKey:activeRegion;
+  const perRegion = (regionKey!==undefined); // 지역 비교 막대용 호출
+  EVENTS.forEach(e=>{
+    // 광물 통제는 지역 비교 시 전역 토글이 아니라 각 지역의 구조적 상태로 판정
+    const active = (e.id==='mineral' && perRegion) ? true : eventState[e.id];
+    if(!active || !(subId in e.hits)) return;
+    if(e.id==='mineral' && mineralExempt(region)) return; // 중국(통제 주체)·한국(대체 조달)은 영향 없음
+
+    const peak=e.year,rec=e.recover,mag=e.hits[subId];
+    if(yearIdx<peak) delta+=mag*(yearIdx/peak);
+    else delta+=mag*Math.max(0,1-(yearIdx-peak)/rec);
+  });
+  return delta;
+}
+function logistic(target,t){
+  const k=6+target*6, mid=0.55-target*0.18;
+  const s=1/(1+Math.exp(-k*(t-mid))), s0=1/(1+Math.exp(-k*(0-mid))), s1=1/(1+Math.exp(-k*(1-mid)));
+  return target*((s-s0)/(s1-s0));
+}
+function timeSeries(){
+  const total=[],eline=[],dline=[],evline=[],adline=[];
+  for(let y=0;y<=SPAN;y++){
+    const s={};SUBS.forEach(sb=>s[sb.id]=Math.min(1,Math.max(0,sval[sb.id]+eventDelta(sb.id,y))));
+    const c=computeTotal(s),t=y/SPAN;
+    total.push(logistic(c.total,t));eline.push(logistic(c.e,t));dline.push(logistic(c.d,t));
+    const ea=computeEVAD(s);
+    evline.push(logistic(ea.ev,t));
+    adline.push(logistic(ea.ad,t));
+  }
+  return {total,eline,dline,evline,adline};
+}
+function band(v){
+  if(v>=0.7)return[tr('band.lead'),'#36c6a0'];
+  if(v>=0.5)return[tr('band.progress'),'#5b9dff'];
+  if(v>=0.3)return[tr('band.delay'),'#e8a13a'];
+  return[tr('band.stall'),'#ff6b6b'];
+}
+
+// ===== chart =====
+const cv=document.getElementById('chart'),ctx=cv.getContext('2d');
+function sizeCanvas(){const dpr=window.devicePixelRatio||1,w=cv.clientWidth,h=300;cv.width=w*dpr;cv.height=h*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);return{w,h};}
+function drawChart(){
+  const {w,h}=sizeCanvas();
+  const padL=38,padR=14,padT=14,padB=26,W=w-padL-padR,H=h-padT-padB;
+  ctx.clearRect(0,0,w,h);
+  ctx.strokeStyle='#212a3a';ctx.lineWidth=1;ctx.font='10px monospace';ctx.fillStyle='#8a98ad';ctx.textAlign='right';ctx.textBaseline='middle';
+  for(let i=0;i<=5;i++){const y=padT+H*(i/5);ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(w-padR,y);ctx.stroke();ctx.fillText((100-i*20)+'%',padL-6,y);}
+  ctx.textAlign='center';ctx.textBaseline='top';
+  for(let yr=0;yr<=SPAN;yr+=4){ctx.fillText(YR0+yr,padL+W*(yr/SPAN),h-padB+6);}
+  const X=i=>padL+W*(i/SPAN),Y=v=>padT+H*(1-v);
+  const ts=timeSeries();
+  function line(arr,color,width,dash){ctx.beginPath();ctx.setLineDash(dash||[]);arr.forEach((v,i)=>{const x=X(i),y=Y(v);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.strokeStyle=color;ctx.lineWidth=width;ctx.stroke();ctx.setLineDash([]);}
+  // 종합·가능조건은 옅게 배경으로
+  line(ts.eline,'#36c6a0',1,[3,4]);
+  // EV·AD 주 곡선
+  line(ts.evline,'#5b9dff',2.8);   // EV
+  line(ts.adline,'#e8a13a',2.8);   // AD
+  // 이벤트 마커
+  EVENTS.forEach(e=>{if(!eventState[e.id])return;const x=X(e.year);
+    ctx.strokeStyle='rgba(255,107,107,.5)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+    ctx.beginPath();ctx.moveTo(x,padT);ctx.lineTo(x,padT+H);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='#ff6b6b';ctx.beginPath();ctx.arc(x,padT+6,3,0,7);ctx.fill();});
+  // 종점 라벨
+  function endDot(arr,color,label){
+    const lx=X(SPAN),ly=Y(arr[SPAN]);
+    ctx.beginPath();ctx.arc(lx,ly,4,0,7);ctx.fillStyle=color;ctx.fill();ctx.strokeStyle='#0a0e14';ctx.lineWidth=2;ctx.stroke();
+    ctx.fillStyle=color;ctx.font='bold 10px monospace';ctx.textAlign='right';ctx.textBaseline='middle';
+    ctx.fillText(label+' '+(arr[SPAN]*100).toFixed(0)+'%', lx-8, ly<padT+14?ly+12:ly-10);
+  }
+  endDot(ts.evline,'#5b9dff','EV');
+  endDot(ts.adline,'#e8a13a','AD');
+}
+
+// ===== 국가별 차량 판매 수요 투영 (2025→2045, 선형 곡선) =====
+const dcv=document.getElementById('demandChart'), dctx=dcv.getContext('2d');
+const DEMAND_COLORS={cn:'#ff6b6b',asia:'#a78bfa',us:'#5b9dff',eu:'#36c6a0',jp:'#e8a13a',kr:'#f0f0f0'};
+function drawDemand(){
+  const dpr=window.devicePixelRatio||1, w=dcv.clientWidth, h=260;
+  dcv.width=w*dpr; dcv.height=h*dpr; dctx.setTransform(dpr,0,0,dpr,0,0);
+  dctx.clearRect(0,0,w,h);
+  const padL=40,padR=66,padT=12,padB=26, W=w-padL-padR, H=h-padT-padB;
+
+  function axes(maxV){
+    dctx.strokeStyle='#212a3a';dctx.lineWidth=1;dctx.font='10px monospace';dctx.fillStyle='#8a98ad';dctx.textAlign='right';dctx.textBaseline='middle';
+    for(let i=0;i<=5;i++){const y=padT+H*(i/5);dctx.beginPath();dctx.moveTo(padL,y);dctx.lineTo(w-padR,y);dctx.stroke();dctx.fillText((maxV*(1-i/5)).toFixed(0),padL-6,y);}
+    dctx.textAlign='center';dctx.textBaseline='top';
+    for(let yr=0;yr<=SPAN;yr+=4){dctx.fillText(YR0+yr,padL+W*(yr/SPAN),h-padB+6);}
+  }
+  const X=i=>padL+W*(i/SPAN);
+  function plot(arr,color,width,Yf,dash){dctx.beginPath();dctx.setLineDash(dash||[]);arr.forEach((v,i)=>{const x=X(i),y=Yf(v);i?dctx.lineTo(x,y):dctx.moveTo(x,y);});dctx.strokeStyle=color;dctx.lineWidth=width;dctx.stroke();dctx.setLineDash([]);}
+  function endLabel(arr,color,label,Yf,bold){const ly=Yf(arr[SPAN]);dctx.fillStyle=color;dctx.font=(bold?'bold ':'')+'10px monospace';dctx.textAlign='left';dctx.textBaseline='middle';dctx.fillText(label+' '+arr[SPAN].toFixed(1),w-padR+4,ly);}
+
+  if(activeRegion){
+    // ===== 지역 상세: 승용 / 상용 / 자국 OEM 수출 =====
+    const d=demandSeries(activeRegion);
+    const maxV=Math.ceil(Math.max(...d.pv,...d.cv,...d.exp,...d.total)/2)*2;
+    const Y=v=>padT+H*(1-v/maxV);
+    axes(maxV);
+    plot(d.total,'#33415e',1,Y,[2,3]);                 // 시장 총합(참고)
+    plot(d.pv,'#5b9dff',2.6,Y);                         // 승용
+    plot(d.cv,'#e8a13a',2.6,Y);                         // 상용
+    plot(d.exp,'#36c6a0',2.2,Y,[5,3]);                 // 자국 OEM 수출
+    endLabel(d.pv,'#5b9dff',tr('demand.endpv'),Y,true);
+    endLabel(d.cv,'#e8a13a',tr('demand.endcv'),Y,true);
+    endLabel(d.exp,'#36c6a0',tr('demand.endexp'),Y,true);
+  } else {
+    // ===== 전체 개요: 지역별 시장 총합 =====
+    const keys=['cn','asia','us','eu','jp','kr'];
+    const all={}; let maxV=0;
+    keys.forEach(k=>{all[k]=demandSeries(k); maxV=Math.max(maxV,...all[k].total);});
+    maxV=Math.ceil(maxV/5)*5;
+    const Y=v=>padT+H*(1-v/maxV);
+    axes(maxV);
+    keys.forEach(k=>{
+      plot(all[k].total,DEMAND_COLORS[k],1.8,Y);
+      endLabel(all[k].total,DEMAND_COLORS[k],pName(k),Y,false);
+    });
+  }
+  // 범례·모드 라벨
+  const lg=document.getElementById('demandLegend'), md=document.getElementById('demandMode');
+  if(activeRegion){
+    md.textContent=pName(activeRegion)+' '+tr('demand.mode.detail');
+    lg.innerHTML='<span><i style="background:#5b9dff"></i> '+tr('demand.lg.pv')+'</span>'+
+      '<span><i style="background:#e8a13a"></i> '+tr('demand.lg.cv')+'</span>'+
+      '<span><i style="background:#36c6a0"></i> '+tr('demand.lg.exp')+'</span>'+
+      '<span><i style="background:#33415e"></i> '+tr('demand.lg.total')+'</span>';
+  } else {
+    md.textContent=tr('demand.mode.overview');
+    const keys=['cn','asia','us','eu','jp','kr'];
+    lg.innerHTML=keys.map(k=>`<span><i style="background:${DEMAND_COLORS[k]}"></i> ${pName(k)}</span>`).join('');
+  }
+}
+
+function drawRegions(){
+  const wrap=document.getElementById('regionBars');wrap.innerHTML='';
+  ['eu','us','cn','jp','kr','asia'].forEach(k=>{
+    const pp=PRESET_PARENTS[k],ov=SUB_OVERRIDES[k]||{};
+    const base={};SUBS.forEach(sb=>base[sb.id]=(sb.id in ov)?ov[sb.id]:pp[sb.parent]);
+    // 2045 시점(yearIdx=SPAN)의 이벤트 효과를 각 지역 면제 규칙으로 적용
+    const s={};SUBS.forEach(sb=>s[sb.id]=Math.min(1,Math.max(0,base[sb.id]+eventDelta(sb.id,SPAN,k))));
+    const savedBloc=activeBloc; activeBloc=REGION_BLOC[k]||'neutral';
+    const t=computeTotal(s); activeBloc=savedBloc;
+    const capped=t.d>t.e+0.02,[lbl,col]=band(t.total);
+    const row=document.createElement('div');row.className='region-row';
+    row.innerHTML=`<div class="lbl">${pName(k)}</div>
+      <div class="bar"><i style="width:${(t.total*100).toFixed(0)}%;background:${capped?'#ff6b6b':col}"></i></div>
+      <div class="pct">${(t.total*100).toFixed(0)}%</div>`;
+    wrap.appendChild(row);
+  });
+}
+
+function render(){
+  setFill();
+  const t=computeTotal(sval);
+  // EV·AD 2045 종점 (이벤트 반영)
+  const ts=timeSeries();
+  const ev2045=ts.evline[SPAN], ad2045=ts.adline[SPAN];
+  document.getElementById('evScore').innerHTML=(ev2045*100).toFixed(0)+'<small>%</small>';
+  document.getElementById('adScore').innerHTML=(ad2045*100).toFixed(0)+'<small>%</small>';
+  const bev=band(ev2045), bad=band(ad2045);
+  document.getElementById('evTag').textContent=bev[0]; document.getElementById('evTag').style.color=bev[1];
+  document.getElementById('adTag').textContent=bad[0]; document.getElementById('adTag').style.color=bad[1];
+  // 시장 규모
+  // 시장 규모: 2045 시장 총합(승용+상용)과 자국 OEM 수출
+  if(activeRegion){
+    const ds=demandSeries(activeRegion);
+    const v25=ds.total[0], v45=ds.total[SPAN], chg=((v45/v25-1)*100);
+    const exp45=ds.exp[SPAN];
+    document.getElementById('mktScore').innerHTML = v45.toFixed(1)+'<small>M</small>';
+    document.getElementById('mktTag').innerHTML = (chg>=0?'+':'')+chg.toFixed(0)+'% · '+tr('demand.export')+' '+exp45.toFixed(1)+'M';
+    document.getElementById('mktTag').style.color = chg>=0?'var(--enable)':'var(--warn)';
+  } else {
+    document.getElementById('mktScore').innerHTML='—';
+    document.getElementById('mktTag').textContent=tr('tag.selectPreset');
+    document.getElementById('mktTag').style.color='var(--ink-dim)';
+  }
+  document.getElementById('readout').textContent='EV '+(ev2045*100).toFixed(0)+' · AD '+(ad2045*100).toFixed(0);
+  // ICTS note
+  const blocName={us:tr('icts.bloc.us'),cn:tr('icts.bloc.cn'),neutral:tr('icts.bloc.neutral')}[activeBloc];
+  const ictsNote=document.getElementById('ictsNote');
+  if(ictsOn){
+    let msg=tr('icts.curbloc')+': <b style="color:var(--ink)">'+blocName+'</b>. ';
+    if(activeBloc==='neutral') msg+=tr('icts.note.neutral');
+    else if(activeBloc==='cn') msg+=tr('icts.note.cn');
+    else msg+=tr('icts.note.us');
+    ictsNote.innerHTML=msg;
+  } else {
+    ictsNote.innerHTML=tr('icts.note.off');
+  }
+  document.getElementById('ictsStatus').textContent = ictsOn ? tr('icts.status.on') : tr('icts.status.off');
+  document.getElementById('ictsStatus').style.color = ictsOn ? 'var(--warn)' : 'var(--ink-dim)';
+  drawChart();drawRegions();drawDemand();
+}
+
+function applyLang(){
+  document.documentElement.lang = LANG;
+  // 정적 텍스트
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ el.textContent=tr(el.getAttribute('data-i18n')); });
+  document.querySelectorAll('[data-i18n-html]').forEach(el=>{ el.innerHTML=tr(el.getAttribute('data-i18n-html')); });
+  // 동적 영역 재생성
+  document.getElementById('enabling').innerHTML='';
+  document.getElementById('demand').innerHTML='';
+  document.getElementById('events').innerHTML='';
+  buildSliders(); buildEvents(); buildDataTable();
+  // 슬라이더 값 복원
+  SUBS.forEach(sb=>{const el=document.getElementById('sl-'+sb.id); if(el) el.value=sval[sb.id];});
+  // 이벤트 토글 상태 복원
+  EVENTS.forEach(e=>{const cb=document.getElementById('evtog-'+e.id); if(cb){cb.checked=eventState[e.id]; document.getElementById('ev-'+e.id).classList.toggle('on',eventState[e.id]);}});
+  // 프리셋 활성 표시 복원
+  document.querySelectorAll('#presets button').forEach(b=>b.classList.toggle('active',b.dataset.p===activePreset));
+  render();
+}
+
+buildSliders();buildEvents();buildDataTable();
+document.getElementById('presets').addEventListener('click',e=>{const btn=e.target.closest('button'); if(btn&&btn.dataset.p)applyPreset(btn.dataset.p);});
+document.getElementById('ictsTog').addEventListener('change',e=>{ictsOn=e.target.checked;render();});
+document.getElementById('langSelect').addEventListener('change',e=>{LANG=e.target.value;applyLang();});
+window.addEventListener('resize',()=>{drawChart();drawDemand();});
+document.getElementById('langSelect').value=LANG;
+applyLang();
+
+</script>
+</body>
+</html>
