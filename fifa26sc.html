@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026 FIFA World Cup 일정</title>
+<style>
+:root{--bg:#0f1419;--card:#1a2129;--card2:#212a35;--line:#2c3744;--txt:#e8eef4;--muted:#8a99a8;--accent:#3ea6ff;--accent2:#34c759;--gold:#f5c542;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans KR',sans-serif;background:var(--bg);color:var(--txt);line-height:1.5;padding:16px;max-width:1100px;margin:0 auto}
+h1{font-size:1.6rem;margin-bottom:4px;font-weight:800}
+.sub{color:var(--muted);font-size:.9rem;margin-bottom:18px}
+.controls{position:sticky;top:0;background:rgba(15,20,25,.96);backdrop-filter:blur(8px);padding:12px 0;z-index:10;border-bottom:1px solid var(--line);margin-bottom:14px}
+.tzrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.tzlabel{font-size:.85rem;color:var(--muted);margin-right:4px}
+.btn{background:var(--card2);border:1px solid var(--line);color:var(--txt);padding:7px 13px;border-radius:20px;cursor:pointer;font-size:.85rem;transition:.15s;white-space:nowrap}
+.btn:hover{border-color:var(--accent)}
+.btn.active{background:var(--accent);border-color:var(--accent);color:#06121f;font-weight:700}
+.search{flex:1;min-width:160px;background:var(--card2);border:1px solid var(--line);color:var(--txt);padding:8px 13px;border-radius:20px;font-size:.85rem}
+.tzinfo{font-size:.8rem;color:var(--accent2);margin-top:2px}
+.stage{margin:22px 0 8px;font-size:1.05rem;font-weight:700;color:var(--gold);border-left:3px solid var(--gold);padding-left:10px}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+thead th{text-align:left;color:var(--muted);font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;padding:6px 8px;border-bottom:1px solid var(--line)}
+tbody td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+tbody tr:hover{background:var(--card)}
+.dt{white-space:nowrap;font-variant-numeric:tabular-nums}
+.dt .d{font-weight:600}
+.dt .t{color:var(--accent);font-weight:700}
+.match{font-weight:600}
+.city{color:var(--muted);font-size:.82rem}
+.mno{color:var(--muted);font-size:.75rem;font-family:monospace}
+.note{font-size:.8rem;color:var(--muted);margin-top:18px;padding:12px;background:var(--card);border-radius:8px;border:1px solid var(--line)}
+@media(max-width:560px){.mno-col{display:none}h1{font-size:1.3rem}body{padding:10px}}
+</style>
+</head>
+<body>
+<h1>⚽ 2026 FIFA World Cup</h1>
+<div class="sub">전체 경기 일정 · 시간대를 선택하면 자동 변환됩니다</div>
+<div class="controls">
+<div class="tzrow">
+<span class="tzlabel">시간대:</span>
+<button class="btn" data-tz="auto">🌐 내 위치(자동)</button>
+<button class="btn" data-tz="Europe/Stockholm">🇸🇪 스웨덴</button>
+<button class="btn" data-tz="Asia/Seoul">🇰🇷 한국</button>
+<button class="btn" data-tz="America/New_York">🇺🇸 ET</button>
+</div>
+<div class="tzrow">
+<input class="search" id="search" placeholder="🔍 팀·도시 검색 (예: Sweden, Korea, Dallas)">
+</div>
+<div class="tzinfo" id="tzinfo"></div>
+</div>
+<div id="app"></div>
+<div class="note">
+※ 모든 시각은 원본(미국 동부, ET) 기준을 저장해 두고 선택한 시간대로 변환합니다. 일부 경기(특히 자정 경기)는 날짜가 다음날로 넘어갈 수 있습니다.<br>
+※ Group C의 Scotland v Morocco(6/19) 킥오프는 18:00 ET로 표기했습니다. FOX는 15:00 ET로 안내하는 경우가 있으니 발행 전 FIFA 페이지로 확인하세요.
+</div>
+<script>
+const MATCHES=[{"iso": "2026-06-11T15:00:00-04:00", "label": "Mexico v South Africa", "city": "Mexico City", "stage": "Group A", "mno": ""}, {"iso": "2026-06-11T22:00:00-04:00", "label": "South Korea v Czechia", "city": "Guadalajara", "stage": "Group A", "mno": ""}, {"iso": "2026-06-18T12:00:00-04:00", "label": "Czechia v South Africa", "city": "Atlanta", "stage": "Group A", "mno": ""}, {"iso": "2026-06-18T21:00:00-04:00", "label": "Mexico v South Korea", "city": "Guadalajara", "stage": "Group A", "mno": ""}, {"iso": "2026-06-24T21:00:00-04:00", "label": "Czechia v Mexico", "city": "Mexico City", "stage": "Group A", "mno": ""}, {"iso": "2026-06-24T21:00:00-04:00", "label": "South Africa v South Korea", "city": "Monterrey", "stage": "Group A", "mno": ""}, {"iso": "2026-06-12T15:00:00-04:00", "label": "Canada v Bosnia and Herzegovina", "city": "Toronto", "stage": "Group B", "mno": ""}, {"iso": "2026-06-13T15:00:00-04:00", "label": "Qatar v Switzerland", "city": "San Francisco", "stage": "Group B", "mno": ""}, {"iso": "2026-06-18T15:00:00-04:00", "label": "Switzerland v Bosnia and Herzegovina", "city": "Los Angeles", "stage": "Group B", "mno": ""}, {"iso": "2026-06-18T18:00:00-04:00", "label": "Canada v Qatar", "city": "Vancouver", "stage": "Group B", "mno": ""}, {"iso": "2026-06-24T15:00:00-04:00", "label": "Switzerland v Canada", "city": "Vancouver", "stage": "Group B", "mno": ""}, {"iso": "2026-06-24T15:00:00-04:00", "label": "Bosnia and Herzegovina v Qatar", "city": "Seattle", "stage": "Group B", "mno": ""}, {"iso": "2026-06-13T18:00:00-04:00", "label": "Brazil v Morocco", "city": "New York New Jersey", "stage": "Group C", "mno": ""}, {"iso": "2026-06-13T21:00:00-04:00", "label": "Haiti v Scotland", "city": "Boston", "stage": "Group C", "mno": ""}, {"iso": "2026-06-19T18:00:00-04:00", "label": "Scotland v Morocco", "city": "Boston", "stage": "Group C", "mno": ""}, {"iso": "2026-06-19T21:00:00-04:00", "label": "Brazil v Haiti", "city": "Philadelphia", "stage": "Group C", "mno": ""}, {"iso": "2026-06-24T18:00:00-04:00", "label": "Scotland v Brazil", "city": "Miami", "stage": "Group C", "mno": ""}, {"iso": "2026-06-24T18:00:00-04:00", "label": "Morocco v Haiti", "city": "Atlanta", "stage": "Group C", "mno": ""}, {"iso": "2026-06-12T21:00:00-04:00", "label": "USA v Paraguay", "city": "Los Angeles", "stage": "Group D", "mno": ""}, {"iso": "2026-06-13T00:00:00-04:00", "label": "Australia v Turkiye", "city": "Vancouver", "stage": "Group D", "mno": ""}, {"iso": "2026-06-19T15:00:00-04:00", "label": "USA v Australia", "city": "Seattle", "stage": "Group D", "mno": ""}, {"iso": "2026-06-19T00:00:00-04:00", "label": "Turkiye v Paraguay", "city": "San Francisco", "stage": "Group D", "mno": ""}, {"iso": "2026-06-25T22:00:00-04:00", "label": "Turkiye v USA", "city": "Los Angeles", "stage": "Group D", "mno": ""}, {"iso": "2026-06-25T22:00:00-04:00", "label": "Paraguay v Australia", "city": "San Francisco", "stage": "Group D", "mno": ""}, {"iso": "2026-06-14T13:00:00-04:00", "label": "Germany v Curacao", "city": "Houston", "stage": "Group E", "mno": ""}, {"iso": "2026-06-14T19:00:00-04:00", "label": "Ivory Coast v Ecuador", "city": "Philadelphia", "stage": "Group E", "mno": ""}, {"iso": "2026-06-20T16:00:00-04:00", "label": "Germany v Ivory Coast", "city": "Toronto", "stage": "Group E", "mno": ""}, {"iso": "2026-06-20T20:00:00-04:00", "label": "Ecuador v Curacao", "city": "Kansas City", "stage": "Group E", "mno": ""}, {"iso": "2026-06-25T16:00:00-04:00", "label": "Ecuador v Germany", "city": "New York New Jersey", "stage": "Group E", "mno": ""}, {"iso": "2026-06-25T16:00:00-04:00", "label": "Curacao v Ivory Coast", "city": "Philadelphia", "stage": "Group E", "mno": ""}, {"iso": "2026-06-14T16:00:00-04:00", "label": "Netherlands v Japan", "city": "Dallas", "stage": "Group F", "mno": ""}, {"iso": "2026-06-14T22:00:00-04:00", "label": "Sweden v Tunisia", "city": "Monterrey", "stage": "Group F", "mno": ""}, {"iso": "2026-06-20T13:00:00-04:00", "label": "Netherlands v Sweden", "city": "Houston", "stage": "Group F", "mno": ""}, {"iso": "2026-06-20T00:00:00-04:00", "label": "Tunisia v Japan", "city": "Monterrey", "stage": "Group F", "mno": ""}, {"iso": "2026-06-25T19:00:00-04:00", "label": "Japan v Sweden", "city": "Dallas", "stage": "Group F", "mno": ""}, {"iso": "2026-06-25T19:00:00-04:00", "label": "Tunisia v Netherlands", "city": "Kansas City", "stage": "Group F", "mno": ""}, {"iso": "2026-06-15T15:00:00-04:00", "label": "Belgium v Egypt", "city": "Seattle", "stage": "Group G", "mno": ""}, {"iso": "2026-06-15T21:00:00-04:00", "label": "Iran v New Zealand", "city": "Los Angeles", "stage": "Group G", "mno": ""}, {"iso": "2026-06-21T15:00:00-04:00", "label": "Belgium v Iran", "city": "Los Angeles", "stage": "Group G", "mno": ""}, {"iso": "2026-06-21T21:00:00-04:00", "label": "New Zealand v Egypt", "city": "Vancouver", "stage": "Group G", "mno": ""}, {"iso": "2026-06-26T23:00:00-04:00", "label": "Egypt v Iran", "city": "Seattle", "stage": "Group G", "mno": ""}, {"iso": "2026-06-26T23:00:00-04:00", "label": "New Zealand v Belgium", "city": "Vancouver", "stage": "Group G", "mno": ""}, {"iso": "2026-06-15T12:00:00-04:00", "label": "Spain v Cape Verde", "city": "Atlanta", "stage": "Group H", "mno": ""}, {"iso": "2026-06-15T18:00:00-04:00", "label": "Saudi Arabia v Uruguay", "city": "Miami", "stage": "Group H", "mno": ""}, {"iso": "2026-06-21T12:00:00-04:00", "label": "Spain v Saudi Arabia", "city": "Atlanta", "stage": "Group H", "mno": ""}, {"iso": "2026-06-21T18:00:00-04:00", "label": "Uruguay v Cape Verde", "city": "Miami", "stage": "Group H", "mno": ""}, {"iso": "2026-06-26T20:00:00-04:00", "label": "Cape Verde v Saudi Arabia", "city": "Houston", "stage": "Group H", "mno": ""}, {"iso": "2026-06-26T20:00:00-04:00", "label": "Uruguay v Spain", "city": "Guadalajara", "stage": "Group H", "mno": ""}, {"iso": "2026-06-16T15:00:00-04:00", "label": "France v Senegal", "city": "New York New Jersey", "stage": "Group I", "mno": ""}, {"iso": "2026-06-16T18:00:00-04:00", "label": "Iraq v Norway", "city": "Boston", "stage": "Group I", "mno": ""}, {"iso": "2026-06-22T17:00:00-04:00", "label": "France v Iraq", "city": "Philadelphia", "stage": "Group I", "mno": ""}, {"iso": "2026-06-22T20:00:00-04:00", "label": "Norway v Senegal", "city": "New York New Jersey", "stage": "Group I", "mno": ""}, {"iso": "2026-06-26T15:00:00-04:00", "label": "Norway v France", "city": "Boston", "stage": "Group I", "mno": ""}, {"iso": "2026-06-26T15:00:00-04:00", "label": "Senegal v Iraq", "city": "Toronto", "stage": "Group I", "mno": ""}, {"iso": "2026-06-16T21:00:00-04:00", "label": "Argentina v Algeria", "city": "Kansas City", "stage": "Group J", "mno": ""}, {"iso": "2026-06-16T00:00:00-04:00", "label": "Austria v Jordan", "city": "San Francisco", "stage": "Group J", "mno": ""}, {"iso": "2026-06-22T13:00:00-04:00", "label": "Argentina v Austria", "city": "Dallas", "stage": "Group J", "mno": ""}, {"iso": "2026-06-22T23:00:00-04:00", "label": "Jordan v Algeria", "city": "San Francisco", "stage": "Group J", "mno": ""}, {"iso": "2026-06-27T22:00:00-04:00", "label": "Algeria v Austria", "city": "Kansas City", "stage": "Group J", "mno": ""}, {"iso": "2026-06-27T22:00:00-04:00", "label": "Jordan v Argentina", "city": "Dallas", "stage": "Group J", "mno": ""}, {"iso": "2026-06-17T13:00:00-04:00", "label": "Portugal v DR Congo", "city": "Houston", "stage": "Group K", "mno": ""}, {"iso": "2026-06-17T22:00:00-04:00", "label": "Uzbekistan v Colombia", "city": "Mexico City", "stage": "Group K", "mno": ""}, {"iso": "2026-06-23T13:00:00-04:00", "label": "Portugal v Uzbekistan", "city": "Houston", "stage": "Group K", "mno": ""}, {"iso": "2026-06-23T22:00:00-04:00", "label": "Colombia v DR Congo", "city": "Guadalajara", "stage": "Group K", "mno": ""}, {"iso": "2026-06-27T19:30:00-04:00", "label": "Colombia v Portugal", "city": "Miami", "stage": "Group K", "mno": ""}, {"iso": "2026-06-27T19:30:00-04:00", "label": "DR Congo v Uzbekistan", "city": "Atlanta", "stage": "Group K", "mno": ""}, {"iso": "2026-06-17T16:00:00-04:00", "label": "England v Croatia", "city": "Dallas", "stage": "Group L", "mno": ""}, {"iso": "2026-06-17T19:00:00-04:00", "label": "Ghana v Panama", "city": "Toronto", "stage": "Group L", "mno": ""}, {"iso": "2026-06-23T16:00:00-04:00", "label": "England v Ghana", "city": "Boston", "stage": "Group L", "mno": ""}, {"iso": "2026-06-23T19:00:00-04:00", "label": "Panama v Croatia", "city": "Toronto", "stage": "Group L", "mno": ""}, {"iso": "2026-06-27T17:00:00-04:00", "label": "Panama v England", "city": "New York New Jersey", "stage": "Group L", "mno": ""}, {"iso": "2026-06-27T17:00:00-04:00", "label": "Croatia v Ghana", "city": "Philadelphia", "stage": "Group L", "mno": ""}, {"iso": "2026-06-28T15:00:00-04:00", "label": "Runner-up A v Runner-up B", "city": "Los Angeles", "stage": "Round of 32", "mno": "M73"}, {"iso": "2026-06-29T13:00:00-04:00", "label": "Winner C v Runner-up F", "city": "Houston", "stage": "Round of 32", "mno": "M76"}, {"iso": "2026-06-29T16:30:00-04:00", "label": "Winner E v 3rd A/B/C/D/F", "city": "Boston", "stage": "Round of 32", "mno": "M74"}, {"iso": "2026-06-29T21:00:00-04:00", "label": "Winner F v Runner-up C", "city": "Monterrey", "stage": "Round of 32", "mno": "M75"}, {"iso": "2026-06-30T13:00:00-04:00", "label": "Runner-up E v Runner-up I", "city": "Dallas", "stage": "Round of 32", "mno": "M78"}, {"iso": "2026-06-30T17:00:00-04:00", "label": "Winner I v 3rd C/D/F/G/H", "city": "New York New Jersey", "stage": "Round of 32", "mno": "M77"}, {"iso": "2026-06-30T21:00:00-04:00", "label": "Winner A v 3rd C/E/F/H/I", "city": "Mexico City", "stage": "Round of 32", "mno": "M79"}, {"iso": "2026-07-01T12:00:00-04:00", "label": "Winner L v 3rd E/H/I/J/K", "city": "Atlanta", "stage": "Round of 32", "mno": "M80"}, {"iso": "2026-07-01T16:00:00-04:00", "label": "Winner G v 3rd A/E/H/I/J", "city": "Seattle", "stage": "Round of 32", "mno": "M82"}, {"iso": "2026-07-01T20:00:00-04:00", "label": "Winner D v 3rd B/E/F/I/J", "city": "San Francisco", "stage": "Round of 32", "mno": "M81"}, {"iso": "2026-07-02T15:00:00-04:00", "label": "Winner H v Runner-up J", "city": "Los Angeles", "stage": "Round of 32", "mno": "M84"}, {"iso": "2026-07-02T19:00:00-04:00", "label": "Runner-up K v Runner-up L", "city": "Toronto", "stage": "Round of 32", "mno": "M83"}, {"iso": "2026-07-02T23:00:00-04:00", "label": "Winner B v 3rd E/F/G/I/J", "city": "Vancouver", "stage": "Round of 32", "mno": "M85"}, {"iso": "2026-07-03T14:00:00-04:00", "label": "Runner-up D v Runner-up G", "city": "Dallas", "stage": "Round of 32", "mno": "M88"}, {"iso": "2026-07-03T18:00:00-04:00", "label": "Winner J v Runner-up H", "city": "Miami", "stage": "Round of 32", "mno": "M86"}, {"iso": "2026-07-03T21:30:00-04:00", "label": "Winner K v 3rd D/E/I/J/L", "city": "Kansas City", "stage": "Round of 32", "mno": "M87"}, {"iso": "2026-07-04T13:00:00-04:00", "label": "Winner M77 v Winner M78", "city": "Houston", "stage": "Round of 16", "mno": "M90"}, {"iso": "2026-07-04T17:00:00-04:00", "label": "Winner M73 v Winner M74", "city": "Philadelphia", "stage": "Round of 16", "mno": "M89"}, {"iso": "2026-07-05T16:00:00-04:00", "label": "Winner M75 v Winner M76", "city": "New York New Jersey", "stage": "Round of 16", "mno": "M91"}, {"iso": "2026-07-05T20:00:00-04:00", "label": "Winner M79 v Winner M80", "city": "Mexico City", "stage": "Round of 16", "mno": "M92"}, {"iso": "2026-07-06T15:00:00-04:00", "label": "Winner M83 v Winner M84", "city": "Dallas", "stage": "Round of 16", "mno": "M93"}, {"iso": "2026-07-06T20:00:00-04:00", "label": "Winner M81 v Winner M82", "city": "Seattle", "stage": "Round of 16", "mno": "M94"}, {"iso": "2026-07-07T12:00:00-04:00", "label": "Winner M85 v Winner M86", "city": "Atlanta", "stage": "Round of 16", "mno": "M95"}, {"iso": "2026-07-07T16:00:00-04:00", "label": "Winner M87 v Winner M88", "city": "Vancouver", "stage": "Round of 16", "mno": "M96"}, {"iso": "2026-07-09T16:00:00-04:00", "label": "Winner M89 v Winner M90", "city": "Boston", "stage": "Quarterfinals", "mno": "M97"}, {"iso": "2026-07-10T15:00:00-04:00", "label": "Winner M93 v Winner M94", "city": "Los Angeles", "stage": "Quarterfinals", "mno": "M98"}, {"iso": "2026-07-11T17:00:00-04:00", "label": "Winner M91 v Winner M92", "city": "Miami", "stage": "Quarterfinals", "mno": "M99"}, {"iso": "2026-07-11T21:00:00-04:00", "label": "Winner M95 v Winner M96", "city": "Kansas City", "stage": "Quarterfinals", "mno": "M100"}, {"iso": "2026-07-14T15:00:00-04:00", "label": "Semifinal 1", "city": "Dallas", "stage": "Semifinals / Final", "mno": "M101"}, {"iso": "2026-07-15T15:00:00-04:00", "label": "Semifinal 2", "city": "Atlanta", "stage": "Semifinals / Final", "mno": "M102"}, {"iso": "2026-07-18T17:00:00-04:00", "label": "Third-place play-off", "city": "Miami", "stage": "Semifinals / Final", "mno": "M103"}, {"iso": "2026-07-19T15:00:00-04:00", "label": "Final", "city": "New York New Jersey", "stage": "Semifinals / Final", "mno": "M104"}];
+</script>
+<script>
+const STAGE_ORDER=['Group A','Group B','Group C','Group D','Group E','Group F','Group G','Group H','Group I','Group J','Group K','Group L','Round of 32','Round of 16','Quarterfinals','Semifinals / Final'];
+let currentTZ='auto';
+function realTZ(){return currentTZ==='auto'?Intl.DateTimeFormat().resolvedOptions().timeZone:currentTZ;}
+function fmt(iso){
+  const tz=realTZ();
+  const d=new Date(iso);
+  const day=new Intl.DateTimeFormat('ko-KR',{timeZone:tz,month:'numeric',day:'numeric',weekday:'short'}).format(d);
+  const time=new Intl.DateTimeFormat('ko-KR',{timeZone:tz,hour:'2-digit',minute:'2-digit',hour12:false}).format(d);
+  return {day,time};
+}
+function render(){
+  const q=document.getElementById('search').value.trim().toLowerCase();
+  const app=document.getElementById('app');
+  app.innerHTML='';
+  const byStage={};
+  MATCHES.forEach(m=>{
+    if(q && !(m.label.toLowerCase().includes(q)||m.city.toLowerCase().includes(q)||(m.mno&&m.mno.toLowerCase().includes(q)))) return;
+    (byStage[m.stage]=byStage[m.stage]||[]).push(m);
+  });
+  STAGE_ORDER.forEach(st=>{
+    const list=byStage[st]; if(!list)return;
+    list.sort((a,b)=>new Date(a.iso)-new Date(b.iso));
+    const h=document.createElement('div');h.className='stage';h.textContent=st;app.appendChild(h);
+    const t=document.createElement('table');
+    const isKO=st.indexOf('Group')!==0;
+    t.innerHTML='<thead><tr><th>날짜·시간</th><th>경기</th>'+(isKO?'<th class="mno-col">No.</th>':'')+'<th class="mno-col">도시</th></tr></thead>';
+    const tb=document.createElement('tbody');
+    list.forEach(m=>{
+      const f=fmt(m.iso);
+      const tr=document.createElement('tr');
+      tr.innerHTML='<td class="dt"><span class="d">'+f.day+'</span> <span class="t">'+f.time+'</span></td>'+
+        '<td><div class="match">'+m.label+'</div></td>'+
+        (isKO?'<td class="mno mno-col">'+m.mno+'</td>':'')+
+        '<td class="city mno-col">'+m.city+'</td>';
+      tb.appendChild(tr);
+    });
+    t.appendChild(tb);app.appendChild(t);
+  });
+  document.getElementById('tzinfo').textContent='표시 시간대: '+realTZ();
+}
+document.querySelectorAll('.btn[data-tz]').forEach(b=>{
+  b.onclick=()=>{currentTZ=b.dataset.tz;document.querySelectorAll('.btn[data-tz]').forEach(x=>x.classList.remove('active'));b.classList.add('active');render();};
+});
+document.getElementById('search').oninput=render;
+document.querySelector('.btn[data-tz="auto"]').classList.add('active');
+render();
+</script>
+</body>
+</html>
