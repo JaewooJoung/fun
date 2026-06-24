@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM Pricing Feed</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --border:#30363d; --text:#e6edf3;
+    --muted:#8b949e; --accent:#58a6ff; --accent2:#3fb950; --row:#1c2128;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR",sans-serif;
+    background:var(--bg);color:var(--text);line-height:1.5}
+  header{padding:28px 24px 18px;border-bottom:1px solid var(--border);
+    background:linear-gradient(180deg,#161b22,#0d1117)}
+  h1{margin:0 0 6px;font-size:1.5rem;letter-spacing:-.02em}
+  h1 span{color:var(--accent)}
+  .meta{color:var(--muted);font-size:.85rem;display:flex;gap:16px;flex-wrap:wrap}
+  .meta b{color:var(--accent2);font-weight:600}
+  .wrap{max-width:1200px;margin:0 auto;padding:20px 24px 60px}
+  .controls{display:flex;gap:12px;flex-wrap:wrap;margin:18px 0 14px;align-items:center}
+  input,select{background:var(--panel);border:1px solid var(--border);color:var(--text);
+    padding:9px 12px;border-radius:8px;font-size:.9rem;outline:none}
+  input:focus,select:focus{border-color:var(--accent)}
+  input{flex:1;min-width:220px}
+  .count{color:var(--muted);font-size:.85rem;margin-left:auto}
+  .tablecard{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+  table{width:100%;border-collapse:collapse;font-size:.88rem}
+  th{text-align:left;padding:12px 14px;background:#1f2630;color:var(--muted);
+    font-weight:600;cursor:pointer;user-select:none;white-space:nowrap;position:sticky;top:0}
+  th:hover{color:var(--text)}
+  th.num,td.num{text-align:right;font-variant-numeric:tabular-nums}
+  td{padding:11px 14px;border-top:1px solid var(--border)}
+  tr:hover td{background:var(--row)}
+  .model{font-weight:600}
+  .id{color:var(--muted);font-size:.78rem}
+  .badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:.72rem;
+    font-weight:600;text-transform:capitalize}
+  .price-in{color:var(--accent)}
+  .price-out{color:#ff7b72}
+  .ctx{color:var(--muted)}
+  .loading,.error{padding:40px;text-align:center;color:var(--muted)}
+  .error{color:#ff7b72}
+  .arrow{font-size:.7rem;opacity:.6}
+  footer{text-align:center;color:var(--muted);font-size:.8rem;margin-top:24px}
+  footer a{color:var(--accent);text-decoration:none}
+  @media(max-width:640px){.id{display:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap" style="padding-bottom:0">
+    <h1>LLM <span>Pricing</span> Feed</h1>
+    <div class="meta" id="meta">불러오는 중…</div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="controls">
+    <input id="search" type="text" placeholder="🔍 모델 / 제공사 검색…">
+    <select id="provider"><option value="">전체 제공사</option></select>
+    <select id="sort">
+      <option value="input">정렬: 입력가격 ↑</option>
+      <option value="output">정렬: 출력가격 ↑</option>
+      <option value="context_window-desc">정렬: 컨텍스트 ↓</option>
+      <option value="provider">정렬: 제공사</option>
+      <option value="model">정렬: 모델명</option>
+    </select>
+    <span class="count" id="count"></span>
+  </div>
+
+  <div class="tablecard">
+    <table id="tbl">
+      <thead>
+        <tr>
+          <th data-k="provider">제공사 <span class="arrow"></span></th>
+          <th data-k="model">모델 <span class="arrow"></span></th>
+          <th class="num" data-k="input">입력 <span class="arrow"></span></th>
+          <th class="num" data-k="output">출력 <span class="arrow"></span></th>
+          <th class="num" data-k="cache_read">캐시읽기 <span class="arrow"></span></th>
+          <th class="num" data-k="context_window">컨텍스트 <span class="arrow"></span></th>
+        </tr>
+      </thead>
+      <tbody id="body"><tr><td colspan="6" class="loading">데이터를 불러오는 중…</td></tr></tbody>
+    </table>
+  </div>
+
+  <footer>
+    단위: USD / 100만 토큰 · 데이터 출처:
+    <a href="https://github.com/aktagon/llm-pricing-feed" target="_blank">aktagon/llm-pricing-feed</a>
+  </footer>
+</div>
+
+<script>
+const COLORS={anthropic:'#d97757',openai:'#10a37f',google:'#4285f4',xai:'#888',
+  deepseek:'#536dfe',mistral:'#ff7000','fireworks-ai':'#7c4dff',groq:'#f55036',togetherai:'#0f9d58'};
+const FEED="https://raw.githubusercontent.com/aktagon/llm-pricing-feed/master/dist/latest.json";
+let MODELS=[], state={q:'',prov:'',sort:'input',dir:1};
+
+const $=s=>document.querySelector(s);
+const fmt=n=>n==null?'—':'$'+n.toLocaleString('en-US',{minimumFractionDigits:n<1?4:2,maximumFractionDigits:4});
+const fmtCtx=n=>n==null?'—':n>=1e6?(n/1e6).toFixed(n%1e6?1:0)+'M':n>=1e3?(n/1e3)+'K':n;
+
+async function load(){
+  try{
+    const r=await fetch(FEED,{cache:'no-store'});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    MODELS=d.models;
+    $('#meta').innerHTML=`스키마 <b>${d.schema_version}</b> · 데이터 <b>${d.data_version}</b> · `+
+      `통화 <b>${d.currency}</b> · 모델 <b>${MODELS.length}</b>개`;
+    const provs=[...new Set(MODELS.map(m=>m.provider))].sort();
+    $('#provider').innerHTML='<option value="">전체 제공사</option>'+
+      provs.map(p=>`<option value="${p}">${p}</option>`).join('');
+    render();
+  }catch(e){
+    $('#body').innerHTML=`<tr><td colspan="6" class="error">불러오기 실패: ${e.message}<br>
+      <small>로컬 파일은 CORS 때문에 막힐 수 있어요. 정적 서버로 열어보세요.</small></td></tr>`;
+    $('#meta').textContent='로드 실패';
+  }
+}
+
+function render(){
+  let rows=MODELS.filter(m=>{
+    const t=(m.model+' '+m.id+' '+m.provider).toLowerCase();
+    return t.includes(state.q) && (!state.prov||m.provider===state.prov);
+  });
+  rows.sort((a,b)=>{
+    let x=a[state.sort],y=b[state.sort];
+    if(typeof x==='string') return state.dir*x.localeCompare(y);
+    return state.dir*((x??1e18)-(y??1e18));
+  });
+  $('#count').textContent=rows.length+' / '+MODELS.length+' 모델';
+  $('#body').innerHTML=rows.map(m=>{
+    const c=COLORS[m.provider]||'#888';
+    return `<tr>
+      <td><span class="badge" style="background:${c}22;color:${c}">${m.provider}</span></td>
+      <td><div class="model">${m.model}</div><div class="id">${m.id}</div></td>
+      <td class="num price-in">${fmt(m.input)}</td>
+      <td class="num price-out">${fmt(m.output)}</td>
+      <td class="num">${fmt(m.cache_read)}</td>
+      <td class="num ctx">${fmtCtx(m.context_window)}</td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="6" class="loading">검색 결과 없음</td></tr>';
+}
+
+$('#search').oninput=e=>{state.q=e.target.value.toLowerCase().trim();render();};
+$('#provider').onchange=e=>{state.prov=e.target.value;render();};
+$('#sort').onchange=e=>{
+  const[k,d]=e.target.value.split('-');state.sort=k;state.dir=d==='desc'?-1:1;render();};
+document.querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{
+  const k=th.dataset.k;
+  state.dir=(state.sort===k)?-state.dir:1;state.sort=k;
+  document.querySelectorAll('.arrow').forEach(a=>a.textContent='');
+  th.querySelector('.arrow').textContent=state.dir>0?'▲':'▼';
+  render();
+});
+load();
+</script>
+</body>
+</html>
