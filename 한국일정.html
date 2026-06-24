@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>한국 일정 & 체크리스트 · 2026.7.15~7.26</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2330; --line:#2a3441;
+    --txt:#e6edf3; --sub:#9aa7b4; --accent:#ff7849; --accent2:#4ea1ff;
+    --green:#3fb950; --amber:#e3b341; --red:#f85149; --gray:#6e7681;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",Roboto,sans-serif;
+    background:var(--bg);color:var(--txt);line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  header{
+    padding:22px 24px 18px;
+    background:linear-gradient(135deg,#1a2233 0%,#0d1117 70%);
+    border-bottom:1px solid var(--line);
+  }
+  header h1{font-size:1.45rem;font-weight:700;letter-spacing:-.3px}
+  header h1 .em{color:var(--accent)}
+  header .meta{color:var(--sub);font-size:.85rem;margin-top:6px}
+  header .base{
+    display:inline-block;margin-top:10px;padding:6px 12px;
+    background:var(--panel2);border:1px solid var(--line);
+    border-radius:999px;font-size:.8rem;color:var(--accent2);
+  }
+
+  .principles{
+    display:flex;gap:10px;flex-wrap:wrap;padding:16px 24px 0;
+  }
+  .principles .p{
+    flex:1 1 240px;background:var(--panel);border:1px solid var(--line);
+    border-left:3px solid var(--accent);border-radius:10px;padding:11px 14px;
+    font-size:.82rem;color:var(--sub);
+  }
+  .principles .p b{color:var(--txt);display:block;margin-bottom:3px;font-size:.85rem}
+
+  .wrap{display:flex;gap:0;height:calc(100vh - 0px);min-height:560px}
+  @media(max-width:920px){.wrap{flex-direction:column;height:auto}}
+
+  /* sidebar */
+  .side{
+    width:420px;min-width:420px;background:var(--bg);
+    border-right:1px solid var(--line);overflow-y:auto;
+    padding:18px 18px 60px;
+  }
+  @media(max-width:920px){.side{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--line)}}
+
+  .daytabs{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px}
+  .daytabs button{
+    background:var(--panel);color:var(--sub);border:1px solid var(--line);
+    border-radius:999px;padding:7px 13px;font-size:.8rem;cursor:pointer;
+    font-weight:600;transition:.15s;font-family:inherit;
+  }
+  .daytabs button:hover{border-color:var(--accent2);color:var(--txt)}
+  .daytabs button.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .daytabs button.all.active{background:var(--accent2);border-color:var(--accent2)}
+
+  .daycard{
+    background:var(--panel);border:1px solid var(--line);
+    border-radius:var(--radius);margin-bottom:16px;overflow:hidden;
+    transition:.2s;
+  }
+  .daycard.dim{opacity:.35}
+  .daycard .dhead{
+    display:flex;align-items:center;gap:12px;padding:14px 16px;
+    cursor:pointer;background:var(--panel2);
+  }
+  .dbadge{
+    min-width:54px;text-align:center;font-weight:700;font-size:.78rem;
+    padding:8px 4px;border-radius:9px;color:#fff;line-height:1.25;
+  }
+  .dhead .dtitle{flex:1}
+  .dhead .dtitle .dt{font-weight:700;font-size:.95rem}
+  .dhead .dtitle .ds{font-size:.76rem;color:var(--sub);margin-top:2px}
+  .dhead .chev{color:var(--sub);font-size:.8rem;transition:.2s}
+  .daycard.open .chev{transform:rotate(180deg)}
+
+  .dbody{display:none;padding:4px 16px 16px}
+  .daycard.open .dbody{display:block}
+
+  .poi{
+    display:flex;gap:10px;padding:10px 0;border-bottom:1px dashed var(--line);
+    cursor:pointer;
+  }
+  .poi:last-child{border-bottom:none}
+  .poi:hover .pname{color:var(--accent)}
+  .pmarker{
+    min-width:24px;height:24px;border-radius:50%;background:var(--accent);
+    color:#fff;font-size:.72rem;font-weight:700;display:flex;
+    align-items:center;justify-content:center;margin-top:2px;
+  }
+  .pinfo{flex:1}
+  .pname{font-weight:600;font-size:.88rem;transition:.15s}
+  .pmeta{font-size:.76rem;color:var(--sub);margin-top:2px}
+  .pmeta .tag{
+    display:inline-block;background:var(--panel2);border:1px solid var(--line);
+    border-radius:6px;padding:1px 7px;margin-right:5px;margin-top:4px;
+    color:var(--accent2);font-size:.72rem;
+  }
+
+  .checks{margin-top:8px;padding:10px 12px;background:var(--panel2);border-radius:9px}
+  .checks .ctitle{font-size:.74rem;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px;font-weight:700}
+  .check{display:flex;gap:9px;align-items:flex-start;padding:4px 0;font-size:.82rem;cursor:pointer}
+  .check input{margin-top:3px;accent-color:var(--accent);width:15px;height:15px;cursor:pointer}
+  .check.star span{color:var(--amber)}
+  .check span.done{text-decoration:line-through;color:var(--gray)}
+
+  /* map */
+  .mapwrap{flex:1;position:relative}
+  #map{height:100%;width:100%;background:#0a0e14}
+  @media(max-width:920px){.mapwrap{height:62vh;min-height:420px}}
+
+  .legend{
+    position:absolute;bottom:14px;left:14px;z-index:500;
+    background:rgba(22,27,34,.94);border:1px solid var(--line);
+    border-radius:10px;padding:11px 13px;font-size:.76rem;color:var(--sub);
+    max-width:230px;backdrop-filter:blur(6px);
+  }
+  .legend b{color:var(--txt);display:block;margin-bottom:6px;font-size:.8rem}
+  .legend .row{display:flex;align-items:center;gap:7px;padding:2px 0}
+  .legend .dot{width:12px;height:12px;border-radius:50%;flex:none}
+
+  .leaflet-popup-content-wrapper{background:var(--panel);color:var(--txt);border-radius:11px;border:1px solid var(--line)}
+  .leaflet-popup-tip{background:var(--panel);border:1px solid var(--line)}
+  .leaflet-popup-content{margin:12px 14px;font-size:.85rem}
+  .leaflet-popup-content b{font-size:.92rem}
+  .popup-meta{color:var(--sub);font-size:.78rem;margin-top:4px}
+  .popup-link{display:inline-block;margin-top:8px;color:var(--accent2);text-decoration:none;font-size:.8rem;font-weight:600}
+
+  .cost{
+    margin:0 24px 0;padding:14px 16px;background:var(--panel);
+    border:1px solid var(--line);border-radius:12px;font-size:.83rem;
+    color:var(--sub);
+  }
+  .cost b{color:var(--txt)}
+  .cost .total{color:var(--accent);font-weight:700}
+
+  footer{padding:16px 24px 30px;color:var(--gray);font-size:.76rem;text-align:center;border-top:1px solid var(--line);margin-top:0}
+  footer a{color:var(--accent2)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🇰🇷 한국 일정 & 체크리스트 <span class="em">2026.7.15(수)~7.26(일)</span></h1>
+  <div class="meta">거점 숙소 · 초월역 동광뷰엘 103동 301호 (경기 광주시 초월읍, 초월역 도보 10분)</div>
+  <div class="base">📍 모든 일정의 베이스캠프 = 초월</div>
+</header>
+
+<div class="principles">
+  <div class="p"><b>① 여권은 첫날 접수</b>영업일 약 4일 · 7/15(수) 접수 → 7/21(화) 수령</div>
+  <div class="p"><b>② 전화 개통이 전제</b>면허·카드·삼성페이·보험환급 모두 한국번호 필요</div>
+  <div class="p"><b>③ 검진(16일)↔면허(20일) 연결</b>검진 결과 공단 등록 → 면허 신검 갈음</div>
+</div>
+
+<div class="wrap">
+  <aside class="side">
+    <div class="daytabs" id="daytabs"></div>
+    <div id="daylist"></div>
+  </aside>
+
+  <div class="mapwrap">
+    <div id="map"></div>
+    <div class="legend">
+      <b>마커 색상</b>
+      <div class="row"><span class="dot" style="background:#4ea1ff"></span> 숙소 · 교통 거점</div>
+      <div class="row"><span class="dot" style="background:#ff7849"></span> 관공서 (여권·면허)</div>
+      <div class="row"><span class="dot" style="background:#3fb950"></span> 은행 (하나·국민)</div>
+      <div class="row"><span class="dot" style="background:#e3b341"></span> 병원 (검진·치과)</div>
+      <div class="row"><span class="dot" style="background:#a371f7"></span> 통신 (SKT)</div>
+    </div>
+  </div>
+</div>
+
+<div class="cost">
+  <b>대략 비용</b> · 여권 재발급 60,000 · 공항 사진 20,000 · 공항버스 8842 왕복 38,200 · 면허 갱신 13,000 · 면허 신검 6,000 · 건강검진 6,000 →
+  <span class="total">합계 약 143,200원</span>
+</div>
+
+<footer>
+  8842 리무진 시각 = 광주시청 공식 시간표 기준(요금 19,100원). 660·5500-1은 교통카드/현금 탑승 · 당일 도로사정·대기·예약은 변동 가능 →
+  <a href="https://www.gjcity.go.kr/depart/contents.do?mId=0418020100" target="_blank">8842 공식 시간표</a> ·
+  <a href="https://map.naver.com" target="_blank">네이버지도</a> ·
+  <a href="https://www.gbis.go.kr" target="_blank">경기버스정보</a>
+</footer>
+
+<script>
+// ---- 색상 카테고리 ----
+const CAT = {
+  base:   "#4ea1ff",
+  gov:    "#ff7849",
+  bank:   "#3fb950",
+  hosp:   "#e3b341",
+  telecom:"#a371f7"
+};
+
+// ---- 장소 데이터 ----
+const PLACES = {
+  base:    {name:"거점 숙소 · 초월역 동광뷰엘", lat:37.385835, lng:127.29956689999999, cat:"base", tel:"", hours:"초월역 도보 10분", url:"https://maps.google.com/?cid=6818251341054700424"},
+  city:    {name:"광주시청 (여권)", lat:37.4294077, lng:127.2551421, cat:"gov", tel:"031-760-2000", hours:"평일 9~18시", url:"https://maps.google.com/?cid=4191017359390821621"},
+  skt:     {name:"SKT 초월점 (전화 개통)", lat:37.3866722, lng:127.28821979999998, cat:"telecom", tel:"031-766-8800", hours:"평일 10~19시(일 휴무)", url:"https://maps.google.com/?cid=10320220934820722265"},
+  hue:     {name:"서울휴내과이비인후과 (검진+귀)", lat:37.3738057, lng:127.2976734, cat:"hosp", tel:"031-8027-2222", hours:"평일 9~18:30, 토 ~13:30", url:"https://maps.google.com/?cid=2953601039590006907"},
+  dental:  {name:"서울더센트럴치과", lat:37.373595, lng:127.29936500000001, cat:"hosp", tel:"031-763-2080", hours:"화·목 ~20:30, 토 ~14시", url:"https://maps.google.com/?cid=10590451842517651870"},
+  hana:    {name:"하나은행 경기광주지점", lat:37.407476, lng:127.2605854, cat:"bank", tel:"031-797-1111", hours:"평일 9~15:30", url:"https://maps.google.com/?cid=8057707811625471004"},
+  kb:      {name:"KB국민은행 곤지암지점", lat:37.3641762, lng:127.3128214, cat:"bank", tel:"031-765-5735", hours:"평일 9~16시", url:"https://maps.google.com/?cid=3192532139491416497"},
+  license: {name:"용인 운전면허시험장", lat:37.2894685, lng:127.10794, cat:"gov", tel:"031-289-0100", hours:"평일 9~18시", url:"https://maps.google.com/?cid=14005293155323376012"},
+  terminal:{name:"광주터미널 (8842 공항버스)", lat:37.4093284, lng:127.2614011, cat:"base", tel:"031-799-7901", hours:"06:40 첫차→인천공항", url:"https://maps.google.com/?cid=3837021471252105693"}
+};
+
+// ---- 날짜별 일정 ----
+const DAYS = [
+  {
+    id:"d15", badge:"7/15<br>수", color:"#ff7849", title:"도착일 · 여권접수", sub:"⏱ 시간민감 — 인천 09:55 도착",
+    pois:[
+      {p:"city", tags:["여권 접수 · 18시 마감"], note:"660번 → 광주시청앞 하차"},
+      {p:"skt", tags:["⭐ 먼저!","패밀리 결합"], note:"개통이 모든 일정의 전제"},
+      {p:"base", tags:["입실"], note:"8842 5번차 → 경기광주 13:20"}
+    ],
+    checks:[
+      {t:"09:55 인천공항 도착 → 입국·수하물", star:false},
+      {t:"공항 즉석사진기 여권사진 (35×45, 흰배경)", star:false},
+      {t:"8842 리무진 5번차 (T2 10:20/T1 10:40)", star:false},
+      {t:"여권 재발급 접수 (시청, 18시 마감)", star:false},
+      {t:"SKT 초월점 전화 개통 (패밀리 결합) ← 먼저!", star:true},
+      {t:"병원에 7/17 진료 여부 확인 전화", star:true},
+      {t:"메리츠화재 1566-7711 실비 환급 요청", star:true}
+    ]
+  },
+  {
+    id:"d16", badge:"7/16<br>목", color:"#e3b341", title:"검진+금융 · 면허 연결", sub:"공복 검진 → 은행 → 삼성페이",
+    pois:[
+      {p:"hue", tags:["⭐ 8시 공복","공단 검진"], note:"면허 신검 갈음 핵심"},
+      {p:"hana", tags:["오전 9:30","트래블로그/GO"], note:"체크카드 발급"},
+      {p:"kb", tags:["오후","VIP·금융인증서"], note:"16시 마감"},
+      {p:"dental", tags:["귀·치과 상담"], note:"17일 휴진 시 오늘"}
+    ],
+    checks:[
+      {t:"건강검진 공복 (서울휴내과, 8시 1순위)", star:true},
+      {t:"\"검진결과 공단 등록 시점\" 문의 → 7/20 연결!", star:true},
+      {t:"오전 9:30 하나은행 — 트래블로그/GO 체크카드", star:false},
+      {t:"오후 KB국민은행 — VIP등록·인터넷뱅킹·보안카드", star:false},
+      {t:"스타뱅킹 앱·금융인증서 발급 (한국서!)", star:true},
+      {t:"치과·귀 상담 (서울더센트럴치과)", star:false},
+      {t:"저녁 삼성페이 등록", star:false}
+    ]
+  },
+  {
+    id:"d17", badge:"7/17<br>금", color:"#6e7681", title:"제헌절 · 병원 예비일", sub:"관공서·은행 정상 / 병원은 확인대로",
+    pois:[
+      {p:"dental", tags:["미완료 진료"], note:"16일에 못 끝낸 것"},
+      {p:"hue", tags:["검진 예비"], note:"누락 시 처리"}
+    ],
+    checks:[
+      {t:"제헌절 — 관공서·은행 정상, 병원은 확인대로", star:false},
+      {t:"16일 미완료 치과·귀·검진 진료 처리", star:false},
+      {t:"없으면 휴식 / 가족시간 / 누락 업무", star:false}
+    ]
+  },
+  {
+    id:"d18", badge:"7/18~19<br>토·일", color:"#6e7681", title:"주말 · 관공서·은행 휴무", sub:"여권 영업일 진행 중",
+    pois:[
+      {p:"dental", tags:["토 ~14시"], note:"토요일 진료 가능"}
+    ],
+    checks:[
+      {t:"토요일 진료 병원 있으면 처리 (치과 토 ~14시)", star:false},
+      {t:"가족시간·휴식 / 여권은 영업일 진행 중", star:false},
+      {t:"검진 결과 공단 등록 대기 (월요일 면허 대비)", star:false}
+    ]
+  },
+  {
+    id:"d20", badge:"7/20<br>월", color:"#ff7849", title:"면허 갱신 · 검진 연결", sub:"용인 면허시험장 — 신검 갈음 시도",
+    pois:[
+      {p:"license", tags:["⭐ 오전","신검 갈음"], note:"초월역→신갈역 도보 6분"}
+    ],
+    checks:[
+      {t:"오전 용인 면허시험장 (수인분당선 신갈역)", star:false},
+      {t:"행정정보 공동이용 동의 → 검진결과로 신검 갈음", star:true},
+      {t:"등록 안 됐으면 현장 신체검사 (6,000원)", star:false},
+      {t:"1종 적성검사 → 면허증 수령", star:false}
+    ]
+  },
+  {
+    id:"d21", badge:"7/21<br>화", color:"#ff7849", title:"여권 수령", sub:"⏱ 시간민감",
+    pois:[
+      {p:"city", tags:["여권 수령"], note:"660번 버스"}
+    ],
+    checks:[
+      {t:"여권 수령 (광주시청, 660번)", star:false},
+      {t:"미완료 업무 마무리 (카드 수령, 병원 재방문)", star:false}
+    ]
+  },
+  {
+    id:"d22", badge:"7/22~24<br>수~금", color:"#3fb950", title:"예비 · 마무리", sub:"실물 최종확인 · 환급 확인",
+    pois:[
+      {p:"dental", tags:["재상담"], note:"\"다시 한번 더\""}
+    ],
+    checks:[
+      {t:"치과 재상담", star:false},
+      {t:"카드/면허/여권 실물 최종확인", star:false},
+      {t:"메리츠 환급 입금 여부 확인", star:false}
+    ]
+  },
+  {
+    id:"d25", badge:"7/25<br>토", color:"#6e7681", title:"주말 · 최종정리", sub:"출국 짐싸기 · 첫차 시각 재확인",
+    pois:[
+      {p:"terminal", tags:["첫차 재확인"], note:"일요일 새벽 배차"}
+    ],
+    checks:[
+      {t:"출국 짐 싸기 · 카드/여권/면허 최종 점검", star:false},
+      {t:"귀국편 8842 첫차 시각 재확인", star:false},
+      {t:"휴식 · 가족시간", star:false}
+    ]
+  },
+  {
+    id:"d26", badge:"7/26<br>일", color:"#4ea1ff", title:"출국 · 12:20 출발", sub:"광주터미널 06:40 → 인천 09:20/09:40",
+    pois:[
+      {p:"terminal", tags:["06:40 8842"], note:"→ 인천 T1 09:20 / T2 09:40"},
+      {p:"base", tags:["첫차 역산"], note:"숙소→터미널 이른 출발"}
+    ],
+    checks:[
+      {t:"신여권·갱신 면허증 챙기기", star:false},
+      {t:"하나 체크카드 2종 작동 확인", star:false},
+      {t:"국민 보안카드·인터넷뱅킹·금융인증서 확인", star:false},
+      {t:"삼성페이 정상 등록 확인", star:false},
+      {t:"광주터미널 06:40 8842 → 인천공항", star:false},
+      {t:"12:20 ICN 출발 → FRA 경유 → 23:25 고텐부르크", star:false}
+    ]
+  }
+];
+
+// ---- 지도 초기화 ----
+const map = L.map('map',{zoomControl:true}).setView([37.378,127.265], 12);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
+  attribution:'© OpenStreetMap © CARTO', maxZoom:19, subdomains:'abcd'
+}).addTo(map);
+
+const markers = {}; // key = dayId+placeKey
+function makeIcon(color,label){
+  return L.divIcon({
+    className:'',
+    html:`<div style="background:${color};width:30px;height:30px;border-radius:50% 50% 50% 0;
+      transform:rotate(-45deg);box-shadow:0 2px 6px rgba(0,0,0,.5);border:2px solid #fff;
+      display:flex;align-items:center;justify-content:center;">
+      <span style="transform:rotate(45deg);color:#fff;font-weight:700;font-size:12px;">${label}</span></div>`,
+    iconSize:[30,30], iconAnchor:[15,28], popupAnchor:[0,-28]
+  });
+}
+
+const allMarkers = [];
+DAYS.forEach((day,di)=>{
+  day.pois.forEach((poi,pi)=>{
+    const place = PLACES[poi.p];
+    const key = day.id+"_"+poi.p;
+    const label = (pi+1);
+    const m = L.marker([place.lat,place.lng],{icon:makeIcon(day.color,label)});
+    const telLine = place.tel?`<div class="popup-meta">☎ ${place.tel}</div>`:"";
+    m.bindPopup(
+      `<b>${place.name}</b>
+       <div class="popup-meta">📅 ${day.badge.replace('<br>',' ')} · ${day.title}</div>
+       ${telLine}
+       <div class="popup-meta">🕒 ${place.hours}</div>
+       <div class="popup-meta">📝 ${poi.note}</div>
+       <a class="popup-link" href="${place.url}" target="_blank">구글지도에서 열기 →</a>`
+    );
+    m.dayId = day.id;
+    markers[key] = m;
+    allMarkers.push(m);
+    m.addTo(map);
+  });
+});
+
+// fit bounds
+const group = L.featureGroup(allMarkers);
+map.fitBounds(group.getBounds().pad(0.15));
+
+// ---- 사이드바 렌더 ----
+const tabsEl = document.getElementById('daytabs');
+const listEl = document.getElementById('daylist');
+
+let activeDay = "all";
+
+// all tab
+const allBtn = document.createElement('button');
+allBtn.textContent = "전체 보기";
+allBtn.className = "all active";
+allBtn.onclick = ()=>setDay("all");
+tabsEl.appendChild(allBtn);
+
+DAYS.forEach(day=>{
+  const b = document.createElement('button');
+  b.innerHTML = day.badge.replace('<br>','·');
+  b.onclick = ()=>setDay(day.id);
+  b.dataset.day = day.id;
+  tabsEl.appendChild(b);
+});
+
+DAYS.forEach((day,di)=>{
+  const card = document.createElement('div');
+  card.className = "daycard" + (di===0?" open":"");
+  card.dataset.day = day.id;
+
+  let poiHtml = "";
+  day.pois.forEach((poi,pi)=>{
+    const place = PLACES[poi.p];
+    const tagHtml = poi.tags.map(t=>`<span class="tag">${t}</span>`).join("");
+    poiHtml += `
+      <div class="poi" data-key="${day.id}_${poi.p}">
+        <div class="pmarker" style="background:${day.color}">${pi+1}</div>
+        <div class="pinfo">
+          <div class="pname">${place.name}</div>
+          <div class="pmeta">${place.tel?'☎ '+place.tel+' · ':''}${place.hours}</div>
+          <div class="pmeta">📝 ${poi.note}</div>
+          <div>${tagHtml}</div>
+        </div>
+      </div>`;
+  });
+
+  let checkHtml = day.checks.map((c,ci)=>`
+    <label class="check ${c.star?'star':''}">
+      <input type="checkbox" data-day="${day.id}" data-ci="${ci}">
+      <span>${c.star?'⭐ ':''}${c.t}</span>
+    </label>`).join("");
+
+  card.innerHTML = `
+    <div class="dhead">
+      <div class="dbadge" style="background:${day.color}">${day.badge}</div>
+      <div class="dtitle"><div class="dt">${day.title}</div><div class="ds">${day.sub}</div></div>
+      <div class="chev">▼</div>
+    </div>
+    <div class="dbody">
+      ${poiHtml}
+      <div class="checks">
+        <div class="ctitle">현장에서 할 일</div>
+        ${checkHtml}
+      </div>
+    </div>`;
+
+  // toggle open
+  card.querySelector('.dhead').addEventListener('click',()=>{
+    card.classList.toggle('open');
+  });
+
+  // poi click -> focus marker
+  card.querySelectorAll('.poi').forEach(el=>{
+    el.addEventListener('click',(e)=>{
+      e.stopPropagation();
+      const key = el.dataset.key;
+      const m = markers[key];
+      if(m){ map.setView(m.getLatLng(),14,{animate:true}); m.openPopup(); }
+    });
+  });
+
+  listEl.appendChild(card);
+});
+
+// checkbox strike + persist in-memory
+listEl.addEventListener('change',(e)=>{
+  if(e.target.type==='checkbox'){
+    const span = e.target.parentElement.querySelector('span');
+    span.classList.toggle('done', e.target.checked);
+  }
+});
+
+// ---- day filter ----
+function setDay(id){
+  activeDay = id;
+  // tabs
+  tabsEl.querySelectorAll('button').forEach(b=>{
+    b.classList.toggle('active', (id==="all" && b.classList.contains('all')) || b.dataset.day===id );
+  });
+  // cards
+  const cards = listEl.querySelectorAll('.daycard');
+  cards.forEach(c=>{
+    if(id==="all"){ c.classList.remove('dim'); c.style.display="block"; }
+    else {
+      const match = c.dataset.day===id;
+      c.style.display = match?"block":"none";
+      if(match) c.classList.add('open');
+    }
+  });
+  // markers
+  const visible = [];
+  allMarkers.forEach(m=>{
+    const show = (id==="all" || m.dayId===id);
+    if(show){ m.addTo(map); visible.push(m); }
+    else { map.removeLayer(m); }
+  });
+  if(visible.length){
+    const g = L.featureGroup(visible);
+    map.fitBounds(g.getBounds().pad(0.2));
+  }
+}
+</script>
+</body>
+</html>
