@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="sv">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -37,15 +37,37 @@
     line-height: 1.5;
   }
   .container { max-width: 720px; margin: 0 auto; }
-  h1 {
-    font-size: 1.5rem;
-    margin: 0 0 4px;
-    font-weight: 700;
-  }
-  .subtitle {
-    color: var(--muted);
-    font-size: 0.85rem;
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
     margin-bottom: 20px;
+  }
+  .header-text { flex: 1; min-width: 0; }
+  h1 { font-size: 1.5rem; margin: 0 0 4px; font-weight: 700; }
+  .subtitle { color: var(--muted); font-size: 0.85rem; }
+  .lang-switcher {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+  .lang-flag { font-size: 1.2rem; line-height: 1; }
+  .lang-switcher select {
+    border: none;
+    background: transparent;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.9rem;
+    padding: 2px 4px;
+    cursor: pointer;
+    outline: none;
+    width: auto;
   }
   .card {
     background: var(--card);
@@ -109,12 +131,7 @@
     color: white;
   }
   button:disabled { opacity: 0.5; cursor: not-allowed; }
-  .actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 12px;
-    flex-wrap: wrap;
-  }
+  .actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
   .output {
     background: var(--card);
     border: 1px solid var(--border);
@@ -157,94 +174,72 @@
 </head>
 <body>
 <div class="container">
-  <h1>📝 Prompt Maker</h1>
-  <div class="subtitle">필드를 채우면 아래 프롬프트가 자동으로 만들어져요</div>
+  <div class="header">
+    <div class="header-text">
+      <h1 id="t-title">📝 Prompt Maker</h1>
+      <div class="subtitle" id="t-subtitle"></div>
+    </div>
+    <div class="lang-switcher">
+      <span class="lang-flag" id="lang-flag">🇸🇪</span>
+      <select id="lang-select" aria-label="Language">
+        <option value="sv">Svenska</option>
+        <option value="ko">한국어</option>
+        <option value="en">English</option>
+      </select>
+    </div>
+  </div>
 
   <div class="card">
     <div class="field">
-      <label for="name">이름</label>
-      <input type="text" id="name" placeholder="예: Jaewoo">
+      <label for="name" id="t-label-name"></label>
+      <input type="text" id="name">
     </div>
-
     <div class="field">
-      <label for="location">현재 위치</label>
+      <label for="location" id="t-label-location"></label>
       <div class="row">
-        <input type="text" id="location" placeholder="GPS 버튼을 누르거나 직접 입력">
+        <input type="text" id="location">
         <button type="button" id="gps-btn">📍 GPS</button>
       </div>
       <div class="status" id="gps-status"></div>
     </div>
-
     <div class="field">
-      <label for="date">오늘 날짜</label>
-      <input type="text" id="date" placeholder="자동 입력됨">
+      <label for="date" id="t-label-date"></label>
+      <input type="text" id="date">
     </div>
-
     <div class="field">
-      <label for="role">역할</label>
+      <label for="role" id="t-label-role"></label>
       <div class="role-row">
-        <select id="role">
-          <option value="">— 선택하세요 —</option>
-          <optgroup label="업무 / 자동차 · AI">
-            <option>Software Supplier Quality Engineer (SW SQE)</option>
-            <option>ADAS / Autonomous Driving 엔지니어</option>
-            <option>자동차 소프트웨어 아키텍트</option>
-            <option>Functional Safety (ISO 26262) 전문가</option>
-            <option>Cybersecurity (ISO/SAE 21434) 전문가</option>
-            <option>ASPICE Assessor</option>
-            <option>Systems Engineer</option>
-            <option>AI/ML 연구자</option>
-            <option>Julia 개발자</option>
-            <option>Linux 시스템 개발자</option>
-          </optgroup>
-          <optgroup label="범용">
-            <option>기술 문서 작성자</option>
-            <option>코드 리뷰어</option>
-            <option>프로젝트 매니저</option>
-            <option>데이터 분석가</option>
-            <option>번역가 (영↔한)</option>
-            <option>편집자 / 교정자</option>
-            <option>커리어 코치</option>
-            <option>법률 자문 (일반)</option>
-            <option>마케팅 전문가</option>
-            <option>선생님 / 튜터</option>
-          </optgroup>
-          <option value="__custom__">✏️ 직접 입력...</option>
-        </select>
+        <select id="role"></select>
       </div>
-      <input type="text" id="role-custom" placeholder="역할을 직접 입력하세요">
+      <input type="text" id="role-custom">
     </div>
-
     <div class="field">
-      <label for="context">맥락 <span class="optional">(붙여넣기 가능)</span></label>
-      <textarea id="context" placeholder="관련된 배경 정보, 자료, 상황 설명 등을 붙여넣으세요"></textarea>
+      <label for="context" id="t-label-context"></label>
+      <textarea id="context"></textarea>
     </div>
-
     <div class="field">
-      <label for="instruction">지시사항</label>
-      <textarea id="instruction" placeholder="무엇을 해주길 원하는지"></textarea>
+      <label for="instruction" id="t-label-instruction"></label>
+      <textarea id="instruction"></textarea>
     </div>
-
     <div class="field">
-      <label for="format">출력 형식 <span class="optional">(선택)</span></label>
-      <input type="text" id="format" placeholder="예: 마크다운 표, 불릿 리스트, JSON, 보고서 형식 등">
+      <label for="format" id="t-label-format"></label>
+      <input type="text" id="format">
     </div>
-
     <div class="field">
-      <label for="example">예시 <span class="optional">(선택)</span></label>
-      <textarea id="example" placeholder="참고할 만한 예시가 있으면 붙여넣으세요"></textarea>
+      <label for="example" id="t-label-example"></label>
+      <textarea id="example"></textarea>
     </div>
   </div>
 
   <div class="output">
     <div class="output-header">
-      <label>생성된 프롬프트</label>
+      <label id="t-label-output"></label>
     </div>
     <textarea id="output-text" readonly></textarea>
     <div class="actions">
-      <button type="button" class="primary" id="copy-btn">📋 복사</button>
-      <button type="button" id="edit-btn">✏️ 편집 모드</button>
-      <button type="button" id="clear-btn">🗑️ 초기화</button>
+      <button type="button" class="primary" id="copy-btn"></button>
+      <button type="button" id="edit-btn"></button>
+      <button type="button" id="clear-btn"></button>
     </div>
     <div class="status" id="copy-status"></div>
   </div>
@@ -253,81 +248,410 @@
 <script>
 (function() {
   'use strict';
-
   const $ = (id) => document.getElementById(id);
-  const fields = ['name', 'location', 'date', 'role', 'context', 'instruction', 'format', 'example'];
 
-  // ---- 오늘 날짜 자동 입력 (한국식) ----
-  function setToday() {
-    const d = new Date();
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    const days = ['일', '월', '화', '수', '목', '금', '토'];
-    $('date').value = `${yyyy}년 ${mm}월 ${dd}일 (${days[d.getDay()]})`;
+  // ============================================================
+  // i18n - text / role options / date format / prompt template
+  // ============================================================
+  const I18N = {
+    sv: {
+      flag: '🇸🇪', htmlLang: 'sv', nominatim: 'sv,en',
+      title: '📝 Prompt Maker',
+      subtitle: 'Fyll i fälten så byggs din prompt automatiskt nedan',
+      label: {
+        name: 'Namn', location: 'Aktuell plats', date: 'Dagens datum',
+        role: 'Roll', context: 'Sammanhang', instruction: 'Instruktion',
+        format: 'Utdataformat', example: 'Exempel', output: 'Genererad prompt',
+        optional: '(valfritt)', paste: '(klistra in)',
+      },
+      ph: {
+        name: 't.ex. Jaewoo',
+        location: 'Tryck på GPS eller skriv in manuellt',
+        date: 'Fylls i automatiskt',
+        context: 'Klistra in bakgrundsinformation, material eller situation',
+        instruction: 'Vad vill du att jag ska göra?',
+        format: 't.ex. markdown-tabell, punktlista, JSON, rapport',
+        example: 'Klistra in ett exempel att referera till',
+        roleCustom: 'Skriv in din egen roll',
+        roleSelect: '— Välj —',
+        roleCustomOpt: '✏️ Anpassad...',
+      },
+      btn: { copy: '📋 Kopiera', edit: '✏️ Redigera', lock: '🔒 Lås', clear: '🗑️ Rensa' },
+      msg: {
+        noGeo: 'Den här enheten stöder inte platsinformation.',
+        gpsLoading: '📡 Hämtar GPS-position...',
+        gpsGot: (acc) => `✓ GPS-koordinater (±${acc} m), översätter till adress...`,
+        gpsDone: (acc) => `✓ Plats bekräftad (±${acc} m)`,
+        gpsCoordsOnly: (err) => `Endast koordinater (adressöversättning misslyckades: ${err})`,
+        gpsErr: {
+          1: 'Platsbehörighet nekad. Tillåt det i webbläsarens inställningar.',
+          2: 'Kan inte hämta GPS-signal.',
+          3: 'Tidsgränsen överskreds. Försök igen.',
+        },
+        copyOk: '✓ Kopierat till urklipp!',
+        copyEmpty: 'Det finns inget att kopiera.',
+        clearConfirm: 'Rensa alla inmatningar?',
+      },
+      roleGroups: [
+        { label: 'Arbete / Fordon · AI', options: [
+          'Software Supplier Quality Engineer (SW SQE)',
+          'ADAS / Autonom körning-ingenjör',
+          'Bilmjukvaruarkitekt',
+          'Funktionssäkerhetsexpert (ISO 26262)',
+          'Cybersäkerhetsexpert (ISO/SAE 21434)',
+          'ASPICE-bedömare',
+          'Systemingenjör',
+          'AI/ML-forskare',
+          'Julia-utvecklare',
+          'Linux-systemutvecklare',
+        ]},
+        { label: 'Allmänt', options: [
+          'Teknisk skribent', 'Kodgranskare', 'Projektledare',
+          'Dataanalytiker', 'Översättare (EN↔KO)',
+          'Redaktör / Korrekturläsare', 'Karriärcoach',
+          'Juridisk rådgivare (allmän)', 'Marknadsföringsexpert',
+          'Lärare / Handledare',
+        ]},
+      ],
+      formatDate: (d) => {
+        const months = ['januari','februari','mars','april','maj','juni',
+                        'juli','augusti','september','oktober','november','december'];
+        const days = ['söndag','måndag','tisdag','onsdag','torsdag','fredag','lördag'];
+        return `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+      },
+      buildPrompt: (v) => {
+        const intro = [];
+        if (v.name) intro.push(`mitt namn är **${v.name}**`);
+        if (v.location) intro.push(`jag befinner mig på **${v.location}**`);
+        if (v.date) intro.push(`idag är det **${v.date}**`);
+        const main = [];
+        if (v.role) main.push(`Som **"${v.role}"**`);
+        if (v.context) main.push(`med hänsyn till **${v.context}**`);
+        if (v.instruction) main.push(`vänligen utför **${v.instruction}**`);
+        const tail = [];
+        if (v.format) tail.push(`Visa resultatet som **${v.format}**`);
+        if (v.example) tail.push(`Vid behov, se exemplet nedan:\n\n${v.example}`);
+        const out = [];
+        if (intro.length) out.push(intro.join(', ').replace(/^./, c => c.toUpperCase()) + '.');
+        if (main.length) out.push(main.join(', ') + '.');
+        if (tail.length) out.push(tail.join('. ') + (v.example ? '' : '.'));
+        return out.join(' ');
+      },
+    },
+    ko: {
+      flag: '🇰🇷', htmlLang: 'ko', nominatim: 'ko,en',
+      title: '📝 프롬프트 메이커',
+      subtitle: '필드를 채우면 아래 프롬프트가 자동으로 만들어져요',
+      label: {
+        name: '이름', location: '현재 위치', date: '오늘 날짜',
+        role: '역할', context: '맥락', instruction: '지시사항',
+        format: '출력 형식', example: '예시', output: '생성된 프롬프트',
+        optional: '(선택)', paste: '(붙여넣기 가능)',
+      },
+      ph: {
+        name: '예: Jaewoo',
+        location: 'GPS 버튼을 누르거나 직접 입력',
+        date: '자동 입력됨',
+        context: '관련된 배경 정보, 자료, 상황 설명 등을 붙여넣으세요',
+        instruction: '무엇을 해주길 원하는지',
+        format: '예: 마크다운 표, 불릿 리스트, JSON, 보고서 형식 등',
+        example: '참고할 만한 예시가 있으면 붙여넣으세요',
+        roleCustom: '역할을 직접 입력하세요',
+        roleSelect: '— 선택하세요 —',
+        roleCustomOpt: '✏️ 직접 입력...',
+      },
+      btn: { copy: '📋 복사', edit: '✏️ 편집 모드', lock: '🔒 편집 잠금', clear: '🗑️ 초기화' },
+      msg: {
+        noGeo: '이 기기는 위치 정보를 지원하지 않아요.',
+        gpsLoading: '📡 GPS 위치 가져오는 중...',
+        gpsGot: (acc) => `✓ GPS 좌표 확보 (정확도 ±${acc}m), 주소 변환 중...`,
+        gpsDone: (acc) => `✓ 위치 확인됨 (±${acc}m)`,
+        gpsCoordsOnly: (err) => `좌표만 입력됨 (주소 변환 실패: ${err})`,
+        gpsErr: {
+          1: '위치 접근 권한이 거부됐어요. 브라우저 설정에서 허용해주세요.',
+          2: 'GPS 신호를 가져올 수 없어요.',
+          3: '시간 초과. 다시 시도해주세요.',
+        },
+        copyOk: '✓ 클립보드에 복사되었습니다!',
+        copyEmpty: '복사할 내용이 없어요.',
+        clearConfirm: '모든 입력을 지울까요?',
+      },
+      roleGroups: [
+        { label: '업무 / 자동차 · AI', options: [
+          'Software Supplier Quality Engineer (SW SQE)',
+          'ADAS / Autonomous Driving 엔지니어',
+          '자동차 소프트웨어 아키텍트',
+          'Functional Safety (ISO 26262) 전문가',
+          'Cybersecurity (ISO/SAE 21434) 전문가',
+          'ASPICE Assessor',
+          'Systems Engineer',
+          'AI/ML 연구자',
+          'Julia 개발자',
+          'Linux 시스템 개발자',
+        ]},
+        { label: '범용', options: [
+          '기술 문서 작성자', '코드 리뷰어', '프로젝트 매니저',
+          '데이터 분석가', '번역가 (영↔한)', '편집자 / 교정자',
+          '커리어 코치', '법률 자문 (일반)', '마케팅 전문가',
+          '선생님 / 튜터',
+        ]},
+      ],
+      formatDate: (d) => {
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        const days = ['일','월','화','수','목','금','토'];
+        return `${yyyy}년 ${mm}월 ${dd}일 (${days[d.getDay()]})`;
+      },
+      buildPrompt: (v) => {
+        const intro = [];
+        if (v.name) intro.push(`내 이름은 **${v.name}**이고`);
+        if (v.location) intro.push(`현재 위치는 **${v.location}**이며`);
+        if (v.date) intro.push(`오늘은 **${v.date}**이야`);
+        const main = [];
+        if (v.role) main.push(`**"${v.role}"**로서`);
+        if (v.context) main.push(`**${v.context}**를 고려해`);
+        if (v.instruction) main.push(`**${v.instruction}**을 수행해줘`);
+        const tail = [];
+        if (v.format) tail.push(`결과물은 **${v.format}**으로 보여줘`);
+        if (v.example) tail.push(`필요하다면 다음 예시를 참고해:\n\n${v.example}`);
+        const out = [];
+        if (intro.length) out.push(intro.join(', ') + '.');
+        if (main.length) out.push(main.join(', ') + '.');
+        if (tail.length) out.push(tail.join('. ') + (v.example ? '' : '.'));
+        return out.join(' ');
+      },
+    },
+    en: {
+      flag: '🇬🇧', htmlLang: 'en', nominatim: 'en',
+      title: '📝 Prompt Maker',
+      subtitle: 'Fill in the fields and your prompt will be built automatically below',
+      label: {
+        name: 'Name', location: 'Current location', date: "Today's date",
+        role: 'Role', context: 'Context', instruction: 'Instruction',
+        format: 'Output format', example: 'Example', output: 'Generated prompt',
+        optional: '(optional)', paste: '(paste allowed)',
+      },
+      ph: {
+        name: 'e.g. Jaewoo',
+        location: 'Press GPS or type manually',
+        date: 'Auto-filled',
+        context: 'Paste background info, material, or situation here',
+        instruction: 'What would you like me to do?',
+        format: 'e.g. markdown table, bullet list, JSON, report',
+        example: 'Paste an example for reference if helpful',
+        roleCustom: 'Type your own role',
+        roleSelect: '— Select —',
+        roleCustomOpt: '✏️ Custom...',
+      },
+      btn: { copy: '📋 Copy', edit: '✏️ Edit', lock: '🔒 Lock', clear: '🗑️ Clear' },
+      msg: {
+        noGeo: 'This device does not support geolocation.',
+        gpsLoading: '📡 Getting GPS location...',
+        gpsGot: (acc) => `✓ GPS coordinates (±${acc}m), resolving address...`,
+        gpsDone: (acc) => `✓ Location confirmed (±${acc}m)`,
+        gpsCoordsOnly: (err) => `Coordinates only (address lookup failed: ${err})`,
+        gpsErr: {
+          1: 'Location permission denied. Please allow it in your browser settings.',
+          2: 'Cannot acquire GPS signal.',
+          3: 'Request timed out. Please try again.',
+        },
+        copyOk: '✓ Copied to clipboard!',
+        copyEmpty: 'Nothing to copy.',
+        clearConfirm: 'Clear all inputs?',
+      },
+      roleGroups: [
+        { label: 'Work / Automotive · AI', options: [
+          'Software Supplier Quality Engineer (SW SQE)',
+          'ADAS / Autonomous Driving Engineer',
+          'Automotive Software Architect',
+          'Functional Safety (ISO 26262) Expert',
+          'Cybersecurity (ISO/SAE 21434) Expert',
+          'ASPICE Assessor',
+          'Systems Engineer',
+          'AI/ML Researcher',
+          'Julia Developer',
+          'Linux Systems Developer',
+        ]},
+        { label: 'General', options: [
+          'Technical Writer', 'Code Reviewer', 'Project Manager',
+          'Data Analyst', 'Translator (EN↔KO)', 'Editor / Proofreader',
+          'Career Coach', 'Legal Advisor (general)', 'Marketing Expert',
+          'Teacher / Tutor',
+        ]},
+      ],
+      formatDate: (d) => d.toLocaleDateString('en-US', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      }),
+      buildPrompt: (v) => {
+        const intro = [];
+        if (v.name) intro.push(`my name is **${v.name}**`);
+        if (v.location) intro.push(`I'm currently at **${v.location}**`);
+        if (v.date) intro.push(`today is **${v.date}**`);
+        const main = [];
+        if (v.role) main.push(`As a **"${v.role}"**`);
+        if (v.context) main.push(`considering **${v.context}**`);
+        if (v.instruction) main.push(`please perform **${v.instruction}**`);
+        const tail = [];
+        if (v.format) tail.push(`Show the result as **${v.format}**`);
+        if (v.example) tail.push(`If helpful, refer to the example below:\n\n${v.example}`);
+        const out = [];
+        if (intro.length) out.push(intro.join(', ').replace(/^./, c => c.toUpperCase()) + '.');
+        if (main.length) out.push(main.join(', ') + '.');
+        if (tail.length) out.push(tail.join('. ') + (v.example ? '' : '.'));
+        return out.join(' ');
+      },
+    },
+  };
+
+  // ============================================================
+  // 현재 언어 - localStorage 에 저장, 기본 sv
+  // ============================================================
+  let currentLang = 'sv';
+  try {
+    const saved = localStorage.getItem('promptMakerLang');
+    if (saved && I18N[saved]) currentLang = saved;
+  } catch (e) { /* ignore */ }
+
+  const L = () => I18N[currentLang];
+
+  // ============================================================
+  // Role select 채우기 (언어 바뀔 때마다)
+  // ============================================================
+  function populateRoleSelect() {
+    const lang = L();
+    const select = $('role');
+    const prevValue = select.value;
+    select.innerHTML = '';
+
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = lang.ph.roleSelect;
+    select.appendChild(placeholder);
+
+    lang.roleGroups.forEach(grp => {
+      const og = document.createElement('optgroup');
+      og.label = grp.label;
+      grp.options.forEach(opt => {
+        const o = document.createElement('option');
+        o.value = opt;
+        o.textContent = opt;
+        og.appendChild(o);
+      });
+      select.appendChild(og);
+    });
+
+    const custom = document.createElement('option');
+    custom.value = '__custom__';
+    custom.textContent = lang.ph.roleCustomOpt;
+    select.appendChild(custom);
+
+    if (prevValue === '__custom__') {
+      select.value = '__custom__';
+    } else if (prevValue) {
+      const found = Array.from(select.options).some(o => o.value === prevValue);
+      select.value = found ? prevValue : '';
+    }
   }
-  setToday();
 
-  // ---- GPS 위치 가져오기 + Nominatim 주소 변환 ----
+  // ============================================================
+  // 모든 UI 텍스트 새로 그리기
+  // ============================================================
+  function applyLanguage() {
+    const lang = L();
+    document.documentElement.lang = lang.htmlLang;
+    document.title = lang.title.replace(/^📝 /, '');
+    $('lang-flag').textContent = lang.flag;
+    $('t-title').textContent = lang.title;
+    $('t-subtitle').textContent = lang.subtitle;
+
+    $('t-label-name').textContent = lang.label.name;
+    $('t-label-location').textContent = lang.label.location;
+    $('t-label-date').textContent = lang.label.date;
+    $('t-label-role').textContent = lang.label.role;
+    $('t-label-context').innerHTML = `${lang.label.context} <span class="optional">${lang.label.paste}</span>`;
+    $('t-label-instruction').textContent = lang.label.instruction;
+    $('t-label-format').innerHTML = `${lang.label.format} <span class="optional">${lang.label.optional}</span>`;
+    $('t-label-example').innerHTML = `${lang.label.example} <span class="optional">${lang.label.optional}</span>`;
+    $('t-label-output').textContent = lang.label.output;
+
+    $('name').placeholder = lang.ph.name;
+    $('location').placeholder = lang.ph.location;
+    $('date').placeholder = lang.ph.date;
+    $('context').placeholder = lang.ph.context;
+    $('instruction').placeholder = lang.ph.instruction;
+    $('format').placeholder = lang.ph.format;
+    $('example').placeholder = lang.ph.example;
+    $('role-custom').placeholder = lang.ph.roleCustom;
+
+    $('copy-btn').textContent = lang.btn.copy;
+    $('clear-btn').textContent = lang.btn.clear;
+    const out = $('output-text');
+    $('edit-btn').textContent = out.readOnly ? lang.btn.edit : lang.btn.lock;
+
+    setToday();
+    populateRoleSelect();
+    updateOutput();
+  }
+
+  function setToday() {
+    $('date').value = L().formatDate(new Date());
+  }
+
+  // ============================================================
+  // GPS + Nominatim
+  // ============================================================
   $('gps-btn').addEventListener('click', () => {
     const status = $('gps-status');
+    const lang = L();
     status.className = 'status';
     status.textContent = '';
 
     if (!navigator.geolocation) {
       status.className = 'status error';
-      status.textContent = '이 기기는 위치 정보를 지원하지 않아요.';
+      status.textContent = lang.msg.noGeo;
       return;
     }
-
-    status.textContent = '📡 GPS 위치 가져오는 중...';
+    status.textContent = lang.msg.gpsLoading;
     $('gps-btn').disabled = true;
 
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const { latitude, longitude, accuracy } = pos.coords;
-        status.textContent = `✓ GPS 좌표 확보 (정확도 ±${Math.round(accuracy)}m), 주소 변환 중...`;
+        const acc = Math.round(accuracy);
+        status.textContent = L().msg.gpsGot(acc);
         $('location').value = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
         updateOutput();
 
         try {
-          const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=ko,en&zoom=16`;
-          const res = await fetch(url, {
-            headers: { 'Accept': 'application/json' }
-          });
-          if (!res.ok) throw new Error('주소 변환 실패');
+          const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=${L().nominatim}&zoom=16`;
+          const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+          if (!res.ok) throw new Error('HTTP ' + res.status);
           const data = await res.json();
           const addr = data.display_name || `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
           $('location').value = addr;
           status.className = 'status success';
-          status.textContent = `✓ 위치 확인됨 (±${Math.round(accuracy)}m)`;
+          status.textContent = L().msg.gpsDone(acc);
           updateOutput();
         } catch (err) {
           status.className = 'status';
-          status.textContent = `좌표만 입력됨 (주소 변환 실패: ${err.message})`;
+          status.textContent = L().msg.gpsCoordsOnly(err.message);
         } finally {
           $('gps-btn').disabled = false;
         }
       },
       (err) => {
         status.className = 'status error';
-        const msgs = {
-          1: '위치 접근 권한이 거부됐어요. 브라우저 설정에서 허용해주세요.',
-          2: 'GPS 신호를 가져올 수 없어요.',
-          3: '시간 초과. 다시 시도해주세요.'
-        };
-        status.textContent = msgs[err.code] || `오류: ${err.message}`;
+        status.textContent = L().msg.gpsErr[err.code] || `Error: ${err.message}`;
         $('gps-btn').disabled = false;
       },
-      {
-        enableHighAccuracy: true,  // GPS 사용 (네트워크 위치 X)
-        timeout: 20000,
-        maximumAge: 0
-      }
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
     );
   });
 
-  // ---- 역할 드롭다운: Custom 입력 토글 ----
+  // ============================================================
+  // Role custom 토글
+  // ============================================================
   $('role').addEventListener('change', (e) => {
     const customInput = $('role-custom');
     if (e.target.value === '__custom__') {
@@ -340,104 +664,71 @@
     updateOutput();
   });
 
-  // ---- 프롬프트 생성 ----
+  // ============================================================
+  // 프롬프트 생성
+  // ============================================================
   function getRole() {
     const sel = $('role').value;
     if (sel === '__custom__') return $('role-custom').value.trim();
     return sel.trim();
   }
 
-  function buildPrompt() {
-    const name = $('name').value.trim();
-    const location = $('location').value.trim();
-    const date = $('date').value.trim();
-    const role = getRole();
-    const context = $('context').value.trim();
-    const instruction = $('instruction').value.trim();
-    const format = $('format').value.trim();
-    const example = $('example').value.trim();
-
-    // 첫 문장 부분: 이름/위치/날짜
-    const intro_parts = [];
-    if (name) intro_parts.push(`내 이름은 **${name}**이고`);
-    if (location) intro_parts.push(`현재 위치는 **${location}**이며`);
-    if (date) intro_parts.push(`오늘은 **${date}**이며`);
-
-    // 두 번째 부분: 역할/맥락/지시사항
-    const main_parts = [];
-    if (role) main_parts.push(`**"${role}"**로서`);
-    if (context) main_parts.push(`**${context}**를 고려해`);
-    if (instruction) main_parts.push(`**${instruction}**을 수행해줘`);
-
-    // 세 번째 부분: 출력형식 / 예시 (둘 다 optional)
-    const tail_parts = [];
-    if (format) tail_parts.push(`결과물은 **${format}**으로 보여줘`);
-    if (example) tail_parts.push(`필요하다면 다음 예시를 참고해:\n\n${example}`);
-
-    // 조립
-    const sentences = [];
-    if (intro_parts.length) sentences.push(intro_parts.join(', ') + '.');
-    if (main_parts.length) sentences.push(main_parts.join(', ') + '.');
-    if (tail_parts.length) sentences.push(tail_parts.join('. ') + '.');
-
-    return sentences.join(' ');
-  }
-
   function updateOutput() {
-    if (!$('output-text').readOnly) return;  // 편집 모드면 덮어쓰지 않음
-    $('output-text').value = buildPrompt();
+    if (!$('output-text').readOnly) return;
+    const v = {
+      name: $('name').value.trim(),
+      location: $('location').value.trim(),
+      date: $('date').value.trim(),
+      role: getRole(),
+      context: $('context').value.trim(),
+      instruction: $('instruction').value.trim(),
+      format: $('format').value.trim(),
+      example: $('example').value.trim(),
+    };
+    $('output-text').value = L().buildPrompt(v);
   }
 
-  // 모든 필드 변경 시 자동 업데이트
-  fields.forEach((id) => {
-    const el = $(id);
-    if (el) el.addEventListener('input', updateOutput);
-  });
-  $('role-custom').addEventListener('input', updateOutput);
+  ['name','location','date','role','context','instruction','format','example','role-custom']
+    .forEach(id => $(id).addEventListener('input', updateOutput));
 
-  // ---- 복사 버튼 ----
+  // ============================================================
+  // 복사 / 편집 / 초기화
+  // ============================================================
   $('copy-btn').addEventListener('click', async () => {
     const text = $('output-text').value;
     if (!text) {
       $('copy-status').className = 'status error';
-      $('copy-status').textContent = '복사할 내용이 없어요.';
+      $('copy-status').textContent = L().msg.copyEmpty;
       return;
     }
     try {
       await navigator.clipboard.writeText(text);
-      $('copy-status').className = 'status success';
-      $('copy-status').textContent = '✓ 클립보드에 복사되었습니다!';
-      setTimeout(() => { $('copy-status').textContent = ''; }, 2500);
     } catch (err) {
-      // Fallback for older browsers
       $('output-text').select();
       document.execCommand('copy');
-      $('copy-status').className = 'status success';
-      $('copy-status').textContent = '✓ 복사되었습니다!';
-      setTimeout(() => { $('copy-status').textContent = ''; }, 2500);
     }
+    $('copy-status').className = 'status success';
+    $('copy-status').textContent = L().msg.copyOk;
+    setTimeout(() => { $('copy-status').textContent = ''; }, 2500);
   });
 
-  // ---- 편집 모드 토글 ----
   $('edit-btn').addEventListener('click', () => {
     const out = $('output-text');
     if (out.readOnly) {
       out.readOnly = false;
-      $('edit-btn').textContent = '🔒 편집 잠금';
+      $('edit-btn').textContent = L().btn.lock;
       out.focus();
     } else {
       out.readOnly = true;
-      $('edit-btn').textContent = '✏️ 편집 모드';
+      $('edit-btn').textContent = L().btn.edit;
       updateOutput();
     }
   });
 
-  // ---- 초기화 ----
   $('clear-btn').addEventListener('click', () => {
-    if (!confirm('모든 입력을 지울까요?')) return;
-    ['name', 'location', 'context', 'instruction', 'format', 'example', 'role-custom'].forEach((id) => {
-      $(id).value = '';
-    });
+    if (!confirm(L().msg.clearConfirm)) return;
+    ['name','location','context','instruction','format','example','role-custom']
+      .forEach(id => { $(id).value = ''; });
     $('role').value = '';
     $('role-custom').classList.remove('show');
     $('gps-status').textContent = '';
@@ -445,8 +736,18 @@
     updateOutput();
   });
 
-  // 초기 렌더
-  updateOutput();
+  // ============================================================
+  // 언어 전환
+  // ============================================================
+  $('lang-select').addEventListener('change', (e) => {
+    currentLang = e.target.value;
+    try { localStorage.setItem('promptMakerLang', currentLang); } catch (e) {}
+    applyLanguage();
+  });
+
+  // 초기화
+  $('lang-select').value = currentLang;
+  applyLanguage();
 })();
 </script>
 </body>
