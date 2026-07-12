@@ -152,14 +152,14 @@
 <body>
 
 <header>
-  <h1>🇰🇷 한국 일정 & 체크리스트 <span class="em">2026.7.15(수)~7.26(일)</span></h1>
-  <div class="meta">거점 숙소 · 초월역 동광뷰엘 103동 301호 (경기 광주시 초월읍, 초월역 도보 10분)</div>
+  <h1>🇰🇷 한국 일정 & 체크리스트 <span class="em">7.13 준비 · 7.14 출발 · 7.15~7.26</span></h1>
+  <div class="meta">거점 숙소 · 초월역 동광뷰엘 103동 301호 (경기 광주시 초월읍, 초월역 도보 10분) · ✈️ 예약번호 8FAJW9 (GOT↔ICN)</div>
   <div class="base">📍 모든 일정의 베이스캠프 = 초월</div>
 </header>
 
 <div class="principles">
   <div class="p"><b>① 여권은 첫날 접수</b>영업일 약 4일 · 7/15(수) 접수 → 7/21(화) 수령</div>
-  <div class="p"><b>② 전화 개통이 전제</b>면허·카드·삼성페이·보험환급 모두 한국번호 필요</div>
+  <div class="p"><b>② 한국번호는 7/13 eSIM으로</b>스웨덴에서 온라인 개통 시도 → 실패 시 7/15 한국에서 개통 (면허·카드·삼성페이 전제)</div>
   <div class="p"><b>③ 검진(16일)↔면허(20일) 연결</b>검진 결과 공단 등록 → 면허 신검 갈음</div>
 </div>
 
@@ -177,7 +177,6 @@
       <div class="row"><span class="dot" style="background:#ff7849"></span> 관공서 (여권·면허)</div>
       <div class="row"><span class="dot" style="background:#3fb950"></span> 은행 (하나·국민)</div>
       <div class="row"><span class="dot" style="background:#e3b341"></span> 병원 (검진·치과)</div>
-      <div class="row"><span class="dot" style="background:#a371f7"></span> 통신 (SKT)</div>
     </div>
   </div>
 </div>
@@ -208,7 +207,6 @@ const CAT = {
 const PLACES = {
   base:    {name:"거점 숙소 · 초월역 동광뷰엘", lat:37.385835, lng:127.29956689999999, cat:"base", tel:"", hours:"초월역 도보 10분", url:"https://maps.google.com/?cid=6818251341054700424"},
   city:    {name:"광주시청 (여권)", lat:37.4294077, lng:127.2551421, cat:"gov", tel:"031-760-2000", hours:"평일 9~18시", url:"https://maps.google.com/?cid=4191017359390821621"},
-  skt:     {name:"SKT 초월점 (전화 개통)", lat:37.3866722, lng:127.28821979999998, cat:"telecom", tel:"031-766-8800", hours:"평일 10~19시(일 휴무)", url:"https://maps.google.com/?cid=10320220934820722265"},
   hue:     {name:"서울휴내과이비인후과 (검진+귀)", lat:37.3738057, lng:127.2976734, cat:"hosp", tel:"031-8027-2222", hours:"평일 9~18:30, 토 ~13:30", url:"https://maps.google.com/?cid=2953601039590006907"},
   dental:  {name:"서울더센트럴치과", lat:37.373595, lng:127.29936500000001, cat:"hosp", tel:"031-763-2080", hours:"화·목 ~20:30, 토 ~14시", url:"https://maps.google.com/?cid=10590451842517651870"},
   hana:    {name:"하나은행 경기광주지점", lat:37.407476, lng:127.2605854, cat:"bank", tel:"031-797-1111", hours:"평일 9~15:30", url:"https://maps.google.com/?cid=8057707811625471004"},
@@ -220,10 +218,32 @@ const PLACES = {
 // ---- 날짜별 일정 ----
 const DAYS = [
   {
+    id:"d13", badge:"7/13<br>월", color:"#a371f7", title:"스웨덴 사전준비 · eSIM + 한국 전화", sub:"⏰ 한국시간 = 스웨덴 +7h → 은행은 09:00(CEST) 전, 병원은 11:30(CEST) 전 전화!",
+    pois:[],
+    checks:[
+      {t:"오전: 모요(moyoplan.com) → 필터 eSIM → 알뜰폰 최저가 요금제 온라인 신규가입 시도 (한국 신분증 + 신용카드/PASS 인증 필요)", star:true},
+      {t:"개통 성공 시 QR 스캔 → eSIM 다운로드 (WiFi, 수수료 2,750원) · 실패 시 7/15 한국에서 개통", star:false},
+      {t:"📞 서울휴내과 +82-31-8027-2222 — 7/16(목) 오전 8시 공복 건강검진 예약 + 7/17(제헌절) 진료 여부 확인", star:true},
+      {t:"📞 서울더센트럴치과 +82-31-763-2080 — 치과·귀 상담 예약 (7/16 오후 또는 7/17)", star:true},
+      {t:"📞 메리츠화재 +82-1566-7711 — 실비 환급 요청 (해외에서 1566 연결 안 되면 Skype/인터넷전화 이용)", star:true},
+      {t:"📞 KB국민은행 곤지암지점 +82-31-765-5735 — VIP 등록 · 인터넷뱅킹 · 금융인증서 발급 · 아이 계좌 한도제한 풀기 (필요서류 미리 확인)", star:true}
+    ]
+  },
+  {
+    id:"d14", badge:"7/14<br>화", color:"#4ea1ff", title:"✈️ 출국 · GOT 11:50 → ICN", sub:"예약번호 8FAJW9 · MUC 1회 경유 · 총 15h 5m",
+    pois:[],
+    checks:[
+      {t:"예약번호 8FAJW9 · 온라인 체크인 (출발 24h 전 = 오늘 오전부터 가능)", star:true},
+      {t:"여권·한국 신분증·KB/하나 관련 서류·eSIM QR(스크린샷) 챙기기", star:true},
+      {t:"랜드베터(GOT) 공항 09:30~09:50 도착 (출발 2시간 전)", star:false},
+      {t:"GOT 11:50 출발 → 뮌헨(MUC) 경유 → ICN 익일 09:55 도착", star:false},
+      {t:"기내에서 7/15 동선 확인: 8842 5번차 (T2 10:20/T1 10:40)", star:false}
+    ]
+  },
+  {
     id:"d15", badge:"7/15<br>수", color:"#ff7849", title:"도착일 · 여권접수", sub:"⏱ 시간민감 — 인천 09:55 도착",
     pois:[
       {p:"city", tags:["여권 접수 · 18시 마감"], note:"660번 → 광주시청앞 하차"},
-      {p:"skt", tags:["⭐ 먼저!","패밀리 결합"], note:"개통이 모든 일정의 전제"},
       {p:"base", tags:["입실"], note:"8842 5번차 → 경기광주 13:20"}
     ],
     checks:[
@@ -231,24 +251,22 @@ const DAYS = [
       {t:"공항 즉석사진기 여권사진 (35×45, 흰배경)", star:false},
       {t:"8842 리무진 5번차 (T2 10:20/T1 10:40)", star:false},
       {t:"여권 재발급 접수 (시청, 18시 마감)", star:false},
-      {t:"SKT 초월점 전화 개통 (패밀리 결합) ← 먼저!", star:true},
-      {t:"병원에 7/17 진료 여부 확인 전화", star:true},
-      {t:"메리츠화재 1566-7711 실비 환급 요청", star:true}
+      {t:"7/13 eSIM 미개통 시 → 알뜰폰 온라인/편의점 유심 개통", star:true}
     ]
   },
   {
     id:"d16", badge:"7/16<br>목", color:"#e3b341", title:"검진+금융 · 면허 연결", sub:"공복 검진 → 은행 → 삼성페이",
     pois:[
       {p:"hue", tags:["⭐ 8시 공복","공단 검진"], note:"면허 신검 갈음 핵심"},
-      {p:"hana", tags:["오전 9:30","트래블로그/GO"], note:"체크카드 발급"},
-      {p:"kb", tags:["오후","VIP·금융인증서"], note:"16시 마감"},
+      {p:"hana", tags:["오전 9:30","트래블로그"], note:"트래블로그 체크카드만 발급 (GO 제외)"},
+      {p:"kb", tags:["오후","VIP·금융인증서","아이계좌 한도해제"], note:"16시 마감"},
       {p:"dental", tags:["귀·치과 상담"], note:"17일 휴진 시 오늘"}
     ],
     checks:[
       {t:"건강검진 공복 (서울휴내과, 8시 1순위)", star:true},
       {t:"\"검진결과 공단 등록 시점\" 문의 → 7/20 연결!", star:true},
-      {t:"오전 9:30 하나은행 — 트래블로그/GO 체크카드", star:false},
-      {t:"오후 KB국민은행 — VIP등록·인터넷뱅킹·보안카드", star:false},
+      {t:"오전 9:30 하나은행 — 트래블로그 체크카드만 (GO 제외)", star:false},
+      {t:"오후 KB국민은행 — VIP 등록 · 인터넷뱅킹 · 금융인증서 발급 · 아이 계좌 한도제한 풀기", star:false},
       {t:"스타뱅킹 앱·금융인증서 발급 (한국서!)", star:true},
       {t:"치과·귀 상담 (서울더센트럴치과)", star:false},
       {t:"저녁 삼성페이 등록", star:false}
@@ -322,18 +340,19 @@ const DAYS = [
     ]
   },
   {
-    id:"d26", badge:"7/26<br>일", color:"#4ea1ff", title:"출국 · 12:20 출발", sub:"광주터미널 06:40 → 인천 09:20/09:40",
+    id:"d26", badge:"7/26<br>일", color:"#4ea1ff", title:"✈️ 출국 · ICN 12:20 → GOT", sub:"예약번호 8FAJW9 · FRA 1회 경유 · 총 18h 5m · 광주터미널 06:40 → 인천 09:20/09:40",
     pois:[
       {p:"terminal", tags:["06:40 8842"], note:"→ 인천 T1 09:20 / T2 09:40"},
       {p:"base", tags:["첫차 역산"], note:"숙소→터미널 이른 출발"}
     ],
     checks:[
       {t:"신여권·갱신 면허증 챙기기", star:false},
-      {t:"하나 체크카드 2종 작동 확인", star:false},
+      {t:"하나 트래블로그 체크카드 작동 확인", star:false},
       {t:"국민 보안카드·인터넷뱅킹·금융인증서 확인", star:false},
       {t:"삼성페이 정상 등록 확인", star:false},
       {t:"광주터미널 06:40 8842 → 인천공항", star:false},
-      {t:"12:20 ICN 출발 → FRA 경유 → 23:25 고텐부르크", star:false}
+      {t:"온라인 체크인 (7/25 12:20부터 가능, 예약번호 8FAJW9)", star:false},
+      {t:"ICN 12:20 출발 → 프랑크푸르트(FRA) 경유 → GOT 23:25 도착", star:false}
     ]
   }
 ];
