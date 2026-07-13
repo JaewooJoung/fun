@@ -177,6 +177,7 @@
       <div class="row"><span class="dot" style="background:#ff7849"></span> 관공서 (여권·면허)</div>
       <div class="row"><span class="dot" style="background:#3fb950"></span> 은행 (하나·국민)</div>
       <div class="row"><span class="dot" style="background:#e3b341"></span> 병원 (검진·치과)</div>
+      <div class="row"><span class="dot" style="background:#a371f7"></span> 통신 (SKT · 예비)</div>
     </div>
   </div>
 </div>
@@ -207,6 +208,7 @@ const CAT = {
 const PLACES = {
   base:    {name:"거점 숙소 · 초월역 동광뷰엘", lat:37.385835, lng:127.29956689999999, cat:"base", tel:"", hours:"초월역 도보 10분", url:"https://maps.google.com/?cid=6818251341054700424"},
   city:    {name:"광주시청 (여권)", lat:37.4294077, lng:127.2551421, cat:"gov", tel:"031-760-2000", hours:"평일 9~18시", url:"https://maps.google.com/?cid=4191017359390821621"},
+  skt:     {name:"SKT 초월점 (전화 개통)", lat:37.3866722, lng:127.28821979999998, cat:"telecom", tel:"031-766-8800", hours:"평일 10~19시(일 휴무)", url:"https://maps.google.com/?cid=10320220934820722265"},
   hue:     {name:"서울휴내과이비인후과 (검진+귀)", lat:37.3738057, lng:127.2976734, cat:"hosp", tel:"031-8027-2222", hours:"평일 9~18:30, 토 ~13:30", url:"https://maps.google.com/?cid=2953601039590006907"},
   dental:  {name:"서울더센트럴치과", lat:37.373595, lng:127.29936500000001, cat:"hosp", tel:"031-763-2080", hours:"화·목 ~20:30, 토 ~14시", url:"https://maps.google.com/?cid=10590451842517651870"},
   hana:    {name:"하나은행 경기광주지점", lat:37.407476, lng:127.2605854, cat:"bank", tel:"031-797-1111", hours:"평일 9~15:30", url:"https://maps.google.com/?cid=8057707811625471004"},
@@ -245,6 +247,7 @@ const DAYS = [
     id:"d15", badge:"7/15<br>수", color:"#ff7849", title:"도착일 · 여권접수", sub:"⏱ 시간민감 — 인천 09:55 도착",
     pois:[
       {p:"city", tags:["여권 접수 · 18시 마감"], note:"660번 → 광주시청앞 하차"},
+      {p:"skt", tags:["eSIM 실패 시만","~19시"], note:"7/13 개통 성공하면 스킵"},
       {p:"base", tags:["입실"], note:"8842 5번차 → 경기광주 13:20"}
     ],
     checks:[
@@ -254,7 +257,7 @@ const DAYS = [
       {t:"여권 재발급 접수 (시청, 18시 마감)", star:false},
       {t:"📞 건강보험공단 1577-1000 — 입국 신고 (건강보험 급여정지 해제, 도착 후 바로)", star:true},
       {t:"오후 서울휴내과 방문 — 검진 키트 수령 (7/16 검진용)", star:true},
-      {t:"7/13 eSIM 미개통 시 → 알뜰폰 온라인/편의점 유심 개통", star:true}
+      {t:"7/13 eSIM 미개통 시 → SKT 초월점 대리점 방문 개통 (031-766-8800, ~19시)", star:true}
     ]
   },
   {
