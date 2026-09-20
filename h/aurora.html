@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>오로라 워치 · Aurora Watch</title>
+<meta name="description" content="NOAA OVATION 실시간 오로라 예보를 지구본 위에 그려 보여주는 페이지">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#05070f">
+<meta property="og:title" content="오로라 워치 — 실시간 오로라 지구본">
+<meta property="og:description" content="NOAA OVATION 30분 예보를 지구본 위에 실시간으로 그립니다.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="preconnect" href="https://services.swpc.noaa.gov">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#05070f;
+  --bg-2:#0a1020;
+  --surface:rgba(17,25,44,.74);
+  --surface-solid:#111a2c;
+  --line:rgba(150,180,220,.14);
+  --line-strong:rgba(150,180,220,.28);
+  --text:#e8eef8;
+  --muted:rgba(232,238,248,.58);
+  --faint:rgba(232,238,248,.38);
+  --green:#3ef2a8;
+  --teal:#46d6e0;
+  --violet:#8b7cf6;
+  --magenta:#f06bd8;
+  --amber:#ffc860;
+  --red:#ff6b81;
+  --font-h:"Inter",system-ui,"Noto Sans KR",sans-serif;
+  --font-b:"Inter",system-ui,"Noto Sans KR",sans-serif;
+  --r-sm:8px; --r-md:14px; --r-lg:20px;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--font-b);
+  font-size:15px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+/* ---------- 밤하늘 배경 ---------- */
+.sky{position:fixed;inset:0;z-index:-2;background:
+  radial-gradient(1100px 620px at 12% -12%, #14224a 0%, transparent 60%),
+  radial-gradient(900px 560px at 88% 4%, #123040 0%, transparent 58%),
+  radial-gradient(1200px 700px at 50% 108%, #10203c 0%, transparent 62%),
+  var(--bg);}
+.stars{position:fixed;inset:-50px;z-index:-1;pointer-events:none;opacity:.7;
+  background-image:
+    radial-gradient(1.4px 1.4px at 12% 22%, #fff, transparent),
+    radial-gradient(1.1px 1.1px at 28% 68%, #cfe6ff, transparent),
+    radial-gradient(1.6px 1.6px at 44% 12%, #fff, transparent),
+    radial-gradient(1px 1px at 58% 46%, #dff0ff, transparent),
+    radial-gradient(1.3px 1.3px at 72% 78%, #fff, transparent),
+    radial-gradient(1px 1px at 86% 30%, #cfe6ff, transparent),
+    radial-gradient(1.5px 1.5px at 92% 62%, #fff, transparent),
+    radial-gradient(1px 1px at 8% 84%, #fff, transparent),
+    radial-gradient(1.2px 1.2px at 36% 92%, #dff0ff, transparent),
+    radial-gradient(1px 1px at 66% 6%, #fff, transparent);
+  animation:twinkle 7s ease-in-out infinite alternate;}
+@keyframes twinkle{from{opacity:.45}to{opacity:.85}}
+.veil{position:fixed;left:-20%;right:-20%;top:-30%;height:70vh;z-index:-1;pointer-events:none;
+  background:conic-gradient(from 210deg at 50% 100%, transparent 0deg, rgba(62,242,168,.10) 42deg, rgba(70,214,224,.09) 74deg, rgba(139,124,246,.09) 104deg, rgba(240,107,216,.07) 128deg, transparent 170deg);
+  filter:blur(40px);animation:drift 26s ease-in-out infinite alternate;}
+@keyframes drift{from{transform:translateX(-4%) rotate(-2deg)}to{transform:translateX(5%) rotate(2deg)}}
+@media (prefers-reduced-motion:reduce){.stars,.veil{animation:none}}
+
+/* ---------- 레이아웃 ---------- */
+.wrap{max-width:1180px;margin:0 auto;padding:clamp(20px,4vw,48px) clamp(16px,4vw,40px) 64px;
+  display:flex;flex-direction:column;gap:clamp(18px,2.4vw,26px)}
+h1,h2,h3{font-family:var(--font-h);line-height:1.12;letter-spacing:-.02em;margin:0}
+.eyebrow{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--green)}
+
+header.top{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end;justify-content:space-between}
+.title-block{display:flex;flex-direction:column;gap:8px;min-width:0}
+h1{font-size:clamp(30px,5vw,46px);font-weight:600;
+  background:linear-gradient(100deg,#eafff6 0%,var(--green) 38%,var(--teal) 58%,var(--violet) 84%);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.subtitle{font-size:13px;color:var(--muted);margin:0}
+.meta-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.pill{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;padding:5px 11px;border-radius:999px;
+  border:1px solid var(--line);background:rgba(255,255,255,.035);color:var(--muted);white-space:nowrap}
+.pill b{color:var(--text);font-weight:500}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(62,242,168,.55);animation:ping 2.4s ease-out infinite}
+@keyframes ping{0%{box-shadow:0 0 0 0 rgba(62,242,168,.5)}70%{box-shadow:0 0 0 8px rgba(62,242,168,0)}100%{box-shadow:0 0 0 0 rgba(62,242,168,0)}}
+.dot.stale{background:var(--amber);animation:none}
+.dot.err{background:var(--red);animation:none}
+@media (prefers-reduced-motion:reduce){.dot{animation:none}}
+
+.btn{font:inherit;font-size:12px;color:var(--text);background:rgba(255,255,255,.05);
+  border:1px solid var(--line);border-radius:999px;padding:7px 14px;cursor:pointer;
+  transition:background .18s,border-color .18s,transform .18s;white-space:nowrap}
+.btn:hover{background:rgba(62,242,168,.12);border-color:rgba(62,242,168,.4)}
+.btn:active{transform:translateY(1px)}
+.btn[aria-pressed="true"]{background:rgba(62,242,168,.16);border-color:rgba(62,242,168,.5);color:#d9fff0}
+.btn:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+
+.grid{display:grid;grid-template-columns:minmax(0,1.32fr) minmax(300px,1fr);gap:clamp(16px,2vw,22px);align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  box-shadow:0 18px 44px rgba(0,0,0,.42);padding:clamp(16px,2.2vw,22px);
+  display:flex;flex-direction:column;gap:14px;min-width:0}
+.card-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.card-head h2{font-size:15.5px;font-weight:500}
+.card-note{font-size:11.5px;color:var(--faint)}
+
+/* ---------- 지구본 ---------- */
+.globe-wrap{position:relative;width:100%;aspect-ratio:1/1;max-height:70vh;margin-inline:auto;
+  display:flex;align-items:center;justify-content:center}
+#globe{width:100%;height:100%;display:block;cursor:grab;touch-action:none;
+  border-radius:50%;filter:drop-shadow(0 0 46px rgba(62,242,168,.10))}
+#globe.dragging{cursor:grabbing}
+.globe-hint{position:absolute;left:50%;bottom:-2px;transform:translateX(-50%);font-size:11px;color:var(--faint);
+  pointer-events:none;transition:opacity .4s}
+.controls{display:flex;flex-wrap:wrap;gap:7px}
+.legend{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--faint);flex-wrap:wrap}
+.legend .bar{flex:1;min-width:140px;height:9px;border-radius:999px;
+  background:linear-gradient(90deg,rgba(0,110,95,.35) 0%,#0ebe82 22%,#46eea5 42%,#96facd 60%,#eb87eb 82%,#ffcdf5 100%)}
+
+/* ---------- 상태 카드 ---------- */
+.status{display:flex;flex-direction:column;gap:6px}
+.prob{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.prob .num{font-family:var(--font-h);font-size:clamp(44px,7.5vw,60px);font-weight:600;letter-spacing:-.03em;line-height:1}
+.prob .unit{font-size:20px;color:var(--muted)}
+.verdict{font-size:15px;font-weight:500}
+.status-note{font-size:12px;color:var(--muted);margin:0}
+.meter{height:10px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden}
+.meter i{display:block;height:100%;width:0;border-radius:999px;
+  background:linear-gradient(90deg,var(--teal),var(--green));transition:width .7s cubic-bezier(.22,1,.36,1)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:inherit;font-size:11.5px;padding:5px 11px;border-radius:999px;cursor:pointer;white-space:nowrap;
+  border:1px solid var(--line);background:rgba(255,255,255,.035);color:var(--muted);transition:all .18s}
+.chip:hover{border-color:var(--line-strong);color:var(--text)}
+.chip[aria-pressed="true"]{background:linear-gradient(120deg,rgba(62,242,168,.2),rgba(139,124,246,.2));
+  border-color:rgba(62,242,168,.45);color:#eafff6}
+.chip:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+
+/* ---------- Kp ---------- */
+.kp-row{display:flex;align-items:flex-end;gap:12px}
+.kp-val{font-family:var(--font-h);font-size:40px;font-weight:600;line-height:1;letter-spacing:-.03em}
+.kp-scale{font-size:11.5px;color:var(--faint);padding-bottom:5px}
+.kp-bars{display:grid;grid-template-columns:repeat(9,1fr);gap:4px}
+.kp-bars span{height:26px;border-radius:5px;background:rgba(255,255,255,.07);transition:background .5s,box-shadow .5s}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:10px}
+.stat{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:var(--r-md);padding:10px 12px}
+.stat .k{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+.stat .v{font-family:var(--font-h);font-size:21px;font-weight:500;letter-spacing:-.02em;margin-top:2px}
+.stat .v small{font-size:11px;color:var(--muted);font-weight:400;margin-left:3px}
+
+/* ---------- 예보 ---------- */
+.fc{display:flex;align-items:flex-end;gap:3px;height:92px}
+.fc div{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;height:100%;gap:4px}
+.fc i{display:block;width:100%;border-radius:4px 4px 0 0;background:linear-gradient(to top,#2f7f6a,#46d6e0);min-height:3px}
+.fc b{font-size:9px;font-weight:400;color:var(--faint);text-align:center;white-space:nowrap;overflow:hidden}
+.fc-axis{display:flex;justify-content:space-between;font-size:10.5px;color:var(--faint)}
+
+.skeleton{position:relative;overflow:hidden;color:transparent!important}
+.skeleton::after{content:"";position:absolute;inset:0;border-radius:6px;background:linear-gradient(90deg,rgba(255,255,255,.05),rgba(255,255,255,.12),rgba(255,255,255,.05));
+  background-size:200% 100%;animation:sk 1.3s linear infinite}
+@keyframes sk{from{background-position:200% 0}to{background-position:-200% 0}}
+
+.banner{display:none;font-size:12.5px;padding:10px 14px;border-radius:var(--r-md);
+  border:1px solid rgba(255,107,129,.4);background:rgba(255,107,129,.1);color:#ffd7dd}
+.banner.on{display:block}
+
+footer{font-size:11.5px;color:var(--faint);display:flex;flex-wrap:wrap;gap:6px 16px;
+  border-top:1px solid var(--line);padding-top:16px}
+footer a{color:var(--muted);text-decoration:none;border-bottom:1px solid var(--line);text-underline-offset:3px}
+footer a:hover{color:var(--green);border-color:var(--green)}
+</style>
+</head>
+<body>
+<div class="sky"></div><div class="stars"></div><div class="veil"></div>
+
+<div class="wrap">
+  <header class="top">
+    <div class="title-block">
+      <span class="eyebrow">NOAA OVATION · 30분 예보</span>
+      <h1>오로라 워치</h1>
+      <p class="subtitle">지금 이 순간 지구 위 오로라 타원을 실시간으로 그립니다. 드래그해서 돌리고, 휠로 확대하세요.</p>
+    </div>
+    <div class="meta-row">
+      <span class="pill"><span class="dot" id="live-dot"></span><b id="live-label">불러오는 중</b></span>
+      <span class="pill">관측 <b id="obs-time">—</b></span>
+      <span class="pill">예보 <b id="fc-time">—</b></span>
+      <button class="btn" id="refresh">새로고침 <span id="countdown" style="color:var(--faint)"></span></button>
+    </div>
+  </header>
+
+  <div class="banner" id="banner"></div>
+
+  <main class="grid">
+    <section class="card">
+      <div class="card-head">
+        <h2>실시간 오로라 지구본</h2>
+        <span class="card-note" id="view-label">예테보리 중심</span>
+      </div>
+      <div class="controls">
+        <button class="btn" data-view="north">북극 하늘</button>
+        <button class="btn" data-view="south">남극 하늘</button>
+        <button class="btn" data-view="city" aria-pressed="true">선택 도시</button>
+        <button class="btn" id="spin" aria-pressed="false">자동 회전</button>
+        <button class="btn" id="night-btn" aria-pressed="true">밤 그림자</button>
+      </div>
+      <div class="globe-wrap">
+        <canvas id="globe" aria-label="실시간 오로라 지구본"></canvas>
+        <span class="globe-hint" id="hint">드래그 · 휠 확대 · 더블클릭 초기화</span>
+      </div>
+      <div class="legend">
+        <span>오로라 세기</span><span class="bar"></span><span>낮음 → 높음</span>
+      </div>
+    </section>
+
+    <aside style="display:flex;flex-direction:column;gap:clamp(16px,2vw,22px);min-width:0">
+      <section class="card">
+        <div class="card-head">
+          <h2 id="city-title">예테보리</h2>
+          <span class="card-note" id="city-coord">57.7°N 11.9°E</span>
+        </div>
+        <div class="status">
+          <div class="prob"><span class="num skeleton" id="prob-num">0</span><span class="unit">%</span>
+            <span class="verdict" id="verdict">계산 중…</span></div>
+          <div class="meter"><i id="prob-bar"></i></div>
+          <p class="status-note" id="sun-note">—</p>
+        </div>
+        <div class="chips" id="chips"></div>
+      </section>
+
+      <section class="card">
+        <div class="card-head"><h2>지자기 활동 Kp</h2><span class="card-note">1분 추정값</span></div>
+        <div class="kp-row"><span class="kp-val skeleton" id="kp-val">0.0</span><span class="kp-scale" id="kp-scale">조용함</span></div>
+        <div class="kp-bars" id="kp-bars"></div>
+        <div class="stat-grid">
+          <div class="stat"><div class="k">태양풍</div><div class="v"><span id="sw-speed">—</span><small>km/s</small></div></div>
+          <div class="stat"><div class="k">Bz</div><div class="v"><span id="sw-bz">—</span><small>nT</small></div></div>
+          <div class="stat"><div class="k">Bt</div><div class="v"><span id="sw-bt">—</span><small>nT</small></div></div>
+        </div>
+        <p class="card-note" id="bz-note" style="margin:0">Bz가 음수로 크게 내려갈수록 오로라가 강해집니다.</p>
+      </section>
+
+      <section class="card">
+        <div class="card-head"><h2>3일 Kp 예보</h2><span class="card-note">3시간 간격</span></div>
+        <div class="fc" id="fc-chart"></div>
+        <div class="fc-axis"><span id="fc-start">—</span><span id="fc-end">—</span></div>
+      </section>
+    </aside>
+  </main>
+
+  <footer>
+    <span>데이터 · <a href="https://www.swpc.noaa.gov/" target="_blank" rel="noopener">NOAA SWPC</a> OVATION Aurora / Planetary K-index / DSCOVR</span>
+    <span>지도 · <a href="https://github.com/topojson/world-atlas" target="_blank" rel="noopener">world-atlas</a></span>
+    <span>5분마다 자동 갱신</span>
+  </footer>
+</div>
+
+<!-- d3-geo(+의존성) 와 topojson-client 를 한 번에 -->
+<script src="https://cdn.jsdelivr.net/combine/npm/internmap@2,npm/d3-array@3,npm/d3-geo@3,npm/topojson-client@3"></script>
+<script>
+(function(){
+"use strict";
+const RAD=Math.PI/180;
+const OVATION='https://services.swpc.noaa.gov/json/ovation_aurora_latest.json';
+const KP1M='https://services.swpc.noaa.gov/json/planetary_k_index_1m.json';
+const KPFC='https://services.swpc.noaa.gov/products/noaa-planetary-k-index-forecast.json';
+const SWSPEED='https://services.swpc.noaa.gov/products/summary/solar-wind-speed.json';
+const SWMAG='https://services.swpc.noaa.gov/products/summary/solar-wind-mag-field.json';
+const WORLD='https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
+const REFRESH_MS=5*60*1000;
+
+const CITIES=[
+  {ko:'예테보리',lat:57.71,lon:11.97},
+  {ko:'키루나',lat:67.86,lon:20.23},
+  {ko:'트롬쇠',lat:69.65,lon:18.96},
+  {ko:'레이캬비크',lat:64.15,lon:-21.94},
+  {ko:'로바니에미',lat:66.50,lon:25.73},
+  {ko:'옐로나이프',lat:62.45,lon:-114.37},
+  {ko:'페어뱅크스',lat:64.84,lon:-147.72},
+  {ko:'서울',lat:37.57,lon:126.98}
+];
+
+const $=s=>document.querySelector(s);
+const canvas=$('#globe'), ctx=canvas.getContext('2d');
+const off=document.createElement('canvas'), octx=off.getContext('2d',{willReadFrequently:true});
+
+const state={
+  grid:null, meta:null, land:null, borders:null,
+  kp:null, fcst:null, wind:{speed:null,bz:null,bt:null},
+  city:CITIES[0], mode:'city',
+  rotate:[-11.97,-57.71,0], scale:1, size:0,
+  spin:false, night:true, dragging:false, quality:1, error:null, fetchedAt:null
+};
+
+/* ---------- 오로라 색 ---------- */
+const STOPS=[[0,3,16,34],[2,0,108,94],[8,14,190,130],[20,70,238,165],[40,150,250,205],[62,235,135,235],[100,255,205,245]];
+function auroraColor(v){
+  let i=0; while(i<STOPS.length-2 && v>STOPS[i+1][0]) i++;
+  const a=STOPS[i], b=STOPS[i+1];
+  const t=Math.min(1,Math.max(0,(v-a[0])/(b[0]-a[0]||1)));
+  return [a[1]+(b[1]-a[1])*t|0, a[2]+(b[2]-a[2])*t|0, a[3]+(b[3]-a[3])*t|0];
+}
+const alphaFor=v=>Math.min(.96,.10+v/38);
+
+/* ---------- 데이터 격자 ---------- */
+function buildGrid(json){
+  const g=new Float32Array(181*360);
+  for(const c of json.coordinates){
+    const lon=((c[0]%360)+360)%360, lat=Math.round(c[1]);
+    g[(lat+90)*360+lon]=c[2];
+  }
+  return g;
+}
+function sample(lat,lon){
+  const g=state.grid; if(!g) return 0;
+  lon=((lon%360)+360)%360;
+  const y=Math.min(180,Math.max(0,lat+90));
+  const x0=Math.floor(lon), x1=(x0+1)%360, fx=lon-x0;
+  const y0=Math.floor(y), y1=Math.min(180,y0+1), fy=y-y0;
+  const a=g[y0*360+x0],b=g[y0*360+x1],c=g[y1*360+x0],d=g[y1*360+x1];
+  return (a*(1-fx)+b*fx)*(1-fy)+(c*(1-fx)+d*fx)*fy;
+}
+/* 근방 최댓값 — 도시에서 "고개 들면 보이는" 범위(약 ±6°) */
+function nearbyMax(lat,lon){
+  let m=0;
+  for(let dy=-6;dy<=6;dy+=1.5) for(let dx=-10;dx<=10;dx+=2.5){
+    const la=Math.max(-90,Math.min(90,lat+dy));
+    m=Math.max(m,sample(la,lon+dx));
+  }
+  return m;
+}
+
+/* ---------- 태양 위치 ---------- */
+function solar(date){
+  const n=date.getTime()/86400000+2440587.5-2451545.0;
+  const L=(280.460+0.9856474*n)%360;
+  const g=((357.528+0.9856003*n)%360)*RAD;
+  const lam=(L+1.915*Math.sin(g)+0.020*Math.sin(2*g))*RAD;
+  const eps=(23.439-4e-7*n)*RAD;
+  const dec=Math.asin(Math.sin(eps)*Math.sin(lam))/RAD;
+  let ra=Math.atan2(Math.cos(eps)*Math.sin(lam),Math.cos(lam))/RAD;
+  const gmst=(280.46061837+360.98564736629*n)%360;
+  let lon=((ra-gmst+180)%360+360)%360-180;
+  return {lat:dec,lon:lon};
+}
+function sunAltitude(lat,lon,sun){
+  const H=(lon-sun.lon)*RAD;
+  return Math.asin(Math.sin(lat*RAD)*Math.sin(sun.lat*RAD)+Math.cos(lat*RAD)*Math.cos(sun.lat*RAD)*Math.cos(H))/RAD;
+}
+
+/* ---------- 투영 ---------- */
+const projection=d3.geoOrthographic().clipAngle(90).precision(.4);
+const path=d3.geoPath(projection,ctx);
+const graticule=d3.geoGraticule10();
+
+function resize(){
+  const box=canvas.parentElement.getBoundingClientRect();
+  const size=Math.round(Math.max(220,Math.min(box.width,box.height||box.width)));
+  if(size===state.size) return;                 // ResizeObserver 되먹임 방지
+  const dpr=Math.min(2,window.devicePixelRatio||1);
+  canvas.width=Math.round(size*dpr); canvas.height=Math.round(size*dpr);
+  canvas.style.width=size+'px'; canvas.style.height=size+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  state.size=size;
+  projection.translate([size/2,size/2]);
+  scheduleDraw();
+}
+function baseScale(){ return state.size/2-4; }
+
+function renderAuroraLayer(size,px){
+  const s=Math.max(48,Math.min(320,Math.round(px)));
+  if(off.width!==s){off.width=s;off.height=s;}
+  else octx.clearRect(0,0,s,s);
+  const img=octx.createImageData(s,s), d=img.data, k=size/s;
+  for(let j=0;j<s;j++){
+    const py=(j+.5)*k;
+    for(let i=0;i<s;i++){
+      const p=projection.invert([(i+.5)*k,py]);
+      if(!p||!isFinite(p[0])||!isFinite(p[1])) continue;
+      const v=sample(p[1],p[0]);
+      if(v<1.2) continue;
+      const c=auroraColor(v), o=(j*s+i)*4;
+      d[o]=c[0]; d[o+1]=c[1]; d[o+2]=c[2]; d[o+3]=alphaFor(v)*255;
+    }
+  }
+  octx.putImageData(img,0,0);
+  return off;
+}
+
+let rafPending=false;
+function scheduleDraw(){
+  if(rafPending) return; rafPending=true;
+  requestAnimationFrame(function(){rafPending=false;draw();});
+}
+function draw(){
+  const size=state.size; if(!size) return;
+  projection.rotate(state.rotate).scale(baseScale()*state.scale);
+  ctx.clearRect(0,0,size,size);
+
+  // 바다 + 대기 광채
+  ctx.beginPath(); path({type:'Sphere'});
+  const cx=size/2, r=baseScale()*state.scale;
+  const grd=ctx.createRadialGradient(cx-r*.25,cx-r*.3,r*.1,cx,cx,r);
+  grd.addColorStop(0,'#16294a'); grd.addColorStop(.6,'#0d1b33'); grd.addColorStop(1,'#060d1c');
+  ctx.fillStyle=grd; ctx.fill();
+
+  // 경위선
+  ctx.beginPath(); path(graticule);
+  ctx.strokeStyle='rgba(150,190,230,.10)'; ctx.lineWidth=.6; ctx.stroke();
+
+  // 육지
+  if(state.land){
+    ctx.beginPath(); path(state.land);
+    ctx.fillStyle='rgba(28,44,66,.92)'; ctx.fill();
+    ctx.beginPath(); path(state.borders);
+    ctx.strokeStyle='rgba(126,168,206,.34)'; ctx.lineWidth=.7; ctx.stroke();
+  }
+
+  // 밤 그림자
+  if(state.night){
+    const sun=solar(new Date()), circle=d3.geoCircle().center([sun.lon+180,-sun.lat]);
+    [[90,.20],[84,.13],[78,.13],[70,.15]].forEach(function(p){
+      ctx.beginPath(); path(circle.radius(p[0])());
+      ctx.fillStyle='rgba(2,6,18,'+p[1]+')'; ctx.fill();
+    });
+  }
+
+  // 오로라 (저해상도 래스터를 확대 합성 → 부드러운 발광, 저사양에서도 가볍다)
+  if(state.grid){
+    ctx.save();
+    ctx.beginPath(); path({type:'Sphere'}); ctx.clip();
+    ctx.globalCompositeOperation='lighter';
+    ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+    if(!state.dragging){                      // 은은한 글로우 한 겹
+      ctx.globalAlpha=.55;
+      ctx.drawImage(renderAuroraLayer(size,size*.14),0,0,size,size);
+    }
+    ctx.globalAlpha=1;
+    ctx.drawImage(renderAuroraLayer(size,state.dragging?size*.28:size*.5),0,0,size,size);
+    ctx.restore();
+    ctx.globalAlpha=1;
+    ctx.globalCompositeOperation='source-over';
+  }
+
+  // 도시 표시
+  CITIES.forEach(function(c){
+    const pt=projection([c.lon,c.lat]); if(!pt||!visible(c)) return;
+    const sel=c===state.city;
+    ctx.beginPath(); ctx.arc(pt[0],pt[1],sel?4.6:2.1,0,6.2832);
+    ctx.fillStyle=sel?'#fff':'rgba(220,235,255,.55)'; ctx.fill();
+    if(sel){
+      ctx.beginPath(); ctx.arc(pt[0],pt[1],10,0,6.2832);
+      ctx.strokeStyle='rgba(255,255,255,.75)'; ctx.lineWidth=1.3; ctx.stroke();
+      ctx.font='600 12px Inter, system-ui, sans-serif';
+      ctx.fillStyle='#fff'; ctx.textBaseline='middle';
+      const label=c.ko, w=ctx.measureText(label).width;
+      const lx=Math.min(size-w-10,pt[0]+15);
+      ctx.fillStyle='rgba(5,10,22,.72)';
+      ctx.fillRect(lx-5,pt[1]-19,w+10,17);
+      ctx.fillStyle='#fff'; ctx.fillText(label,lx,pt[1]-10.5);
+    }
+  });
+
+  // 테두리
+  ctx.beginPath(); path({type:'Sphere'});
+  ctx.strokeStyle='rgba(150,220,255,.28)'; ctx.lineWidth=1; ctx.stroke();
+}
+function visible(c){
+  const rot=state.rotate;
+  const cosc=Math.sin(-rot[1]*RAD)*Math.sin(c.lat*RAD)+Math.cos(-rot[1]*RAD)*Math.cos(c.lat*RAD)*Math.cos((c.lon+rot[0])*RAD);
+  return cosc>0;
+}
+
+/* ---------- 상호작용 ---------- */
+let drag=null, idleTimer=null;
+canvas.addEventListener('pointerdown',function(e){
+  canvas.setPointerCapture(e.pointerId); canvas.classList.add('dragging');
+  state.dragging=true; state.spin=false; $('#spin').setAttribute('aria-pressed','false');
+  drag={x:e.clientX,y:e.clientY,r:state.rotate.slice()};
+  $('#hint').style.opacity='0';
+});
+canvas.addEventListener('pointermove',function(e){
+  if(!drag) return;
+  const k=70/(baseScale()*state.scale)*1.6;
+  state.rotate=[drag.r[0]+(e.clientX-drag.x)*k*2.2,
+                Math.max(-90,Math.min(90,drag.r[1]-(e.clientY-drag.y)*k*2.2)),
+                drag.r[2]];
+  state.mode='free'; syncViewButtons();
+  scheduleDraw();
+});
+function endDrag(){
+  if(!drag) return;
+  drag=null; canvas.classList.remove('dragging');
+  state.dragging=false; scheduleDraw();
+}
+canvas.addEventListener('pointerup',endDrag);
+canvas.addEventListener('pointercancel',endDrag);
+canvas.addEventListener('wheel',function(e){
+  e.preventDefault();
+  state.scale=Math.max(.85,Math.min(3.2,state.scale*(e.deltaY<0?1.11:.9)));
+  state.dragging=true; scheduleDraw();
+  clearTimeout(idleTimer); idleTimer=setTimeout(function(){state.dragging=false;scheduleDraw();},180);
+},{passive:false});
+canvas.addEventListener('dblclick',function(){state.scale=1;focusCity(state.city);});
+
+document.querySelectorAll('[data-view]').forEach(function(b){
+  b.addEventListener('click',function(){
+    const v=b.dataset.view;
+    state.mode=v;
+    if(v==='north') state.rotate=[-15,-90,0];
+    else if(v==='south') state.rotate=[-15,90,0];
+    else state.rotate=[-state.city.lon,-state.city.lat,0];
+    syncViewButtons(); scheduleDraw();
+  });
+});
+function syncViewButtons(){
+  document.querySelectorAll('[data-view]').forEach(function(b){
+    b.setAttribute('aria-pressed',String(b.dataset.view===state.mode));
+  });
+  $('#view-label').textContent=({north:'북극 상공',south:'남극 상공',city:state.city.ko+' 중심',free:'자유 시점'})[state.mode]||'';
+}
+$('#spin').addEventListener('click',function(){
+  state.spin=!state.spin; this.setAttribute('aria-pressed',String(state.spin));
+  if(state.spin) requestAnimationFrame(spinStep);
+});
+function spinStep(){
+  if(!state.spin) return;
+  state.rotate=[state.rotate[0]+.22,state.rotate[1],state.rotate[2]];
+  state.mode='free'; syncViewButtons(); draw();
+  requestAnimationFrame(spinStep);
+}
+$('#night-btn').addEventListener('click',function(){
+  state.night=!state.night; this.setAttribute('aria-pressed',String(state.night)); scheduleDraw();
+});
+$('#refresh').addEventListener('click',function(){loadAll(true);});
+
+function focusCity(c){
+  state.city=c; state.mode='city';
+  state.rotate=[-c.lon,-c.lat,0];
+  syncViewButtons(); scheduleDraw(); updateCity();
+}
+
+/* ---------- 도시 칩 ---------- */
+function buildChips(){
+  const wrap=$('#chips'); wrap.innerHTML='';
+  CITIES.forEach(function(c){
+    const b=document.createElement('button');
+    b.className='chip'; b.type='button'; b.textContent=c.ko;
+    b.setAttribute('aria-pressed',String(c===state.city));
+    b.addEventListener('click',function(){focusCity(c);buildChips();});
+    wrap.appendChild(b);
+  });
+  const geo=document.createElement('button');
+  geo.className='chip'; geo.type='button'; geo.textContent='📍 내 위치';
+  geo.addEventListener('click',function(){
+    if(!navigator.geolocation) return;
+    geo.textContent='찾는 중…';
+    navigator.geolocation.getCurrentPosition(function(p){
+      const me={ko:'내 위치',lat:p.coords.latitude,lon:p.coords.longitude};
+      const i=CITIES.findIndex(c=>c.ko==='내 위치');
+      if(i>=0) CITIES[i]=me; else CITIES.push(me);
+      focusCity(me); buildChips();
+    },function(){geo.textContent='📍 위치 거부됨';});
+  });
+  wrap.appendChild(geo);
+}
+
+/* ---------- 화면 갱신 ---------- */
+function fmtTime(iso){
+  if(!iso) return '—';
+  const d=new Date(/Z$/.test(iso)?iso:iso+'Z');
+  return d.toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+function verdictFor(v,darkEnough){
+  if(v>=50) return ['지금 나가세요!','#f06bd8'];
+  if(v>=25) return ['가능성 높음','#3ef2a8'];
+  if(v>=10) return ['조건 되면 관측 가능','#46d6e0'];
+  if(v>=3)  return ['희미할 수 있음','#8b7cf6'];
+  return ['오늘은 조용함','rgba(232,238,248,.6)'];
+}
+function updateCity(){
+  const c=state.city;
+  $('#city-title').textContent=c.ko;
+  $('#city-coord').textContent=Math.abs(c.lat).toFixed(1)+'°'+(c.lat>=0?'N':'S')+' '+Math.abs(c.lon).toFixed(1)+'°'+(c.lon>=0?'E':'W');
+  if(!state.grid) return;
+  const here=sample(c.lat,c.lon), around=nearbyMax(c.lat,c.lon);
+  const v=Math.max(here,around*.72);
+  const sun=solar(new Date()), alt=sunAltitude(c.lat,c.lon,sun);
+  const el=$('#prob-num'); el.classList.remove('skeleton');
+  el.textContent=v.toFixed(v<10?1:0);
+  const vd=verdictFor(v);
+  $('#verdict').textContent=vd[0]; $('#verdict').style.color=vd[1];
+  $('#prob-bar').style.width=Math.min(100,v*1.8)+'%';
+  let note;
+  if(alt>0) note='☀️ 지금은 낮 (태양 고도 '+alt.toFixed(0)+'°) — 밤이 되면 다시 확인하세요.';
+  else if(alt>-12) note='🌆 박명 (태양 고도 '+alt.toFixed(0)+'°) — 하늘이 더 어두워져야 합니다.';
+  else note='🌑 하늘이 충분히 어둡습니다 (태양 고도 '+alt.toFixed(0)+'°). 북쪽 지평선을 보세요.';
+  note+=' · 머리 위 '+here.toFixed(1)+'%, 주변 최대 '+around.toFixed(1)+'%';
+  $('#sun-note').textContent=note;
+}
+function updateKp(){
+  const kp=state.kp;
+  const el=$('#kp-val');
+  const bars=$('#kp-bars');
+  if(bars.children.length===0) for(let i=0;i<9;i++) bars.appendChild(document.createElement('span'));
+  if(kp==null) return;
+  el.classList.remove('skeleton'); el.textContent=kp.toFixed(1);
+  const scale=kp<3?'조용함':kp<4?'불안정':kp<5?'활동적':kp<6?'G1 소규모 폭풍':kp<7?'G2 중간 폭풍':kp<8?'G3 강한 폭풍':'G4+ 대규모 폭풍';
+  $('#kp-scale').textContent=scale;
+  const color=i=>i<3?'#2f9e7a':i<5?'#46d6e0':i<6?'#ffc860':'#ff6b81';
+  Array.from(bars.children).forEach(function(s,i){
+    const part=Math.max(0,Math.min(1,kp-i));          // 이 칸이 채워진 비율
+    const pct=(part*100).toFixed(0)+'%';
+    s.style.background=part>0
+      ? 'linear-gradient(to top,'+color(i)+' 0%,'+color(i)+' '+pct+',rgba(255,255,255,.07) '+pct+')'
+      : 'rgba(255,255,255,.07)';
+    s.style.boxShadow=part>.5?'0 0 14px '+color(i)+'55':'none';
+  });
+}
+function updateWind(){
+  const w=state.wind;
+  $('#sw-speed').textContent=w.speed==null?'—':Math.round(w.speed);
+  $('#sw-bz').textContent=w.bz==null?'—':w.bz.toFixed(1);
+  $('#sw-bt').textContent=w.bt==null?'—':w.bt.toFixed(1);
+  const bzEl=$('#sw-bz');
+  bzEl.style.color=w.bz==null?'':(w.bz<=-8?'var(--magenta)':w.bz<=-3?'var(--green)':'');
+  $('#bz-note').textContent=w.bz==null?'Bz가 음수로 크게 내려갈수록 오로라가 강해집니다.'
+    :(w.bz<=-8?'Bz가 크게 남쪽(−)을 향합니다 — 오로라에 아주 좋은 조건입니다.'
+    :w.bz<=-3?'Bz가 남쪽(−)을 향합니다 — 조건이 괜찮습니다.'
+    :'Bz가 북쪽(+)이라 에너지 유입이 약합니다.');
+}
+function updateForecast(){
+  const rows=state.fcst; if(!rows||!rows.length) return;
+  const now=Date.now();
+  const future=rows.filter(r=>new Date(r.time+'Z').getTime()>now-3*3600e3).slice(0,24);
+  const max=Math.max(4,...future.map(r=>r.kp));
+  const chart=$('#fc-chart'); chart.innerHTML='';
+  future.forEach(function(r,i){
+    const d=new Date(r.time+'Z');
+    const div=document.createElement('div');
+    const bar=document.createElement('i');
+    bar.style.height=Math.max(3,r.kp/max*72)+'px';
+    const col=r.kp<4?'linear-gradient(to top,#2f7f6a,#46d6e0)':r.kp<5?'linear-gradient(to top,#8a7a2e,#ffc860)':'linear-gradient(to top,#8a2f45,#ff6b81)';
+    bar.style.background=col;
+    div.title=d.toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit'})+' · Kp '+r.kp.toFixed(2);
+    const lab=document.createElement('b');
+    lab.textContent=(i%2===0)?d.getHours()+'시':'';
+    div.appendChild(bar); div.appendChild(lab); chart.appendChild(div);
+  });
+  if(future.length){
+    const f=new Date(future[0].time+'Z'), l=new Date(future[future.length-1].time+'Z');
+    $('#fc-start').textContent=f.toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit'});
+    $('#fc-end').textContent=l.toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit'});
+  }
+}
+function setLive(kind,label){
+  const d=$('#live-dot'); d.className='dot'+(kind?' '+kind:'');
+  $('#live-label').textContent=label;
+}
+
+/* ---------- 데이터 로드 ---------- */
+function getJSON(url){
+  return fetch(url+(url.indexOf('?')>0?'&':'?')+'_='+Date.now(),{cache:'no-store'})
+    .then(function(r){ if(!r.ok) throw new Error(url+' → '+r.status); return r.json(); });
+}
+function loadWorld(){
+  return getJSON(WORLD).then(function(topo){
+    state.land=topojson.feature(topo,topo.objects.countries);
+    state.borders=topojson.mesh(topo,topo.objects.countries,function(a,b){return a!==b;});
+    scheduleDraw();
+  }).catch(function(){ /* 지도 없이도 오로라는 보입니다 */ });
+}
+function loadAll(manual){
+  setLive('','갱신 중…');
+  const jobs=[
+    getJSON(OVATION).then(function(j){
+      state.grid=buildGrid(j); state.meta=j; state.fetchedAt=Date.now();
+      $('#obs-time').textContent=fmtTime(j['Observation Time']);
+      $('#fc-time').textContent=fmtTime(j['Forecast Time']);
+    }),
+    getJSON(KP1M).then(function(a){
+      const last=a[a.length-1]; state.kp=parseFloat(last.estimated_kp);
+    }).catch(function(){}),
+    getJSON(KPFC).then(function(a){
+      state.fcst=a.filter(function(r){return r&&r.time_tag;})
+        .map(function(r){return {time:r.time_tag,kp:parseFloat(r.kp)};})
+        .filter(function(r){return isFinite(r.kp);});
+    }).catch(function(){}),
+    getJSON(SWSPEED).then(function(a){state.wind.speed=a[0]&&+a[0].proton_speed;}).catch(function(){}),
+    getJSON(SWMAG).then(function(a){ if(a[0]){state.wind.bz=+a[0].bz_gsm; state.wind.bt=+a[0].bt;} }).catch(function(){})
+  ];
+  return Promise.all(jobs).then(function(){
+    $('#banner').classList.remove('on');
+    setLive('','실시간');
+    scheduleDraw(); updateCity(); updateKp(); updateWind(); updateForecast();
+  }).catch(function(err){
+    setLive('err','연결 실패');
+    const b=$('#banner'); b.classList.add('on');
+    b.textContent='NOAA 데이터를 불러오지 못했습니다 ('+err.message+'). 잠시 뒤 자동으로 다시 시도합니다.';
+  });
+}
+
+/* ---------- 자동 갱신 ---------- */
+let nextAt=Date.now()+REFRESH_MS;
+function tick(){
+  const left=Math.max(0,nextAt-Date.now());
+  $('#countdown').textContent='· '+Math.floor(left/60000)+':'+String(Math.floor(left%60000/1000)).padStart(2,'0');
+  if(left<=0){ nextAt=Date.now()+REFRESH_MS; loadAll(); }
+  if(state.fetchedAt&&Date.now()-state.fetchedAt>20*60000) setLive('stale','데이터 지연');
+}
+$('#refresh').addEventListener('click',function(){nextAt=Date.now()+REFRESH_MS;});
+
+/* ---------- 시작 ---------- */
+buildChips(); syncViewButtons(); updateKp();
+let roPending=false;                              // ResizeObserver 루프 경고 방지
+new ResizeObserver(function(){
+  if(roPending) return; roPending=true;
+  requestAnimationFrame(function(){roPending=false;resize();});
+}).observe(canvas.parentElement);
+resize();
+loadWorld();
+loadAll();
+setInterval(tick,1000);
+setInterval(function(){ if(state.night) scheduleDraw(); },60000);
+document.addEventListener('visibilitychange',function(){
+  if(!document.hidden&&state.fetchedAt&&Date.now()-state.fetchedAt>REFRESH_MS) loadAll();
+});
+})();
+</script>
+</body>
+</html>
