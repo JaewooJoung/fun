@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ASPICE 4.0 자가진단 — 협력업체 · 셀프 평가</title>
+<meta name="description" content="ASPICE 4.0 산출물과 프로세스 증적을 있다/없다로 답하면 능력 수준(레벨 1~5)을 판정합니다. 채점 엔진은 Rust로 작성해 WebAssembly로 컴파일했으며 모든 계산은 브라우저 안에서만 이뤄집니다.">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#070a14">
+<meta property="og:title" content="ASPICE 4.0 자가진단 (Self-Assessment)">
+<meta property="og:description" content="있다 / 없다로 답하는 106개 문항, Rust WebAssembly 채점 엔진, 레벨 1~5 판정.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070a14;
+  --surface:rgba(18,25,43,.72);
+  --surface-2:rgba(24,33,56,.78);
+  --line:rgba(150,180,230,.14);
+  --line-2:rgba(150,180,230,.30);
+  --text:#e9eefb;
+  --muted:rgba(233,238,251,.60);
+  --faint:rgba(233,238,251,.38);
+  --mint:#3ef2a8;
+  --teal:#46d6e0;
+  --indigo:#8b7cf6;
+  --pink:#f06bd8;
+  --amber:#ffc860;
+  --red:#ff6b81;
+  --font:"Inter","Noto Sans KR",system-ui,-apple-system,"Malgun Gothic",sans-serif;
+  --r-s:9px; --r-m:14px; --r-l:22px;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--text);font-family:var(--font);
+  font-size:15.5px;line-height:1.6;-webkit-font-smoothing:antialiased;
+  padding-bottom:96px;overflow-x:hidden;
+}
+.aurora-bg{position:fixed;inset:0;z-index:-2;background:
+  radial-gradient(1000px 600px at 8% -10%, #16224d 0%, transparent 60%),
+  radial-gradient(900px 520px at 92% 2%, #103440 0%, transparent 58%),
+  radial-gradient(1100px 680px at 50% 110%, #131b3c 0%, transparent 62%),
+  var(--bg);}
+.grid-bg{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.35;
+  background-image:linear-gradient(rgba(150,180,230,.055) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(150,180,230,.055) 1px,transparent 1px);
+  background-size:52px 52px;
+  mask-image:radial-gradient(1000px 620px at 50% 0%,#000 0%,transparent 78%);
+  -webkit-mask-image:radial-gradient(1000px 620px at 50% 0%,#000 0%,transparent 78%);}
+
+.wrap{max-width:900px;margin:0 auto;padding:clamp(22px,4vw,46px) clamp(16px,4vw,32px) 40px;
+  display:flex;flex-direction:column;gap:clamp(18px,2.4vw,24px)}
+h1,h2,h3{line-height:1.2;letter-spacing:-.02em;margin:0;font-weight:700}
+h1{font-size:clamp(25px,4.4vw,36px)}
+h2{font-size:clamp(18px,2.6vw,22px)}
+p{margin:0}
+.en{color:var(--faint);font-weight:400}
+.eyebrow{font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--mint);font-weight:600}
+
+/* ---------- 공통 요소 ---------- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);
+  padding:clamp(18px,3vw,28px);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.pill{display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:999px;
+  border:1px solid var(--line);background:rgba(255,255,255,.03);font-size:11.5px;color:var(--muted);
+  white-space:nowrap}
+.pill b{color:var(--text);font-weight:600}
+.pill.mint{border-color:rgba(62,242,168,.4);color:#bff7df;background:rgba(62,242,168,.09)}
+.pill.indigo{border-color:rgba(139,124,246,.45);color:#d2caff;background:rgba(139,124,246,.10)}
+.pills{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;color:inherit;cursor:pointer}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 20px;
+  border-radius:var(--r-m);border:1px solid var(--line-2);background:rgba(255,255,255,.04);
+  font-size:14.5px;font-weight:600;transition:transform .12s ease,background .15s ease,border-color .15s ease}
+.btn:hover{background:rgba(255,255,255,.09);border-color:rgba(150,180,230,.5)}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:linear-gradient(135deg,rgba(62,242,168,.92),rgba(70,214,224,.92));
+  color:#04170f;border-color:transparent}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.ghost{border-color:var(--line);color:var(--muted)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:10px}
+.sep{height:1px;background:var(--line);margin:4px 0}
+
+/* ---------- 설정 화면 ---------- */
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:12px;color:var(--muted);letter-spacing:.02em}
+.field input{padding:10px 13px;border-radius:var(--r-s);border:1px solid var(--line);
+  background:rgba(8,12,24,.6);color:var(--text);font:inherit;font-size:14px}
+.field input:focus{outline:none;border-color:rgba(70,214,224,.6);box-shadow:0 0 0 3px rgba(70,214,224,.12)}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.scope{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:10px}
+.toggle{display:flex;align-items:center;gap:11px;padding:12px 14px;border-radius:var(--r-m);
+  border:1px solid var(--line);background:rgba(255,255,255,.025);cursor:pointer;
+  transition:border-color .15s ease,background .15s ease;text-align:left}
+.toggle:hover{border-color:var(--line-2)}
+.toggle[aria-pressed="true"]{border-color:rgba(62,242,168,.45);background:rgba(62,242,168,.07)}
+.toggle .box{flex:0 0 18px;height:18px;border-radius:5px;border:1.5px solid var(--line-2);
+  display:grid;place-items:center;font-size:11px;color:#04170f;transition:all .15s ease}
+.toggle[aria-pressed="true"] .box{background:var(--mint);border-color:var(--mint)}
+.toggle[aria-pressed="true"] .box::after{content:"✓";font-weight:700}
+.toggle .tx{display:flex;flex-direction:column;line-height:1.35}
+.toggle .tx b{font-size:14px;font-weight:600}
+.toggle .tx span{font-size:11.5px;color:var(--faint)}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{padding:9px 15px;border-radius:var(--r-s);border:1px solid var(--line);
+  background:rgba(255,255,255,.03);font-size:13.5px;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{border-color:rgba(139,124,246,.6);background:rgba(139,124,246,.16);color:#e2dcff}
+
+/* ---------- 문항 화면 ---------- */
+.qmeta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:16px}
+.lvchip{padding:5px 11px;border-radius:999px;font-size:11.5px;font-weight:700;letter-spacing:.02em}
+.lv1{background:rgba(62,242,168,.14);color:#8ff5cd;border:1px solid rgba(62,242,168,.35)}
+.lv2{background:rgba(70,214,224,.14);color:#9fe9f1;border:1px solid rgba(70,214,224,.35)}
+.lv3{background:rgba(139,124,246,.16);color:#cdc4ff;border:1px solid rgba(139,124,246,.38)}
+.lv4{background:rgba(255,200,96,.14);color:#ffdfa3;border:1px solid rgba(255,200,96,.35)}
+.lv5{background:rgba(240,107,216,.14);color:#f9bfec;border:1px solid rgba(240,107,216,.35)}
+.qsubject{font-size:clamp(20px,3.2vw,27px);font-weight:700;letter-spacing:-.02em;line-height:1.3}
+.qsubject .en{font-size:.62em;display:inline-block}
+.qtext{margin-top:12px;font-size:clamp(15px,1.9vw,17px);color:#dbe4f7}
+.qhint{margin-top:14px;padding:12px 14px;border-radius:var(--r-m);border:1px dashed var(--line);
+  background:rgba(255,255,255,.025);font-size:13px;color:var(--muted)}
+.qhint b{color:var(--teal);font-weight:600;letter-spacing:.06em;font-size:11px}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:22px}
+.ans{padding:17px 18px;border-radius:var(--r-m);border:1.5px solid var(--line);
+  background:rgba(255,255,255,.035);display:flex;align-items:center;justify-content:space-between;gap:10px;
+  font-size:17px;font-weight:700;transition:all .14s ease}
+.ans small{font-size:11px;font-weight:500;color:var(--faint);letter-spacing:.04em}
+.ans.yes:hover,.ans.yes[data-on="1"]{border-color:rgba(62,242,168,.7);background:rgba(62,242,168,.13);color:#b8f7dd}
+.ans.no:hover,.ans.no[data-on="1"]{border-color:rgba(255,107,129,.65);background:rgba(255,107,129,.12);color:#ffc2cb}
+.ans.na{grid-column:1/-1;padding:11px 16px;font-size:13.5px;font-weight:600;color:var(--muted)}
+.ans.na:hover,.ans.na[data-on="1"]{border-color:rgba(150,180,230,.5);background:rgba(150,180,230,.10);color:var(--text)}
+.qnav{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:18px}
+.kbd{font-size:11.5px;color:var(--faint)}
+.kbd b{display:inline-block;min-width:18px;padding:1px 5px;border:1px solid var(--line);border-radius:5px;
+  background:rgba(255,255,255,.04);color:var(--muted);font-weight:600;text-align:center}
+
+/* ---------- 결과 화면 ---------- */
+.verdict{display:flex;gap:clamp(16px,3vw,28px);align-items:center;flex-wrap:wrap}
+.badge{flex:0 0 auto;width:132px;height:132px;border-radius:32px;display:grid;place-items:center;
+  background:radial-gradient(circle at 34% 26%,rgba(62,242,168,.30),rgba(139,124,246,.16) 62%,transparent 74%);
+  border:1px solid rgba(62,242,168,.35);position:relative}
+.badge span{font-size:12px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase}
+.badge b{font-size:56px;line-height:1;font-weight:700;letter-spacing:-.04em;
+  background:linear-gradient(135deg,#3ef2a8,#46d6e0 55%,#8b7cf6);-webkit-background-clip:text;background-clip:text;color:transparent}
+.ladder{display:flex;flex-direction:column;gap:9px;margin-top:6px}
+.step{display:grid;grid-template-columns:78px 1fr 116px;gap:12px;align-items:center;
+  padding:10px 13px;border-radius:var(--r-m);border:1px solid var(--line);background:rgba(255,255,255,.022)}
+.step.on{border-color:rgba(62,242,168,.4);background:rgba(62,242,168,.06)}
+.step.out{opacity:.42}
+.step .nm{font-size:12.5px;font-weight:700}
+.step .nm small{display:block;font-size:10.5px;font-weight:500;color:var(--faint)}
+.meter{height:9px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden}
+.meter i{display:block;height:100%;border-radius:999px;
+  background:linear-gradient(90deg,#3ef2a8,#46d6e0);transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.step.on .meter i{background:linear-gradient(90deg,#3ef2a8,#46d6e0)}
+.step:not(.on) .meter i{background:linear-gradient(90deg,#ffc860,#ff6b81)}
+.step .val{text-align:right;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.step .val b{color:var(--text);font-size:14px}
+.rate{display:inline-block;min-width:19px;padding:1px 6px;border-radius:6px;font-size:11px;font-weight:700;margin-left:6px}
+.rate.F{background:rgba(62,242,168,.18);color:#9df6d3}
+.rate.L{background:rgba(70,214,224,.18);color:#a6ebf2}
+.rate.P{background:rgba(255,200,96,.18);color:#ffdfa3}
+.rate.N{background:rgba(255,107,129,.18);color:#ffc2cb}
+.rate\.- ,.rate.dash{background:rgba(255,255,255,.07);color:var(--faint)}
+.gtable{display:flex;flex-direction:column;gap:8px}
+.grow{display:grid;grid-template-columns:150px 1fr 86px;gap:12px;align-items:center;font-size:13px}
+.grow .gn{font-weight:600}
+.grow .gn small{display:block;font-size:10.5px;font-weight:400;color:var(--faint)}
+.grow .gv{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+.gaps{display:flex;flex-direction:column;gap:14px}
+.gapgrp h3{font-size:13px;color:var(--teal);letter-spacing:.04em;margin-bottom:8px}
+.gaplist{display:flex;flex-direction:column;gap:7px}
+.gapitem{display:flex;gap:10px;align-items:flex-start;padding:10px 13px;border-radius:var(--r-m);
+  border:1px solid rgba(255,107,129,.22);background:rgba(255,107,129,.055);font-size:13.5px}
+.gapitem .code{flex:0 0 auto;font-size:11px;font-weight:700;color:var(--amber);padding-top:2px;min-width:52px}
+.gapitem .tx b{font-weight:600}
+.gapitem .tx span{display:block;font-size:11.5px;color:var(--muted);margin-top:2px}
+details.openq{border:1px solid var(--line);border-radius:var(--r-m);padding:10px 14px;background:rgba(255,255,255,.02)}
+details.openq summary{cursor:pointer;font-size:13px;color:var(--muted)}
+
+/* ---------- 하단 진행 막대 ---------- */
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:20;padding:12px clamp(16px,4vw,32px) 14px;
+  background:linear-gradient(180deg,rgba(7,10,20,0),rgba(7,10,20,.88) 34%,rgba(7,10,20,.97));
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line)}
+.dock-in{max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:8px}
+.dock-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:12px;color:var(--muted)}
+.dock-top b{color:var(--text);font-size:15px;font-variant-numeric:tabular-nums}
+.bar{height:10px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;position:relative}
+.bar i{display:block;height:100%;width:0;border-radius:999px;
+  background:linear-gradient(90deg,#3ef2a8,#46d6e0 45%,#8b7cf6);
+  box-shadow:0 0 18px rgba(70,214,224,.45);transition:width .35s cubic-bezier(.2,.8,.2,1)}
+.bar.done i{background:linear-gradient(90deg,#3ef2a8,#46d6e0 40%,#f06bd8)}
+.ticks{display:flex;gap:4px;font-size:10px;color:var(--faint)}
+.ticks span{flex:1;text-align:center;padding-top:1px;border-top:1px solid transparent}
+.ticks span.cur{color:var(--mint);font-weight:700}
+
+footer{max-width:900px;margin:0 auto;padding:0 clamp(16px,4vw,32px) 30px;font-size:12px;color:var(--faint)}
+footer a{color:var(--teal);text-decoration:none}
+footer a:hover{text-decoration:underline}
+.err{border-color:rgba(255,107,129,.5);background:rgba(255,107,129,.08)}
+[hidden]{display:none !important}
+@media (max-width:560px){
+  .answers{grid-template-columns:1fr}
+  .step{grid-template-columns:64px 1fr 92px}
+  .grow{grid-template-columns:110px 1fr 74px}
+  .badge{width:108px;height:108px;border-radius:26px}
+  .badge b{font-size:46px}
+}
+@media print{
+  .dock,.noprint{display:none !important}
+  body{background:#fff;color:#111;padding-bottom:0}
+  .aurora-bg,.grid-bg{display:none}
+  .card{background:#fff;border-color:#ccc;backdrop-filter:none}
+  .en,.muted,.gapitem .tx span{color:#555}
+  .badge b{color:#111;-webkit-text-fill-color:#111}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none !important}}
+</style>
+</head>
+<body>
+<div class="aurora-bg"></div><div class="grid-bg"></div>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Automotive SPICE 4.0 · Capability Level 1–5</p>
+    <h1>ASPICE 4.0 자가진단 <span class="en">(Self-Assessment)</span></h1>
+    <p style="margin-top:10px;color:var(--muted);max-width:66ch">
+      산출물과 프로세스 증적을 <b style="color:var(--mint)">있다 / 없다</b>로 답하면 능력 수준(레벨 1~5)을 판정합니다.
+      협력업체 인터뷰용 체크리스트로도, 내부 셀프 점검용으로도 쓸 수 있습니다.
+      채점 엔진은 Rust로 작성해 WebAssembly로 컴파일했고, 답변은 서버로 전송되지 않습니다.
+    </p>
+    <div class="pills" style="margin-top:14px">
+      <span class="pill mint">문항 <b id="p-count">—</b></span>
+      <span class="pill">평가 범위 <b id="p-active">—</b></span>
+      <span class="pill indigo">wasm <b id="p-wasm">—</b></span>
+      <span class="pill">브라우저 내 계산 <b>100%</b></span>
+    </div>
+  </header>
+
+  <!-- ─────────────── 설정 ─────────────── -->
+  <section id="s-setup" class="card">
+    <h2>1. 평가 범위 설정 <span class="en">(Scope &amp; Tailoring)</span></h2>
+    <p style="color:var(--muted);font-size:13.5px;margin-top:8px">
+      프로젝트에 해당하지 않는 프로세스 그룹은 꺼 두세요. 꺼진 그룹의 문항은 묻지 않고 채점에서도 빠집니다.
+      추적성과 레벨 2~5 관리 문항은 항상 포함됩니다.
+    </p>
+
+    <div class="grid3" style="margin-top:20px">
+      <div class="field"><label for="f-proj">프로젝트 / 협력업체 (Project / Supplier)</label><input id="f-proj" placeholder="예) ABC사 ADAS ECU"></div>
+      <div class="field"><label for="f-name">평가자 (Assessor)</label><input id="f-name" placeholder="예) 정재우"></div>
+      <div class="field"><label for="f-date">평가일 (Date)</label><input id="f-date" type="date"></div>
+    </div>
+
+    <div class="sep" style="margin:22px 0 18px"></div>
+    <p class="eyebrow" style="margin-bottom:10px">프로세스 그룹 (Process Groups)</p>
+    <div class="scope" id="scope"></div>
+
+    <div class="sep" style="margin:22px 0 18px"></div>
+    <p class="eyebrow" style="margin-bottom:10px">평가 목표 레벨 (Target Capability Level)</p>
+    <div class="seg" id="target"></div>
+    <p id="target-note" style="color:var(--muted);font-size:13px;margin-top:10px"></p>
+
+    <div class="row" style="margin-top:24px;align-items:center">
+      <button class="btn primary" id="btn-start">평가 시작 (Start)</button>
+      <button class="btn ghost" id="btn-resume" hidden>이어서 하기 (Resume)</button>
+      <span style="font-size:12.5px;color:var(--faint)">예상 소요 <b id="eta" style="color:var(--muted)">—</b></span>
+    </div>
+  </section>
+
+  <!-- ─────────────── 문항 ─────────────── -->
+  <section id="s-quiz" class="card" hidden>
+    <div class="qmeta">
+      <span class="lvchip lv1" id="q-lv">레벨 1</span>
+      <span class="pill" id="q-proc">SYS.1</span>
+      <span class="pill" id="q-group">시스템 공학</span>
+      <span style="margin-left:auto;font-size:12px;color:var(--faint)" id="q-idx">1 / 79</span>
+    </div>
+    <p class="qsubject" id="q-subject"></p>
+    <p class="qtext" id="q-text"></p>
+    <div class="qhint"><b>증적 &nbsp;EVIDENCE</b><br><span id="q-hint"></span></div>
+
+    <div class="answers">
+      <button class="ans yes" data-v="1" id="a-yes">있다 <small>YES &nbsp;1</small></button>
+      <button class="ans no"  data-v="2" id="a-no">없다 <small>NO &nbsp;2</small></button>
+      <button class="ans na"  data-v="3" id="a-na">해당없음 — 이 프로젝트에 적용되지 않음 <small>N/A &nbsp;3</small></button>
+    </div>
+
+    <div class="qnav">
+      <button class="btn ghost" id="btn-prev">← 이전</button>
+      <span class="kbd"><b>1</b> 있다 &nbsp; <b>2</b> 없다 &nbsp; <b>3</b> 해당없음 &nbsp; <b>←</b> <b>→</b> 이동</span>
+      <button class="btn ghost" id="btn-next">다음 →</button>
+    </div>
+  </section>
+
+  <!-- ─────────────── 결과 ─────────────── -->
+  <section id="s-result" hidden>
+    <div class="card">
+      <div class="verdict">
+        <div class="badge"><div style="text-align:center"><span>Level</span><br><b id="r-level">—</b></div></div>
+        <div style="flex:1;min-width:240px">
+          <p class="eyebrow">판정 결과 (Assessment Result)</p>
+          <h2 id="r-title" style="margin-top:6px"></h2>
+          <p id="r-verdict" style="color:var(--muted);font-size:14px;margin-top:10px"></p>
+          <p id="r-meta" style="color:var(--faint);font-size:12px;margin-top:10px"></p>
+        </div>
+      </div>
+      <div class="ladder" id="r-ladder"></div>
+    </div>
+
+    <div class="card" style="margin-top:20px">
+      <h2>프로세스 그룹별 보유율 <span class="en">(By Process Group)</span></h2>
+      <p style="color:var(--muted);font-size:13px;margin:8px 0 16px">해당없음으로 답한 문항은 분모에서 제외됩니다.</p>
+      <div class="gtable" id="r-groups"></div>
+    </div>
+
+    <div class="card" style="margin-top:20px">
+      <h2>보완이 필요한 항목 <span class="en">(Gaps)</span></h2>
+      <p style="color:var(--muted);font-size:13px;margin:8px 0 16px" id="r-gapnote"></p>
+      <div class="gaps" id="r-gaps"></div>
+    </div>
+
+    <div class="row noprint" style="margin-top:20px">
+      <button class="btn primary" id="btn-again">다시 평가 (Restart)</button>
+      <button class="btn" id="btn-review">미보유 항목만 다시 보기</button>
+      <button class="btn ghost" id="btn-json">JSON 저장</button>
+      <button class="btn ghost" id="btn-print">인쇄 / PDF</button>
+      <button class="btn ghost" id="btn-back">범위 수정</button>
+    </div>
+  </section>
+</div>
+
+<footer>
+  판정 기준 — N 0~15% · P 15~50% · L 50~85% · F 85~100% (ISO/IEC 33020). 레벨 N 달성은 해당 레벨이 L 이상이고 하위 모든 레벨이 F 일 때입니다.
+  본 도구는 공식 ASPICE 심사를 대체하지 않는 내부 점검용입니다. 엔진 소스는 Rust → <code>aspice.wasm</code>.
+</footer>
+
+<div class="dock">
+  <div class="dock-in">
+    <div class="dock-top">
+      <span id="d-label">시작 전 — 범위를 정하세요</span>
+      <b id="d-pct">0%</b>
+    </div>
+    <div class="bar" id="d-bar"><i id="d-fill"></i></div>
+    <div class="ticks" id="d-ticks"></div>
+  </div>
+</div>
+
+<script>
+/* ASPICE 4.0 자가진단 — 화면만 여기에서 그린다.
+   문항, 범위 계산, 채점, 레벨 판정은 전부 aspice.wasm (Rust) 안에서 일어난다. */
+'use strict';
+const WASM_URL = 'aspice.wasm';
+const STORE = 'aspice40.v1';
+const $ = id => document.getElementById(id);
+
+const S = {
+  w:null, bank:null, qs:[], byIndex:new Map(),
+  mask:0, target:3, active:[], cursor:0, wasmBytes:0,
+  reviewOnly:false,
+};
+const dec = new TextDecoder();
+const readOut = () => dec.decode(new Uint8Array(S.w.memory.buffer, S.w.out_ptr(), S.w.out_len()));
+
+/* ---------------------------------------------------- 부팅 */
+async function boot(){
+  let bytes;
+  try{
+    const res = await fetch(WASM_URL);
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    bytes = await res.arrayBuffer();
+  }catch(e){ return fail('WebAssembly 엔진(aspice.wasm)을 불러오지 못했습니다 — '+e.message); }
+  S.wasmBytes = bytes.byteLength;
+  const {instance} = await WebAssembly.instantiate(bytes, {});
+  S.w = instance.exports;
+
+  S.w.build_bank();
+  S.bank = JSON.parse(readOut());
+  S.qs = S.bank.questions;
+  for(const q of S.qs) S.byIndex.set(q.i, q);
+
+  $('p-count').textContent = S.qs.length + '개';
+  $('p-wasm').textContent = (S.wasmBytes/1024).toFixed(0) + ' KB';
+  const now = new Date();   // toISOString 은 UTC 라 한국 시간대에서 하루 밀린다
+  $('f-date').value = new Date(now.getTime() - now.getTimezoneOffset()*60000).toISOString().slice(0,10);
+
+  buildScope();
+  buildTarget();
+  applyConfig();
+  const saved = loadSaved();
+  if(saved){ $('btn-resume').hidden = false; $('btn-resume').textContent =
+    `이어서 하기 — ${saved.answered}문항 답변됨 (${saved.when})`; }
+}
+function fail(msg){
+  const el = $('s-setup');
+  el.classList.add('err');
+  el.innerHTML = '<h2>엔진을 불러올 수 없습니다</h2><p style="margin-top:10px;color:var(--muted)">'+msg+
+    '</p><p style="margin-top:10px;font-size:13px;color:var(--faint)">aspice.html 과 aspice.wasm 이 같은 폴더에 있어야 하며, file:// 로 직접 열면 브라우저 보안 정책에 막힙니다. 웹 서버로 여세요.</p>';
+}
+
+/* ---------------------------------------------------- 설정 화면 */
+function buildScope(){
+  const box = $('scope'); box.innerHTML = '';
+  for(const g of S.bank.groups){
+    if(!g.optional) continue;
+    const n = S.qs.filter(q => q.g === g.code).length;
+    const b = document.createElement('button');
+    b.className = 'toggle'; b.type = 'button';
+    b.setAttribute('aria-pressed', String(g.on));
+    b.dataset.bit = g.bit;
+    b.innerHTML = `<span class="box"></span><span class="tx"><b>${g.ko} <span class="en">(${g.en})</span></b>
+      <span>${g.code} · 문항 ${n}개</span></span>`;
+    b.onclick = () => { b.setAttribute('aria-pressed', b.getAttribute('aria-pressed')==='true'?'false':'true'); applyConfig(); };
+    box.appendChild(b);
+  }
+  const fixed = S.bank.groups.filter(g=>!g.optional).map(g=>`${g.ko} (${g.code})`).join(' · ');
+  const note = document.createElement('p');
+  note.style.cssText = 'grid-column:1/-1;font-size:12px;color:var(--faint);margin-top:2px';
+  note.textContent = '항상 포함: ' + fixed;
+  box.appendChild(note);
+}
+function buildTarget(){
+  const box = $('target'); box.innerHTML = '';
+  const names = ['수행 (Performed)','관리 (Managed)','확립 (Established)','예측 (Predictable)','혁신 (Innovating)'];
+  for(let lv=1; lv<=5; lv++){
+    const b = document.createElement('button');
+    b.type='button'; b.textContent = `레벨 ${lv} · ${names[lv-1]}`;
+    b.setAttribute('aria-pressed', String(lv===S.target));
+    b.onclick = () => { S.target = lv; [...box.children].forEach((c,i)=>c.setAttribute('aria-pressed',String(i+1===lv))); applyConfig(); };
+    box.appendChild(b);
+  }
+}
+function applyConfig(){
+  let mask = 0;
+  for(const b of document.querySelectorAll('#scope .toggle'))
+    if(b.getAttribute('aria-pressed')==='true') mask |= 1 << Number(b.dataset.bit);
+  for(const g of S.bank.groups) if(!g.optional) mask |= 1 << g.bit;
+  S.mask = mask;
+  S.w.configure(mask, S.target);
+  S.active = S.qs.filter(q => S.w.is_active(q.i) === 1).map(q => q.i);
+  $('p-active').textContent = S.active.length + '개';
+  $('eta').textContent = '약 ' + Math.max(3, Math.round(S.active.length*12/60)) + '분';
+  $('target-note').textContent =
+    `레벨 ${S.target} 까지 평가합니다 — 활성 문항 ${S.active.length}개. 레벨 ${S.target} 을(를) 넘는 문항은 묻지 않습니다.`;
+  renderTicks();
+  updateDock();
+}
+
+/* ---------------------------------------------------- 문항 화면 */
+function screen(name){
+  $('s-setup').hidden = name!=='setup';
+  $('s-quiz').hidden  = name!=='quiz';
+  $('s-result').hidden= name!=='result';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function start(fresh){
+  if(fresh){ S.w.reset(); S.cursor = 0; }
+  S.reviewOnly = false;
+  if(!S.active.length){ alert('평가할 문항이 없습니다. 프로세스 그룹을 하나 이상 선택하세요.'); return; }
+  screen('quiz'); renderQ();
+}
+function curId(){ return S.active[S.cursor]; }
+function renderQ(){
+  if(S.cursor >= S.active.length) return finish();
+  if(S.cursor < 0) S.cursor = 0;
+  const q = S.byIndex.get(curId());
+  const g = S.bank.groups.find(x=>x.code===q.g);
+  const chip = $('q-lv');
+  chip.className = 'lvchip lv'+q.lv;
+  chip.textContent = `레벨 ${q.lv} 증적`;
+  $('q-proc').innerHTML = `<b>${q.p}</b> ${q.pko} <span class="en">(${q.pen})</span>`;
+  $('q-group').textContent = `${g.ko} (${g.code})`;
+  $('q-idx').textContent = `${S.cursor+1} / ${S.active.length}`;
+  $('q-subject').innerHTML = `${q.s} <span class="en">(${q.se})</span>`;
+  $('q-text').textContent = q.q;
+  $('q-hint').textContent = q.h;
+  const a = S.w.answer_of(q.i);
+  for(const el of [$('a-yes'),$('a-no'),$('a-na')])
+    el.dataset.on = (Number(el.dataset.v)===a) ? '1' : '0';
+  $('btn-prev').disabled = S.cursor===0;
+  $('btn-next').textContent = (S.cursor===S.active.length-1) ? '결과 보기 →' : '다음 →';
+  updateDock();
+}
+function setAnswer(v){
+  S.w.answer(curId(), v);
+  save();
+  const el = document.querySelector(`.ans[data-v="${v}"]`);
+  if(el){ el.dataset.on='1'; for(const o of document.querySelectorAll('.ans')) if(o!==el) o.dataset.on='0'; }
+  setTimeout(()=>{ S.cursor++; renderQ(); }, 130);
+}
+function finish(){
+  S.cursor = Math.max(0, S.active.length-1);
+  S.w.build_result();
+  renderResult(JSON.parse(readOut()));
+  screen('result');
+  updateDock();   // 결과 화면으로 넘어온 뒤에 눈금을 다시 칠한다
+}
+
+/* ---------------------------------------------------- 진행 막대 */
+function renderTicks(){
+  const box = $('d-ticks'); box.innerHTML='';
+  const counts = {};
+  for(const i of S.active){ const lv = S.byIndex.get(i).lv; counts[lv]=(counts[lv]||0)+1; }
+  for(let lv=1; lv<=S.target; lv++){
+    const s = document.createElement('span');
+    s.dataset.lv = lv;
+    s.textContent = `L${lv} · ${counts[lv]||0}`;
+    s.style.flex = String(counts[lv]||0);
+    box.appendChild(s);
+  }
+}
+function updateDock(){
+  const per = S.w.progress_permille();
+  const pct = per/10;
+  $('d-fill').style.width = pct+'%';
+  $('d-pct').textContent = (Number.isInteger(pct)?pct:pct.toFixed(1))+'%';
+  $('d-bar').classList.toggle('done', per>=1000);
+  const done = S.w.answered_count(), total = S.w.active_count();
+  const quiz = !$('s-quiz').hidden;
+  $('d-label').textContent = per>=1000
+    ? `완료 — ${total}문항 모두 답변했습니다`
+    : quiz ? `${done} / ${total} 문항 답변 · 남은 문항 ${total-done}개`
+           : `시작 전 — 활성 문항 ${total}개`;
+  const cur = quiz ? S.byIndex.get(curId()).lv : 0;
+  for(const s of $('d-ticks').children) s.classList.toggle('cur', Number(s.dataset.lv)===cur);
+}
+
+/* ---------------------------------------------------- 결과 화면 */
+function renderResult(r){
+  S.result = r;
+  $('r-level').textContent = r.achieved;
+  $('r-title').innerHTML = r.achieved===0
+    ? '레벨 미달 <span class="en">(Level 0 · Incomplete)</span>'
+    : `레벨 ${r.achieved} 달성 — ${r.title}`;
+  $('r-verdict').textContent = r.verdict;
+  const proj = $('f-proj').value.trim(), who = $('f-name').value.trim(), when = $('f-date').value;
+  $('r-meta').textContent = [proj && `대상: ${proj}`, who && `평가자: ${who}`, when && `평가일: ${when}`,
+    `목표 레벨 ${r.maxLevel}`, `답변 ${r.answered}/${r.active}`, r.complete?'완료':'미완료(무응답은 없다로 간주)']
+    .filter(Boolean).join(' · ');
+
+  const lad = $('r-ladder'); lad.innerHTML='';
+  for(const L of r.levels){
+    const out = L.asked===0;
+    const d = document.createElement('div');
+    d.className = 'step' + (L.reached?' on':'') + (out?' out':'');
+    const label = L.title.replace(/\s*\(.+\)$/,'');
+    const en = (L.title.match(/\((.+)\)$/)||[])[1]||'';
+    d.innerHTML = `<div class="nm">레벨 ${L.lv}<small>${label}</small></div>
+      <div class="meter"><i style="width:${out?0:L.pct}%"></i></div>
+      <div class="val">${out?'<span style="color:var(--faint)">범위 밖</span>'
+        :`<b>${L.pct}%</b><span class="rate ${L.rating}">${L.rating}</span>`}</div>`;
+    d.title = out ? '평가 범위 밖 (out of scope)'
+      : `있다 ${L.yes} · 없다 ${L.no} · 해당없음 ${L.na} · 무응답 ${L.open} — ${L.ratingKo}`;
+    lad.appendChild(d);
+  }
+
+  const gb = $('r-groups'); gb.innerHTML='';
+  for(const g of r.groups){
+    const d = document.createElement('div');
+    d.className='grow';
+    d.innerHTML = `<div class="gn">${g.ko}<small>${g.code} · ${g.en}</small></div>
+      <div class="meter"><i style="width:${g.pct}%;background:linear-gradient(90deg,${
+        g.pct>85?'#3ef2a8,#46d6e0':g.pct>50?'#46d6e0,#8b7cf6':'#ffc860,#ff6b81'})"></i></div>
+      <div class="gv"><b style="color:var(--text)">${g.pct}%</b><span class="rate ${g.rating}">${g.rating}</span></div>`;
+    d.title = `있다 ${g.yes} · 없다 ${g.no} · 해당없음 ${g.na} · 무응답 ${g.open}`;
+    gb.appendChild(d);
+  }
+
+  const gapBox = $('r-gaps'); gapBox.innerHTML='';
+  $('r-gapnote').textContent = r.gaps.length
+    ? `'없다'로 답한 ${r.gaps.length}개 항목입니다. 레벨을 올리려면 아래 증적부터 채우세요.`
+    : '없다로 답한 항목이 없습니다.';
+  const byLv = {};
+  for(const i of r.gaps){ const q = S.byIndex.get(i); (byLv[q.lv] ||= []).push(q); }
+  for(const lv of Object.keys(byLv).sort()){
+    const grp = document.createElement('div'); grp.className='gapgrp';
+    grp.innerHTML = `<h3>레벨 ${lv} — ${byLv[lv].length}건</h3>`;
+    const list = document.createElement('div'); list.className='gaplist';
+    for(const q of byLv[lv]){
+      const it = document.createElement('div'); it.className='gapitem';
+      it.innerHTML = `<span class="code">${q.p}</span><span class="tx"><b>${q.s}</b> <span class="en">(${q.se})</span>
+        <span>${q.h}</span></span>`;
+      list.appendChild(it);
+    }
+    grp.appendChild(list); gapBox.appendChild(grp);
+  }
+  if(r.open.length){
+    const d = document.createElement('details'); d.className='openq';
+    d.innerHTML = `<summary>무응답 ${r.open.length}건 — 펼쳐 보기 (채점에서는 '없다'로 계산됨)</summary>`;
+    const list = document.createElement('div'); list.className='gaplist'; list.style.marginTop='10px';
+    for(const i of r.open){ const q = S.byIndex.get(i);
+      const it = document.createElement('div'); it.className='gapitem'; it.style.borderColor='var(--line)';
+      it.style.background='rgba(255,255,255,.03)';
+      it.innerHTML = `<span class="code">${q.p}</span><span class="tx"><b>${q.s}</b> <span class="en">(${q.se})</span></span>`;
+      list.appendChild(it); }
+    d.appendChild(list); gapBox.appendChild(d);
+  }
+  updateDock();
+}
+
+/* ---------------------------------------------------- 저장 · 내보내기 */
+function save(){
+  try{
+    const ans = {};
+    for(const q of S.qs){ const a = S.w.answer_of(q.i); if(a) ans[q.i]=a; }
+    localStorage.setItem(STORE, JSON.stringify({
+      mask:S.mask, target:S.target, cursor:S.cursor, ans,
+      proj:$('f-proj').value, who:$('f-name').value, date:$('f-date').value,
+      when:new Date().toLocaleString('ko-KR')
+    }));
+  }catch(e){ /* 시크릿 모드 등 — 저장 없이 계속 진행 */ }
+}
+function loadSaved(){
+  try{
+    const raw = localStorage.getItem(STORE); if(!raw) return null;
+    const d = JSON.parse(raw);
+    d.answered = Object.keys(d.ans||{}).length;
+    return d.answered ? d : null;
+  }catch(e){ return null; }
+}
+function resume(){
+  const d = loadSaved(); if(!d) return;
+  S.target = d.target||3;
+  [...$('target').children].forEach((c,i)=>c.setAttribute('aria-pressed',String(i+1===S.target)));
+  for(const b of document.querySelectorAll('#scope .toggle'))
+    b.setAttribute('aria-pressed', String(((d.mask>>Number(b.dataset.bit))&1)===1));
+  $('f-proj').value = d.proj||''; $('f-name').value = d.who||''; if(d.date) $('f-date').value = d.date;
+  applyConfig();
+  S.w.reset();
+  for(const k of Object.keys(d.ans||{})) S.w.answer(Number(k), d.ans[k]);
+  S.cursor = Math.min(d.cursor||0, Math.max(0,S.active.length-1));
+  start(false);
+}
+function exportJson(){
+  S.w.build_result();
+  const r = JSON.parse(readOut());
+  const answers = S.active.map(i => { const q = S.byIndex.get(i); const a = S.w.answer_of(i);
+    return {id:q.p, level:q.lv, group:q.g, subject:q.s, subjectEn:q.se,
+            answer:['미답','있다','없다','해당없음'][a]}; });
+  const blob = new Blob([JSON.stringify({
+    tool:'ASPICE 4.0 Self-Assessment', generated:new Date().toISOString(),
+    project:$('f-proj').value, assessor:$('f-name').value, date:$('f-date').value,
+    targetLevel:S.target, achievedLevel:r.achieved, levels:r.levels, groups:r.groups, answers
+  }, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `aspice40_${($('f-proj').value.trim()||'assessment').replace(/\s+/g,'_')}_L${r.achieved}.json`;
+  a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+}
+
+/* ---------------------------------------------------- 이벤트 */
+$('btn-start').onclick = () => start(true);
+$('btn-resume').onclick = resume;
+$('btn-prev').onclick = () => { S.cursor = Math.max(0,S.cursor-1); renderQ(); };
+$('btn-next').onclick = () => { S.cursor++; renderQ(); };
+$('a-yes').onclick = () => setAnswer(1);
+$('a-no').onclick  = () => setAnswer(2);
+$('a-na').onclick  = () => setAnswer(3);
+$('btn-again').onclick = () => { if(confirm('모든 답변을 지우고 처음부터 다시 평가할까요?')){ S.w.reset(); save(); S.cursor=0; start(true); } };
+$('btn-back').onclick = () => screen('setup');
+$('btn-print').onclick = () => window.print();
+$('btn-json').onclick = exportJson;
+$('btn-review').onclick = () => {
+  const gaps = (S.result?.gaps||[]).concat(S.result?.open||[]);
+  if(!gaps.length){ alert('보완할 항목이 없습니다.'); return; }
+  S.active = gaps.slice(); S.cursor = 0; S.reviewOnly = true;
+  renderTicks(); screen('quiz'); renderQ();
+};
+document.addEventListener('keydown', e => {
+  if($('s-quiz').hidden) return;
+  if(e.target.tagName==='INPUT') return;
+  if(e.key==='1'){ setAnswer(1); e.preventDefault(); }
+  else if(e.key==='2'){ setAnswer(2); e.preventDefault(); }
+  else if(e.key==='3'){ setAnswer(3); e.preventDefault(); }
+  else if(e.key==='ArrowLeft'){ S.cursor=Math.max(0,S.cursor-1); renderQ(); }
+  else if(e.key==='ArrowRight'){ S.cursor++; renderQ(); }
+});
+boot();
+</script>
+</body>
+</html>
