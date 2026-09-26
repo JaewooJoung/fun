@@ -1,0 +1,106 @@
+# ==========================================
+# Project Management Dashboard (HUB) Data
+# ==========================================
+
+[project]
+title = "Supplier name"
+date = "2026-09-30"
+
+# ------------------------------------------
+# 1. Left middle: Summary metrics (status counters)
+# ------------------------------------------
+[summary]
+upcoming_actions = 2
+delays = 3
+high_risks = 5
+
+# ------------------------------------------
+# 2. Left top: Gantt chart schedule
+# ------------------------------------------
+[[gantt]]
+milestone = "C2-Build"
+start_date = "2026-07-15"
+end_date = "2026-07-31"
+status = "completed"
+
+[[gantt]]
+milestone = "SWJRX"
+start_date = "2026-10-01"
+end_date = "2026-10-15"
+status = "pending"
+
+[[gantt]]
+milestone = "P1-Build (CW47)"
+start_date = "2026-11-16"
+end_date = "2026-11-30"
+status = "pending"
+
+[[gantt]]
+milestone = "SWJRF"
+start_date = "2026-12-01"
+end_date = "2026-12-15"
+status = "pending"
+
+# --- 2027년 ---
+[[gantt]]
+milestone = "P2-Build (CW09)"
+start_date = "2027-03-01"
+end_date = "2027-03-14"
+status = "pending"
+
+[[gantt]]
+milestone = "interim SW-PPAP"
+start_date = "2027-04-01"
+end_date = "2027-04-15"
+status = "pending"
+
+[[gantt]]
+milestone = "P3-Build (CW21)"
+start_date = "2027-05-24"
+end_date = "2027-06-06"
+status = "pending"
+
+[[gantt]]
+milestone = "PPAP"
+start_date = "2027-06-15"
+end_date = "2027-06-30"
+status = "pending"
+
+[[gantt]]
+milestone = "SOP"
+start_date = "2027-09-01"
+end_date = "2027-09-30"
+status = "pending"
+
+# ------------------------------------------
+# 3. Left bottom: Action items (Actions)
+# ------------------------------------------
+[[actions]]
+description = "Check supplier material delivery status and follow up"
+assignee = "J. Joung"
+
+[[actions]]
+description = "Prepare for next Tuesday's project review meeting"
+assignee = "L. De Assis"
+
+# ------------------------------------------
+# 4. Left bottom: Risk items (Risks)
+# ------------------------------------------
+[[risks]]
+description = "Possible delay in PAPP approval for Part A (currently 2 days late)"
+severity = "High"
+
+[[risks]]
+description = "Budget overrun risk due to urgent air freight"
+severity = "Medium"
+
+# ------------------------------------------
+# 5. Right: Free-form notes (Notes)
+# ------------------------------------------
+[notes]
+content = """
+Key points from today's meeting:
+- Supplier P is slightly behind schedule. Re-check first thing tomorrow morning.
+- PAPP is on track, but the quality reports need close monitoring.
+- Before leaving today, save the dashboard as TOML, export it to PNG, and share it with the manager on Slack.
+"""
