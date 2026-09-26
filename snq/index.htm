@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SNQ ALL · HUB Overview</title>
+<link rel="icon" id="favicon" href="data:,">
+<style>
+:root {
+  --bg: #f4f6fb;
+  --surface: #ffffff;
+  --surface-2: #f8fafc;
+  --border: #e5e8f0;
+  --text: #0f172a;
+  --muted: #64748b;
+  --faint: #94a3b8;
+  --accent: #4f46e5;
+  --accent-soft: #eef2ff;
+  --today: #e11d48;
+  --ok: #10b981;
+  --ok-soft: #ecfdf5;
+  --warn: #f59e0b;
+  --warn-soft: #fffbeb;
+  --bad: #ef4444;
+  --bad-soft: #fef2f2;
+  --info: #3b82f6;
+  --info-soft: #eff6ff;
+  --idle: #94a3b8;
+  --grid: #eef1f6;
+  --row-hover: #f5f7ff;
+  --brand: linear-gradient(90deg, #7dd3c8, #c064b8 50%, #c9b06a);
+  --shadow: 0 1px 2px rgba(15,23,42,.04), 0 4px 16px rgba(15,23,42,.05);
+  --radius: 16px;
+  --font: "Pretendard", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b0f19; --surface: #121826; --surface-2: #0f1522; --border: #232b3d;
+    --text: #e6e9f2; --muted: #98a2b8; --faint: #6b7489;
+    --accent: #818cf8; --accent-soft: #1e1f3d; --today: #fb7185;
+    --ok: #34d399; --ok-soft: #0f2a22; --warn: #fbbf24; --warn-soft: #2b2310;
+    --bad: #f87171; --bad-soft: #2d1416; --info: #60a5fa; --info-soft: #11223d;
+    --idle: #6b7489; --grid: #1a2131; --row-hover: #161d2e;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.25);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0b0f19; --surface: #121826; --surface-2: #0f1522; --border: #232b3d;
+  --text: #e6e9f2; --muted: #98a2b8; --faint: #6b7489;
+  --accent: #818cf8; --accent-soft: #1e1f3d; --today: #fb7185;
+  --ok: #34d399; --ok-soft: #0f2a22; --warn: #fbbf24; --warn-soft: #2b2310;
+  --bad: #f87171; --bad-soft: #2d1416; --info: #60a5fa; --info-soft: #11223d;
+  --idle: #6b7489; --grid: #1a2131; --row-hover: #161d2e;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.25);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 14px/1.5 var(--font); -webkit-font-smoothing: antialiased;
+}
+button, input { font: inherit; color: inherit; }
+[hidden] { display: none !important; }
+body.view-overview .only-detail, body.view-detail .only-overview { display: none !important; }
+
+/* ---------- Top bar ---------- */
+.topbar {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 28px;
+  background: color-mix(in srgb, var(--bg) 80%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.topbar::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
+  background: var(--brand); opacity: .55;
+}
+.brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.logo {
+  width: 38px; height: 38px; border-radius: 10px; flex: none; object-fit: cover;
+  background: #141a2e; box-shadow: 0 0 0 1px rgba(255,255,255,.06), 0 4px 12px rgba(20,26,46,.25);
+}
+.brand h1 { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.brand .sub { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.spacer { flex: 1; }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 36px; padding: 0 14px; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--surface);
+  font-weight: 600; font-size: 13px; cursor: pointer; white-space: nowrap;
+  transition: border-color .15s, transform .05s;
+}
+.btn:hover { border-color: var(--faint); }
+.btn:active { transform: translateY(1px); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn svg { width: 16px; height: 16px; }
+.icon-btn { width: 36px; padding: 0; justify-content: center; }
+.nav { display: inline-flex; }
+.nav .btn { border-radius: 0; }
+.nav .btn:first-child { border-radius: 10px 0 0 10px; }
+.nav .btn:last-child { border-radius: 0 10px 10px 0; margin-left: -1px; }
+.navpos { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; min-width: 44px; text-align: center; }
+
+/* ---------- Common ---------- */
+.page { padding: 20px 28px 28px; display: flex; flex-direction: column; gap: 20px; }
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 20px 22px; min-width: 0;
+}
+.card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+.card-head h2 { margin: 0; font-size: 14px; font-weight: 700; letter-spacing: -.005em; }
+.count {
+  font-size: 12px; font-weight: 600; color: var(--muted);
+  background: var(--surface-2); border: 1px solid var(--border);
+  padding: 1px 8px; border-radius: 999px;
+}
+.hint { font-size: 12px; color: var(--faint); }
+.card-head .hint.right { margin-left: auto; }
+
+/* ---------- KPI ---------- */
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.kpis.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.kpi { position: relative; overflow: hidden; padding: 18px 20px; }
+.kpi::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--kpi); }
+.kpi .label { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 600; color: var(--muted); }
+.kpi .dot { width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; background: var(--kpi-soft); color: var(--kpi); }
+.kpi .dot svg { width: 15px; height: 15px; }
+.kpi .val { margin: 8px 0 0; font: 800 36px/1.1 var(--font); letter-spacing: -.02em; }
+.kpi .val small { font-size: 18px; font-weight: 600; color: var(--muted); margin-left: 6px; letter-spacing: 0; }
+.kpi .cap, .kpi .auto { font-size: 12px; color: var(--faint); margin-top: 2px; }
+.kpi .auto b { color: var(--muted); font-weight: 600; }
+.kpi input {
+  display: block; width: 100%; margin: 8px 0 2px; padding: 0;
+  border: 0; background: transparent; color: var(--text);
+  font: 800 38px/1.1 var(--font); letter-spacing: -.02em;
+  -moz-appearance: textfield; appearance: textfield;
+}
+.kpi input::-webkit-outer-spin-button, .kpi input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.kpi input:focus { outline: none; color: var(--kpi); }
+.kpi.files    { --kpi: var(--accent); --kpi-soft: var(--accent-soft); }
+.kpi.upcoming { --kpi: var(--info); --kpi-soft: var(--info-soft); }
+.kpi.delays   { --kpi: var(--warn); --kpi-soft: var(--warn-soft); }
+.kpi.risks    { --kpi: var(--bad);  --kpi-soft: var(--bad-soft); }
+
+/* ---------- Overview table ---------- */
+.search {
+  margin-left: auto; height: 34px; width: 240px; max-width: 100%;
+  padding: 0 12px 0 34px; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--surface-2) no-repeat 11px center / 15px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E");
+  outline: none;
+}
+.search:focus { border-color: var(--accent); }
+.check { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted); cursor: pointer; user-select: none; }
+.check input { accent-color: var(--accent); width: 15px; height: 15px; margin: 0; }
+.table-wrap { overflow-x: auto; margin: 0 -22px; padding: 0 22px; }
+table { width: 100%; border-collapse: separate; border-spacing: 0; min-width: 760px; }
+th {
+  text-align: left; font-size: 12px; font-weight: 600; color: var(--muted);
+  padding: 10px 12px; border-bottom: 1px solid var(--border);
+  white-space: nowrap; user-select: none; cursor: pointer;
+}
+th:hover { color: var(--text); }
+th.num, td.num { text-align: right; }
+th .arrow { display: inline-block; width: 10px; color: var(--accent); }
+th.nosort { cursor: default; }
+td { padding: 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+tbody tr { transition: background .12s; }
+tbody tr.open { cursor: pointer; }
+tbody tr:hover { background: var(--row-hover); }
+tbody tr.open:hover .proj { color: var(--accent); }
+.proj { font-weight: 650; display: inline-flex; align-items: center; gap: 8px; }
+.edited { font-size: 11px; font-weight: 700; color: var(--warn); background: var(--warn-soft); padding: 1px 7px; border-radius: 999px; }
+.file { font-size: 12.5px; color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; word-break: break-all; }
+.date { color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.metric { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.metric b { font-size: 16px; font-weight: 750; }
+.metric .auto { color: var(--faint); margin-left: 4px; font-weight: 600; }
+.metric .auto.diff { color: var(--warn); }
+.metric.zero b { color: var(--faint); font-weight: 600; }
+.metric.hot-delay b { color: var(--warn); }
+.metric.hot-risk b { color: var(--bad); }
+tfoot td { font-weight: 700; border-bottom: 0; border-top: 2px solid var(--border); background: var(--surface-2); }
+tfoot td:first-child { border-radius: 0 0 0 10px; }
+tfoot td:last-child { border-radius: 0 0 10px 0; }
+.err td { color: var(--bad); }
+.err .msg { font-size: 12.5px; }
+.del {
+  opacity: 0; border: 0; background: none; cursor: pointer;
+  color: var(--faint); width: 24px; height: 24px; border-radius: 6px; line-height: 1; font-size: 16px;
+}
+tr:hover .del, .item:hover .del, .del:focus { opacity: 1; }
+.del:hover { background: var(--bad-soft); color: var(--bad); }
+.idx { color: var(--faint); font-variant-numeric: tabular-nums; width: 36px; }
+.empty { text-align: center; padding: 48px 20px; color: var(--muted); }
+.empty img { width: 132px; height: 132px; border-radius: 28px; display: block; margin: 0 auto 18px; box-shadow: 0 10px 30px rgba(20,26,46,.25); }
+.empty b { color: var(--text); }
+
+/* ---------- Detail dashboard ---------- */
+.layout {
+  display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(320px, 1fr);
+  gap: 20px; padding: 20px 28px 28px;
+  min-height: calc(100vh - 67px);
+}
+.left { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.gantt-wrap { position: relative; width: 100%; }
+#gantt { display: block; width: 100%; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 10px; font-size: 12px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.lists { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; flex: 1; }
+.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 12px; border-radius: 12px;
+  background: var(--surface-2); border: 1px solid transparent; transition: border-color .15s;
+}
+.item:hover { border-color: var(--border); }
+.item .bullet { flex: none; width: 8px; height: 8px; border-radius: 50%; margin-top: 7px; background: var(--info); }
+.item .body { flex: 1; min-width: 0; }
+.item .desc { outline: none; word-break: keep-all; overflow-wrap: anywhere; }
+.item .desc:focus, .chip[contenteditable]:focus { box-shadow: 0 0 0 2px var(--accent-soft); border-radius: 4px; }
+.item .meta { margin-top: 4px; display: flex; gap: 6px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11.5px; font-weight: 600; padding: 1px 8px; border-radius: 999px;
+  background: var(--accent-soft); color: var(--accent); outline: none;
+}
+.sev { cursor: pointer; user-select: none; border: 0; }
+.sev.high   { background: var(--bad-soft);  color: var(--bad); }
+.sev.medium { background: var(--warn-soft); color: var(--warn); }
+.sev.low    { background: var(--ok-soft);   color: var(--ok); }
+.item .del { flex: none; width: 22px; height: 22px; font-size: 14px; }
+.add {
+  margin-left: auto; border: 1px dashed var(--border); background: none; cursor: pointer;
+  color: var(--muted); font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 8px;
+}
+.add:hover { border-color: var(--accent); color: var(--accent); }
+.list .none { color: var(--faint); font-size: 13px; padding: 6px 2px; }
+.notes { display: flex; flex-direction: column; min-height: 520px; }
+.notes textarea {
+  flex: 1; width: 100%; resize: none; border: 0; outline: none;
+  background: var(--surface-2); color: var(--text);
+  border-radius: 12px; padding: 16px 18px;
+  font: 14.5px/1.75 var(--font);
+}
+.notes textarea:focus { box-shadow: inset 0 0 0 1.5px var(--accent); }
+.notes .foot { display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; color: var(--faint); }
+.dirty { color: var(--warn); font-weight: 600; }
+
+/* ---------- Overlay / toast ---------- */
+.drop {
+  position: fixed; inset: 0; z-index: 50; display: none; place-items: center;
+  background: color-mix(in srgb, var(--accent) 12%, transparent); backdrop-filter: blur(3px);
+}
+.drop.show { display: grid; }
+.drop div { padding: 28px 40px; border-radius: 18px; border: 2px dashed var(--accent); background: var(--surface); font-weight: 700; color: var(--accent); }
+.toast {
+  position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 20px);
+  background: var(--text); color: var(--bg); padding: 10px 18px; border-radius: 12px;
+  font-weight: 600; font-size: 13px; opacity: 0; pointer-events: none;
+  transition: opacity .2s, transform .2s; z-index: 60; max-width: calc(100vw - 32px);
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.toast.err { background: var(--bad); color: #fff; }
+
+@media (max-width: 1100px) {
+  .layout { grid-template-columns: 1fr; }
+  .notes { min-height: 360px; }
+}
+@media (max-width: 900px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 720px) {
+  .topbar { flex-wrap: wrap; padding: 12px 16px; }
+  .page, .layout { padding: 16px; gap: 16px; }
+  .kpis, .kpis.three, .lists { grid-template-columns: 1fr; }
+  .btn .txt { display: none; }
+  .search { width: 100%; margin-left: 0; }
+}
+</style>
+</head>
+<body class="view-overview">
+
+<header class="topbar">
+  <button class="btn icon-btn only-detail" id="btnBack" title="Back to all projects (Esc)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+  </button>
+  <div class="brand">
+    <img class="logo" id="logo" alt="SNQ" hidden>
+    <div style="min-width:0">
+      <h1 id="title">HUB Overview</h1>
+      <div class="sub" id="subtitle">Open TOML files to build the overview</div>
+    </div>
+  </div>
+  <div class="spacer"></div>
+
+  <input type="file" id="files" accept=".toml,text/plain" multiple hidden>
+  <input type="file" id="folder" webkitdirectory hidden>
+  <input type="file" id="wasmFile" accept=".wasm" hidden>
+
+  <!-- overview -->
+  <button class="btn primary only-overview" id="btnOpen" title="Open TOML files (Ctrl+O)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 12v6m-3-3h6"/></svg>
+    <span class="txt">Open TOMLs</span>
+  </button>
+  <button class="btn only-overview" id="btnFolder" title="Open every .toml in a folder">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+    <span class="txt">Open Folder</span>
+  </button>
+  <button class="btn only-overview" id="btnPdfAll" disabled title="Export overview as PDF">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 11v6m0 0 3-3m-3 3-3-3"/></svg>
+    <span class="txt">Export PDF</span>
+  </button>
+  <button class="btn icon-btn only-overview" id="btnClear" disabled title="Clear all">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2m-9 0 1 14h8l1-14"/></svg>
+  </button>
+
+  <!-- detail -->
+  <span class="nav only-detail">
+    <button class="btn icon-btn" id="btnPrev" title="Previous project">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <button class="btn icon-btn" id="btnNext" title="Next project">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+    </button>
+  </span>
+  <span class="navpos only-detail" id="navPos"></span>
+  <button class="btn only-detail" id="btnPng" title="Export dashboard as PNG">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+    <span class="txt">Export PNG</span>
+  </button>
+  <button class="btn only-detail" id="btnPdfOne" title="Export dashboard as PDF">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 11v6m0 0 3-3m-3 3-3-3"/></svg>
+    <span class="txt">Export PDF</span>
+  </button>
+  <button class="btn primary only-detail" id="btnSave" title="Save as TOML (Ctrl+S)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M5 21h14"/></svg>
+    <span class="txt">Save TOML</span>
+  </button>
+
+  <button class="btn icon-btn" id="btnTheme" title="Toggle theme">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+  </button>
+</header>
+
+<!-- ============================ OVERVIEW ============================ -->
+<main class="page only-overview" id="overview">
+  <div class="kpis">
+    <div class="card kpi files">
+      <div class="label"><span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg></span>Projects</div>
+      <div class="val" id="tFiles">0</div>
+      <div class="cap" id="tFilesCap">TOML files loaded</div>
+    </div>
+    <div class="card kpi upcoming">
+      <div class="label"><span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg></span>Upcoming Action</div>
+      <div class="val" id="tUpcoming">0</div>
+      <div class="cap">Total · (auto-calculated)</div>
+    </div>
+    <div class="card kpi delays">
+      <div class="label"><span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>Delays</div>
+      <div class="val" id="tDelays">0</div>
+      <div class="cap">Total · (auto-calculated)</div>
+    </div>
+    <div class="card kpi risks">
+      <div class="label"><span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg></span>High Risks</div>
+      <div class="val" id="tRisks">0</div>
+      <div class="cap">Total · (auto-calculated)</div>
+    </div>
+  </div>
+
+  <section class="card">
+    <div class="card-head">
+      <h2>Projects</h2><span class="count" id="rowCount">0</span>
+      <span class="hint">Value from TOML · <span style="color:var(--muted)">(auto-calculated)</span> · click a row to open its dashboard</span>
+      <input class="search" id="search" type="search" placeholder="Filter by project or file…">
+      <label class="check" title="Append one dashboard page per project to the overview PDF"><input type="checkbox" id="withDash">Include dashboards in PDF</label>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="nosort">#</th>
+            <th data-key="title">Project <span class="arrow"></span></th>
+            <th data-key="file">File <span class="arrow"></span></th>
+            <th data-key="date">Date <span class="arrow"></span></th>
+            <th data-key="upcoming" class="num">Upcoming Action <span class="arrow"></span></th>
+            <th data-key="delays" class="num">Delays <span class="arrow"></span></th>
+            <th data-key="risks" class="num">High Risks <span class="arrow"></span></th>
+            <th class="nosort"></th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+        <tfoot id="foot"></tfoot>
+      </table>
+    </div>
+  </section>
+</main>
+
+<!-- ============================ DETAIL ============================ -->
+<main class="layout only-detail" id="detail">
+  <section class="left">
+    <div class="card">
+      <div class="card-head">
+        <h2>Schedule</h2><span class="count" id="ganttCount">0</span>
+        <span class="hint right">Click a bar to change its status</span>
+      </div>
+      <div class="gantt-wrap"><canvas id="gantt" height="220"></canvas></div>
+      <div class="legend" id="legend"></div>
+    </div>
+
+    <div class="kpis three">
+      <div class="card kpi upcoming">
+        <div class="label"><span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg></span>Upcoming Action</div>
+        <input type="number" id="kUpcoming" value="0" min="0" aria-label="Upcoming Action">
+        <div class="auto">Auto-calculated <b id="cUpcoming">–</b></div>
+      </div>
+      <div class="card kpi delays">
+        <div class="label"><span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>Delays</div>
+        <input type="number" id="kDelays" value="0" min="0" aria-label="Delays">
+        <div class="auto">Auto-calculated <b id="cDelays">–</b></div>
+      </div>
+      <div class="card kpi risks">
+        <div class="label"><span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg></span>High Risks</div>
+        <input type="number" id="kRisks" value="0" min="0" aria-label="High Risks">
+        <div class="auto">Auto-calculated <b id="cRisks">–</b></div>
+      </div>
+    </div>
+
+    <div class="lists">
+      <div class="card">
+        <div class="card-head"><h2>Actions</h2><span class="count" id="actCount">0</span>
+          <button class="add" id="addAction">+ Add</button></div>
+        <ul class="list" id="actions"></ul>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>Risks</h2><span class="count" id="riskCount">0</span>
+          <button class="add" id="addRisk">+ Add</button></div>
+        <ul class="list" id="risks"></ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="card notes">
+    <div class="card-head"><h2>Notes</h2><span class="hint right" id="notesDate"></span></div>
+    <textarea id="notes" placeholder="Write meeting notes and comments freely…" spellcheck="false"></textarea>
+    <div class="foot"><span id="dirty"></span><span id="charCount">0 chars</span></div>
+  </section>
+</main>
+
+<div class="drop" id="drop"><div>Drop your TOML files here</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+
+// ==================================================================
+// WASM bridge (raw exports; see code/src/lib.rs)
+// ==================================================================
+let wasm = null;
+const enc = new TextEncoder(), dec = new TextDecoder();
+
+async function initWasm(source) {
+  const imports = {};
+  let inst;
+  if (source) {
+    inst = (await WebAssembly.instantiate(source, imports)).instance;
+  } else {
+    const res = await fetch("snqall.wasm");
+    if (!res.ok) throw new Error("snqall.wasm HTTP " + res.status);
+    try {
+      inst = (await WebAssembly.instantiateStreaming(res.clone(), imports)).instance;
+    } catch {
+      inst = (await WebAssembly.instantiate(await res.arrayBuffer(), imports)).instance;
+    }
+  }
+  wasm = inst.exports;
+  loadLogo();
+}
+
+function takeOut() {
+  return new Uint8Array(wasm.memory.buffer, wasm.out_ptr(), wasm.out_len()).slice();
+}
+// args: strings or Uint8Array (→ ptr,len) and numbers (passed through)
+function wasmCall(fn, ...args) {
+  const flat = [], allocs = [];
+  for (const a of args) {
+    if (typeof a === "number") { flat.push(a); continue; }
+    const bytes = typeof a === "string" ? enc.encode(a) : a;
+    const ptr = wasm.alloc(bytes.length);
+    new Uint8Array(wasm.memory.buffer, ptr, bytes.length).set(bytes);
+    allocs.push([ptr, bytes.length]); flat.push(ptr, bytes.length);
+  }
+  const rc = wasm[fn](...flat);
+  const out = takeOut();
+  for (const [p, n] of allocs) wasm.dealloc(p, n);
+  if (rc !== 0) throw new Error(dec.decode(out));
+  return out;
+}
+const wasmText = (fn, ...args) => dec.decode(wasmCall(fn, ...args));
+
+// Logo lives inside snqall.wasm
+const logoImg = new Image();
+function loadLogo() {
+  const url = URL.createObjectURL(new Blob([wasmCall("logo")], { type: "image/jpeg" }));
+  logoImg.src = url;
+  $("logo").src = url; $("logo").hidden = false;
+  $("favicon").href = url;
+  const w = $("welcomeLogo"); if (w) { w.src = url; w.hidden = false; }
+}
+
+// ==================================================================
+// State
+// ==================================================================
+const pad = (n) => String(n).padStart(2, "0");
+function localToday() {
+  const d = new Date();
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+const TODAY = localToday();
+
+// entry: { key, file, data: {hub, computed, today, today_day} | null, error?, dirty }
+let entries = [];
+let sortKey = "title", sortDir = 1;
+let current = null;     // entry shown in detail view
+let state = null;       // = current.data (detail view)
+
+function parseToml(text) { return JSON.parse(wasmText("parse_hub", text, TODAY)); }
+
+function toEntry(key, file, text) {
+  try { return { key, file, data: parseToml(text), dirty: false }; }
+  catch (e) { return { key, file, data: null, error: e.message.split("\n")[0], dirty: false }; }
+}
+
+const titleOf = (e) => (e.data && e.data.hub.project.title) || e.file.replace(/\.toml$/i, "");
+function metricsOf(e) {
+  if (!e.data) return null;
+  const s = e.data.hub.summary, c = e.data.computed;
+  return {
+    upcoming: [s.upcoming_actions, c.upcoming_actions],
+    delays: [s.delays, c.delays],
+    risks: [s.high_risks, c.high_risks],
+  };
+}
+const shown = ([v, auto]) => (v ?? auto);
+
+async function addFiles(fileList) {
+  if (!wasm) return toast("snqall.wasm is not loaded yet", true);
+  const files = [...fileList].filter((f) => /\.toml$/i.test(f.name));
+  if (!files.length) return toast("No .toml files found", true);
+  let added = 0, replaced = 0, failed = 0;
+  for (const f of files) {
+    const key = f.webkitRelativePath || f.name;
+    const e = toEntry(key, key, await f.text());
+    if (e.error) failed++;
+    const i = entries.findIndex((x) => x.key === key);
+    if (i >= 0) { entries[i] = e; replaced++; } else { entries.push(e); added++; }
+  }
+  showOverview();
+  toast(`Loaded ${added} new${replaced ? `, updated ${replaced}` : ""}${failed ? ` · ${failed} failed` : ""}`, failed > 0 && failed === files.length);
+}
+
+function visibleEntries() {
+  const q = $("search").value.trim().toLowerCase();
+  const list = entries.filter((e) => !q || titleOf(e).toLowerCase().includes(q) || e.file.toLowerCase().includes(q));
+  const val = (e) => {
+    if (sortKey === "title") return titleOf(e).toLowerCase();
+    if (sortKey === "file") return e.file.toLowerCase();
+    if (sortKey === "date") return e.data ? e.data.hub.project.date : "";
+    const m = metricsOf(e); return m ? shown(m[sortKey]) : -1;
+  };
+  return list.sort((a, b) => {
+    const x = val(a), y = val(b);
+    return (x < y ? -1 : x > y ? 1 : 0) * sortDir || titleOf(a).localeCompare(titleOf(b));
+  });
+}
+
+function totals(list) {
+  const t = { upcoming: [0, 0], delays: [0, 0], risks: [0, 0] };
+  for (const e of list) { const m = metricsOf(e); if (m) for (const k in t) { t[k][0] += shown(m[k]); t[k][1] += m[k][1]; } }
+  return t;
+}
+
+// ==================================================================
+// Helpers
+// ==================================================================
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+}
+function css(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+const FONT = () => css("--font") || "sans-serif";
+const plural = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
+const slug = (s) => (s || "project").trim().replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "").slice(0, 60) || "project";
+
+function roundRect(ctx, x, y, w, h, r) {
+  r = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+function ellipsize(ctx, text, maxW) {
+  if (ctx.measureText(text).width <= maxW) return text;
+  let s = text;
+  while (s.length && ctx.measureText(s + "…").width > maxW) s = s.slice(0, -1);
+  return s + "…";
+}
+function drawLogo(ctx, x, y, s) {
+  ctx.save();
+  roundRect(ctx, x, y, s, s, s * 0.26); ctx.clip();
+  if (logoImg.complete && logoImg.naturalWidth) ctx.drawImage(logoImg, x, y, s, s);
+  else { ctx.fillStyle = "#141a2e"; ctx.fillRect(x, y, s, s); }
+  ctx.restore();
+}
+// Run fn with the light palette active (used for print-style PDF pages)
+function withLightTheme(fn) {
+  const root = document.documentElement, prev = root.dataset.theme;
+  root.dataset.theme = "light";
+  try { return fn(); } finally { if (prev) root.dataset.theme = prev; else delete root.dataset.theme; }
+}
+function download(blob, name) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+function dataUrlBytes(url) {
+  const bin = atob(url.slice(url.indexOf(",") + 1));
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+let toastTimer;
+function toast(msg, err = false) {
+  const t = $("toast");
+  t.textContent = msg; t.className = "toast show" + (err ? " err" : "");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => (t.className = "toast" + (err ? " err" : "")), err ? 5000 : 2200);
+}
+
+// ==================================================================
+// OVERVIEW
+// ==================================================================
+function metricCell(pair, kind) {
+  const td = el("td", "num");
+  const [v, auto] = pair;
+  const val = v ?? auto;
+  const span = el("span", "metric" + (val === 0 ? " zero" : kind === "delays" ? " hot-delay" : kind === "risks" ? " hot-risk" : ""));
+  span.append(el("b", null, String(val)));
+  if (v == null) span.title = "No value in TOML [summary] — using auto-calculated";
+  const a = el("span", "auto" + (v != null && v !== auto ? " diff" : ""), `(${auto})`);
+  if (v != null && v !== auto) a.title = `TOML says ${v}, auto-calculated ${auto}`;
+  span.append(a);
+  td.append(span);
+  return td;
+}
+
+function renderOverview() {
+  const list = visibleEntries();
+  const tbody = $("rows"); tbody.replaceChildren();
+
+  if (!entries.length) {
+    const tr = el("tr"), td = el("td", "empty");
+    td.colSpan = 8;
+    td.innerHTML = `<img id="welcomeLogo" alt="SNQ" ${logoImg.src ? `src="${logoImg.src}"` : "hidden"}>Click <b>Open TOMLs</b> or <b>Open Folder</b>,<br>or drag and drop any number of TOML files onto the page.`;
+    tr.append(td); tbody.append(tr);
+  } else if (!list.length) {
+    const tr = el("tr"), td = el("td", "empty", "No projects match the filter.");
+    td.colSpan = 8; tr.append(td); tbody.append(tr);
+  }
+
+  list.forEach((e, i) => {
+    const tr = el("tr", e.error ? "err" : "open");
+    tr.append(el("td", "idx", String(i + 1)));
+    const tdP = el("td"), p = el("span", "proj", titleOf(e));
+    if (e.dirty) p.append(el("span", "edited", "Edited"));
+    tdP.append(p); tr.append(tdP);
+    tr.append(el("td", "file", e.file));
+    if (e.error) {
+      const td = el("td", "msg", e.error); td.colSpan = 4; tr.append(td);
+    } else {
+      const m = metricsOf(e);
+      tr.append(el("td", "date", e.data.hub.project.date || "—"));
+      tr.append(metricCell(m.upcoming, "upcoming"), metricCell(m.delays, "delays"), metricCell(m.risks, "risks"));
+      tr.onclick = () => openDetail(e);
+    }
+    const tdX = el("td", "num"); const x = el("button", "del", "×"); x.title = "Remove from list";
+    x.onclick = (ev) => {
+      ev.stopPropagation();
+      if (e.dirty && !confirm(`"${titleOf(e)}" has unsaved edits. Remove anyway?`)) return;
+      entries = entries.filter((y) => y !== e); renderOverview();
+    };
+    tdX.append(x); tr.append(tdX);
+    tbody.append(tr);
+  });
+
+  const foot = $("foot"); foot.replaceChildren();
+  const ok = list.filter((e) => e.data);
+  if (ok.length) {
+    const t = totals(ok), tr = el("tr");
+    tr.append(el("td"), el("td", null, "Total"), el("td", "file", plural(ok.length, "file")), el("td"));
+    for (const k of ["upcoming", "delays", "risks"]) {
+      const td = el("td", "num"), s = el("span", "metric");
+      s.append(el("b", null, String(t[k][0])), el("span", "auto", `(${t[k][1]})`));
+      td.append(s); tr.append(td);
+    }
+    tr.append(el("td"));
+    foot.append(tr);
+  }
+
+  const all = totals(entries);
+  const kv = (id, [a, b]) => { $(id).replaceChildren(String(a), el("small", null, `(${b})`)); };
+  $("tFiles").textContent = entries.length;
+  const bad = entries.filter((e) => e.error).length, edited = entries.filter((e) => e.dirty).length;
+  $("tFilesCap").textContent = ["TOML files loaded", bad && `${bad} with errors`, edited && `${edited} edited`].filter(Boolean).join(" · ");
+  kv("tUpcoming", all.upcoming); kv("tDelays", all.delays); kv("tRisks", all.risks);
+
+  $("rowCount").textContent = list.length;
+  $("title").textContent = "HUB Overview";
+  $("subtitle").textContent = entries.length ? `${plural(entries.length, "file")} · Today ${TODAY}` : "Open TOML files to build the overview";
+  document.title = "SNQ ALL · HUB Overview";
+  $("btnPdfAll").disabled = $("btnClear").disabled = !entries.length;
+
+  document.querySelectorAll("th[data-key]").forEach((th) => {
+    th.querySelector(".arrow").textContent = th.dataset.key === sortKey ? (sortDir > 0 ? "▲" : "▼") : "";
+  });
+}
+
+function showOverview() {
+  if (current) collect();
+  current = null; state = null;
+  document.body.className = "view-overview";
+  renderOverview();
+}
+
+// ==================================================================
+// DETAIL (single-project dashboard)
+// ==================================================================
+const STATUS = ["pending", "in_progress", "delayed", "completed"];
+const STATUS_LABEL = { pending: "Pending", in_progress: "In progress", delayed: "Delayed", completed: "Completed" };
+const SEVERITY = ["High", "Medium", "Low"];
+
+function statusColor(s) {
+  switch ((s || "").toLowerCase()) {
+    case "completed": return css("--ok");
+    case "delayed": return css("--bad");
+    case "in_progress": case "in progress": case "ongoing": return css("--info");
+    default: return css("--idle");
+  }
+}
+function sevColor(sev) {
+  const s = (sev || "").toLowerCase();
+  return s === "high" || s === "critical" ? css("--bad") : s === "low" ? css("--ok") : css("--warn");
+}
+
+function openDetail(e) {
+  if (current) collect();
+  current = e; state = e.data;
+  document.body.className = "view-detail";
+  renderDetail();
+  scrollTo({ top: 0 });
+}
+
+function step(dir) {
+  const list = visibleEntries().filter((e) => e.data);
+  if (!list.length) return;
+  const i = list.indexOf(current);
+  openDetail(list[(i + dir + list.length) % list.length]);
+}
+
+// Current UI → hub object (for saving / re-analysis)
+function collect() {
+  const hub = state.hub;
+  const num = (id) => {
+    const inp = $(id);
+    if (inp.dataset.auto === "1") return null;        // untouched fallback → keep "no value"
+    const v = inp.value.trim(); return v === "" ? null : Math.max(0, parseInt(v, 10) || 0);
+  };
+  hub.summary = { upcoming_actions: num("kUpcoming"), delays: num("kDelays"), high_risks: num("kRisks") };
+  hub.actions = [...$("actions").querySelectorAll(".item")].map((li) => ({
+    description: li.querySelector(".desc").innerText.trim(),
+    assignee: li.querySelector(".chip").innerText.trim(),
+  }));
+  hub.risks = [...$("risks").querySelectorAll(".item")].map((li) => ({
+    description: li.querySelector(".desc").innerText.trim(),
+    severity: li.querySelector(".sev").dataset.sev,
+  }));
+  hub.notes.content = $("notes").value;
+  return hub;
+}
+
+// Round-trip through Rust to refresh computed metrics after structural edits
+function reanalyze(hub = collect()) {
+  state = current.data = parseToml(wasmText("to_toml", JSON.stringify(hub)));
+  markDirty();
+  renderDetail();
+}
+
+function markDirty() {
+  current.dirty = true;
+  $("dirty").textContent = "● Unsaved changes";
+  $("dirty").className = "dirty";
+}
+
+function renderDetail() {
+  const { hub, computed } = state;
+  $("title").textContent = hub.project.title || "Project HUB";
+  $("subtitle").textContent = `${current.file} · Data as of ${hub.project.date || "—"} · Today ${TODAY}`;
+  document.title = `SNQ · ${hub.project.title || "Project HUB"}`;
+
+  const nav = visibleEntries().filter((e) => e.data);
+  const pos = nav.indexOf(current);
+  $("navPos").textContent = pos >= 0 ? `${pos + 1} / ${nav.length}` : "";
+  $("btnPrev").disabled = $("btnNext").disabled = nav.length < 2;
+
+  const s = hub.summary;
+  const setK = (id, v, auto) => { const i = $(id); i.value = v ?? auto; i.dataset.auto = v == null ? "1" : ""; };
+  setK("kUpcoming", s.upcoming_actions, computed.upcoming_actions);
+  setK("kDelays", s.delays, computed.delays);
+  setK("kRisks", s.high_risks, computed.high_risks);
+  $("cUpcoming").textContent = computed.upcoming_actions;
+  $("cDelays").textContent = computed.delays;
+  $("cRisks").textContent = computed.high_risks;
+
+  renderActions(hub.actions);
+  renderRisks(hub.risks);
+
+  if ($("notes").value !== hub.notes.content) $("notes").value = hub.notes.content;
+  $("notesDate").textContent = TODAY;
+  updateCharCount();
+  if (current.dirty) { $("dirty").textContent = "● Unsaved changes"; $("dirty").className = "dirty"; }
+  else { $("dirty").textContent = "Saved"; $("dirty").className = ""; }
+
+  $("ganttCount").textContent = hub.gantt.length;
+  renderLegend();
+  drawGanttOnScreen();
+}
+
+function renderActions(list) {
+  const ul = $("actions"); ul.replaceChildren();
+  $("actCount").textContent = list.length;
+  if (!list.length) ul.append(el("li", "none", "No action items"));
+  list.forEach((a) => {
+    const li = el("li", "item"), body = el("div", "body");
+    const desc = el("div", "desc", a.description); desc.contentEditable = "true";
+    const meta = el("div", "meta"), chip = el("span", "chip", a.assignee || "Unassigned");
+    chip.contentEditable = "true"; chip.title = "Assignee";
+    meta.append(chip); body.append(desc, meta);
+    const del = el("button", "del", "×"); del.title = "Delete";
+    del.onclick = () => { li.remove(); reanalyze(); };
+    li.append(el("span", "bullet"), body, del);
+    ul.append(li);
+  });
+}
+
+function renderRisks(list) {
+  const ul = $("risks"); ul.replaceChildren();
+  $("riskCount").textContent = list.length;
+  if (!list.length) ul.append(el("li", "none", "No risks registered"));
+  list.forEach((r) => {
+    const sev = SEVERITY.find((x) => x.toLowerCase() === (r.severity || "").toLowerCase()) || r.severity || "Medium";
+    const li = el("li", "item"), bullet = el("span", "bullet");
+    bullet.style.background = sevColor(sev);
+    const body = el("div", "body");
+    const desc = el("div", "desc", r.description); desc.contentEditable = "true";
+    const meta = el("div", "meta");
+    const chip = el("button", "chip sev " + sev.toLowerCase(), sev);
+    chip.title = "Click to change severity"; chip.dataset.sev = sev;
+    chip.onclick = () => {
+      const i = SEVERITY.indexOf(chip.dataset.sev);
+      chip.dataset.sev = SEVERITY[(i + 1) % SEVERITY.length];
+      reanalyze();
+    };
+    meta.append(chip); body.append(desc, meta);
+    const del = el("button", "del", "×"); del.title = "Delete";
+    del.onclick = () => { li.remove(); reanalyze(); };
+    li.append(bullet, body, del);
+    ul.append(li);
+  });
+}
+
+function renderLegend() {
+  const items = STATUS.map((s) => {
+    const sp = el("span"), i = el("i"); i.style.background = statusColor(s);
+    sp.append(i, STATUS_LABEL[s]); return sp;
+  });
+  const sp = el("span"), i = el("i");
+  i.style.cssText = `width:2px;height:12px;border-radius:0;background:${css("--today")}`;
+  sp.append(i, "Today");
+  $("legend").replaceChildren(...items, sp);
+}
+
+function updateCharCount() { $("charCount").textContent = `${$("notes").value.length.toLocaleString("en-US")} chars`; }
+
+// ------------------------------------------------------------------
+// Gantt (canvas) — shared by screen and exports
+// ------------------------------------------------------------------
+const DAY_MS = 86400000;
+const fmtDay = (d) => { const t = new Date(d * DAY_MS); return `${pad(t.getUTCMonth() + 1)}/${pad(t.getUTCDate())}`; };
+
+function ganttLayout(width, rows) {
+  const labelW = Math.min(170, Math.max(110, width * 0.18));
+  const rowH = 40, top = 34, bottom = 12;
+  return { labelW, rowH, top, height: top + Math.max(rows, 1) * rowH + bottom };
+}
+
+let ganttHits = [];
+
+function drawGantt(ctx, data, x0, y0, width) {
+  const { hub, today_day } = data;
+  const rows = hub.gantt;
+  const L = ganttLayout(width, rows.length);
+  const hits = [];
+  const font = FONT();
+
+  const days = rows.flatMap((g) => [g.start_day, g.end_day]).filter((d) => d != null);
+  if (today_day != null) days.push(today_day);
+  if (!days.length) {
+    ctx.fillStyle = css("--faint"); ctx.font = `13px ${font}`; ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+    ctx.fillText("No schedule data", x0, y0 + 30);
+    return { height: L.height, hits };
+  }
+  const min = Math.min(...days) - 2, max = Math.max(...days) + 3;
+  const span = max - min;
+  const chartX = x0 + L.labelW, chartW = width - L.labelW - 8;
+  const xOf = (d) => chartX + ((d - min) / span) * chartW;
+  const pxPerDay = chartW / span;
+  const step = [1, 2, 3, 7, 14, 30, 60, 90].find((s) => s * pxPerDay >= 54) || 180;
+
+  rows.forEach((_, i) => {
+    if (i % 2 === 0) { ctx.fillStyle = css("--surface-2"); roundRect(ctx, x0, y0 + L.top + i * L.rowH, width, L.rowH, 8); ctx.fill(); }
+  });
+
+  ctx.font = `600 11px ${font}`;
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  for (let d = Math.ceil(min / step) * step; d <= max; d += step) {
+    const x = Math.round(xOf(d)) + 0.5;
+    ctx.strokeStyle = css("--grid"); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x, y0 + L.top - 4); ctx.lineTo(x, y0 + L.height - 12); ctx.stroke();
+    const nearToday = today_day != null && Math.abs(x - xOf(today_day + 0.5)) < 44;
+    if (!nearToday) { ctx.fillStyle = css("--faint"); ctx.fillText(fmtDay(d), x, y0 + 14); }
+  }
+
+  rows.forEach((g, i) => {
+    const cy = y0 + L.top + i * L.rowH + L.rowH / 2;
+    ctx.textAlign = "left"; ctx.textBaseline = "middle";
+    ctx.fillStyle = css("--text"); ctx.font = `600 13px ${font}`;
+    ctx.fillText(ellipsize(ctx, g.milestone || "—", L.labelW - 20), x0 + 10, cy);
+    if (g.start_day == null || g.end_day == null) return;
+    const xs = xOf(g.start_day), xe = xOf(g.end_day + 1);
+    const w = Math.max(6, xe - xs), h = 22, y = cy - h / 2;
+    const st = (g.status || "").toLowerCase();
+
+    ctx.save();
+    ctx.globalAlpha = st === "pending" ? 0.35 : 0.9;
+    ctx.fillStyle = statusColor(g.status);
+    roundRect(ctx, xs, y, w, h, 7); ctx.fill();
+    ctx.restore();
+    if (g.overdue) {
+      ctx.strokeStyle = css("--bad"); ctx.lineWidth = 2; ctx.setLineDash([4, 3]);
+      roundRect(ctx, xs, y, w, h, 7); ctx.stroke(); ctx.setLineDash([]);
+    }
+    const label = `${STATUS_LABEL[st] || g.status || ""} · ${fmtDay(g.start_day)}–${fmtDay(g.end_day)}`;
+    ctx.font = `600 11px ${font}`;
+    const tw = ctx.measureText(label).width;
+    if (tw + 16 < w) { ctx.fillStyle = st === "pending" ? css("--text") : "#fff"; ctx.fillText(label, xs + 8, cy + 0.5); }
+    else if (xe + 8 + tw < chartX + chartW) { ctx.fillStyle = css("--muted"); ctx.fillText(label, xe + 8, cy + 0.5); }
+    else { ctx.fillStyle = css("--muted"); ctx.textAlign = "right"; ctx.fillText(label, xs - 8, cy + 0.5); }
+    hits.push({ i, x: xs, y, w, h });
+  });
+
+  if (today_day != null && today_day >= min && today_day <= max) {
+    const x = Math.round(xOf(today_day + 0.5)) + 0.5;
+    const c = css("--today");
+    ctx.strokeStyle = c; ctx.lineWidth = 2; ctx.setLineDash([5, 4]);
+    ctx.beginPath(); ctx.moveTo(x, y0 + 26); ctx.lineTo(x, y0 + L.height - 6); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.font = `700 10.5px ${font}`;
+    const t = "TODAY", tw = ctx.measureText(t).width + 12;
+    ctx.fillStyle = c; roundRect(ctx, x - tw / 2, y0 + 5, tw, 18, 9); ctx.fill();
+    ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText(t, x, y0 + 14.5);
+  }
+  return { height: L.height, hits };
+}
+
+function drawGanttOnScreen() {
+  if (!state) return;
+  const cv = $("gantt"), dpr = window.devicePixelRatio || 1;
+  const w = cv.parentElement.clientWidth;
+  const h = ganttLayout(w, state.hub.gantt.length).height;
+  cv.style.height = h + "px";
+  cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+  const ctx = cv.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+  ganttHits = drawGantt(ctx, state, 0, 0, w).hits;
+}
+
+function ganttHitAt(e) {
+  const r = e.currentTarget.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+  return ganttHits.find((b) => x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h);
+}
+$("gantt").addEventListener("mousemove", (e) => { e.currentTarget.style.cursor = ganttHitAt(e) ? "pointer" : "default"; });
+$("gantt").addEventListener("click", (e) => {
+  if (!state) return;
+  const hit = ganttHitAt(e);
+  if (!hit) return;
+  const g = state.hub.gantt[hit.i];
+  const i = STATUS.indexOf((g.status || "").toLowerCase());
+  g.status = STATUS[(i + 1) % STATUS.length];
+  reanalyze();
+  toast(`${g.milestone} → ${STATUS_LABEL[g.status]}`);
+});
+
+// ==================================================================
+// EXPORTS
+// ==================================================================
+function wrapLines(ctx, text, maxW) {
+  const out = [];
+  for (const para of String(text).split("\n")) {
+    if (!para) { out.push(""); continue; }
+    let line = "";
+    for (const tok of para.split(/(\s+)/)) {
+      if (ctx.measureText(line + tok).width <= maxW) { line += tok; continue; }
+      if (line.trim()) { out.push(line.trimEnd()); line = ""; }
+      for (const ch of tok.trimStart()) {
+        if (ctx.measureText(line + ch).width > maxW && line) { out.push(line); line = ""; }
+        line += ch;
+      }
+    }
+    out.push(line.trimEnd());
+  }
+  return out;
+}
+
+/** Full single-project dashboard drawn onto one canvas (used for PNG and PDF). */
+function buildDashboardCanvas(entry, scale = 2) {
+  const data = entry.data, hub = data.hub, computed = data.computed, s = hub.summary;
+  const font = FONT();
+  const W = 1680, P = 40, GAP = 24;
+  const leftW = Math.round((W - P * 2 - GAP) * 0.62), rightW = W - P * 2 - GAP - leftW;
+  const lx = P, rx = P + leftW + GAP;
+
+  const m = document.createElement("canvas").getContext("2d");
+  const ganttH = ganttLayout(leftW - 44, hub.gantt.length).height;
+  const colW = (leftW - GAP) / 2 - 44;
+  m.font = `14px ${font}`;
+  const itemH = (arr) => arr.reduce((h, it) => h + wrapLines(m, it.description, colW - 20).length * 20 + 44, 0);
+  const listH = Math.max(itemH(hub.actions), itemH(hub.risks), 40) + 66;
+  m.font = `15px ${font}`;
+  const noteLines = wrapLines(m, hub.notes.content, rightW - 48);
+  const headerH = 96;
+  const leftH = (ganttH + 70) + GAP + 130 + GAP + listH;
+  const H = headerH + Math.max(leftH, noteLines.length * 26 + 90) + P;
+
+  const cv = document.createElement("canvas");
+  cv.width = W * scale; cv.height = H * scale;
+  const ctx = cv.getContext("2d");
+  ctx.scale(scale, scale);
+  ctx.fillStyle = css("--bg"); ctx.fillRect(0, 0, W, H);
+
+  const card = (x, y, w, h) => {
+    ctx.save();
+    ctx.shadowColor = "rgba(15,23,42,.08)"; ctx.shadowBlur = 16; ctx.shadowOffsetY = 4;
+    ctx.fillStyle = css("--surface"); roundRect(ctx, x, y, w, h, 16); ctx.fill();
+    ctx.restore();
+    ctx.strokeStyle = css("--border"); ctx.lineWidth = 1; roundRect(ctx, x + .5, y + .5, w - 1, h - 1, 16); ctx.stroke();
+  };
+  const text = (t, x, y, f, c, align = "left") => {
+    ctx.font = `${f} ${font}`; ctx.fillStyle = c; ctx.textAlign = align; ctx.textBaseline = "alphabetic"; ctx.fillText(t, x, y);
+  };
+
+  drawLogo(ctx, P, 26, 48);
+  text(hub.project.title || "Project HUB", P + 64, 48, "700 22px", css("--text"));
+  text(`${entry.file} · Data as of ${hub.project.date || "—"} · Today ${TODAY}`, P + 64, 70, "13px", css("--muted"));
+  text(`Exported ${new Date().toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}`, W - P, 55, "12px", css("--faint"), "right");
+
+  let y = headerH;
+  card(lx, y, leftW, ganttH + 70);
+  text("Schedule", lx + 22, y + 32, "700 15px", css("--text"));
+  drawGantt(ctx, data, lx + 22, y + 46, leftW - 44);
+  y += ganttH + 70 + GAP;
+
+  const kW = (leftW - GAP * 2) / 3;
+  [
+    ["Upcoming Action", s.upcoming_actions ?? computed.upcoming_actions, computed.upcoming_actions, css("--info")],
+    ["Delays", s.delays ?? computed.delays, computed.delays, css("--warn")],
+    ["High Risks", s.high_risks ?? computed.high_risks, computed.high_risks, css("--bad")],
+  ].forEach(([label, val, auto, col], i) => {
+    const x = lx + i * (kW + GAP);
+    card(x, y, kW, 130);
+    ctx.save(); roundRect(ctx, x, y, kW, 130, 16); ctx.clip();
+    ctx.fillStyle = col; ctx.fillRect(x, y, 5, 130); ctx.restore();
+    text(label, x + 24, y + 34, "600 13px", css("--muted"));
+    text(String(val), x + 24, y + 86, "800 44px", css("--text"));
+    text(`Auto-calculated ${auto}`, x + 24, y + 112, "12px", css("--faint"));
+  });
+  y += 130 + GAP;
+
+  const lw = (leftW - GAP) / 2;
+  const drawList = (x, title, items, meta, dotColor) => {
+    card(x, y, lw, listH);
+    text(title, x + 22, y + 34, "700 15px", css("--text"));
+    ctx.font = `700 15px ${font}`;
+    text(String(items.length), x + 34 + ctx.measureText(title).width, y + 34, "600 12px", css("--muted"));
+    let iy = y + 54;
+    if (!items.length) text("No items", x + 22, iy + 20, "13px", css("--faint"));
+    items.forEach((it) => {
+      ctx.font = `14px ${font}`;
+      const lines = wrapLines(ctx, it.description, colW - 20);
+      const h = lines.length * 20 + 38;
+      ctx.fillStyle = css("--surface-2"); roundRect(ctx, x + 22, iy, lw - 44, h, 10); ctx.fill();
+      ctx.fillStyle = dotColor(it); ctx.beginPath(); ctx.arc(x + 38, iy + 18, 4, 0, Math.PI * 2); ctx.fill();
+      lines.forEach((ln, k) => text(ln, x + 52, iy + 23 + k * 20, "14px", css("--text")));
+      const [mt, mc] = meta(it);
+      text(mt, x + 52, iy + 23 + lines.length * 20, "600 11.5px", mc);
+      iy += h + 6;
+    });
+  };
+  drawList(lx, "Actions", hub.actions, (a) => ["👤 " + (a.assignee || "Unassigned"), css("--accent")], () => css("--info"));
+  drawList(lx + lw + GAP, "Risks", hub.risks, (r) => ["● " + (r.severity || ""), sevColor(r.severity)], (r) => sevColor(r.severity));
+
+  const nh = H - headerH - P;
+  card(rx, headerH, rightW, nh);
+  text("Notes", rx + 24, headerH + 34, "700 15px", css("--text"));
+  text(TODAY, rx + rightW - 24, headerH + 34, "12px", css("--faint"), "right");
+  ctx.fillStyle = css("--surface-2"); roundRect(ctx, rx + 16, headerH + 52, rightW - 32, nh - 68, 12); ctx.fill();
+  noteLines.forEach((ln, k) => text(ln, rx + 32, headerH + 84 + k * 26, "15px", css("--text")));
+  return cv;
+}
+
+function addPdfPage(cv) {
+  wasmCall("pdf_add_page", dataUrlBytes(cv.toDataURL("image/jpeg", 0.9)), cv.width, cv.height);
+}
+
+function exportPng() {
+  collect();
+  const name = `HUB_${slug(titleOf(current))}_${TODAY}.png`;
+  buildDashboardCanvas(current).toBlob((blob) => download(blob, name), "image/png");
+  toast(`Exported ${name}`);
+}
+
+function exportPdfOne() {
+  collect();
+  const name = `HUB_${slug(titleOf(current))}_${TODAY}.pdf`;
+  wasm.pdf_begin();
+  try {
+    withLightTheme(() => addPdfPage(buildDashboardCanvas(current, 1.5)));
+    download(new Blob([wasmCall("pdf_finish", `${titleOf(current)} ${TODAY}`)], { type: "application/pdf" }), name);
+    toast(`Exported ${name}`);
+  } catch (e) { wasm.pdf_begin(); throw e; }
+}
+
+function saveToml() {
+  const hub = collect();
+  hub.project.date = TODAY;
+  const text = wasmText("to_toml", JSON.stringify(hub));
+  const name = `HUB_${slug(titleOf(current))}_${TODAY}.toml`;
+  download(new Blob([text], { type: "application/toml;charset=utf-8" }), name);
+  current.dirty = false;
+  renderDetail();
+  toast(`Saved ${name}`);
+}
+
+/** Overview table pages (A4 landscape) + optional per-project dashboard pages. */
+function exportPdfAll() {
+  const list = visibleEntries();
+  if (!list.length) return toast("Nothing to export", true);
+  const withDash = $("withDash").checked;
+  const W = 1123, H = 794, scale = 2;                       // A4 landscape @ 96dpi
+  const M = 48, rowH = 34, headH = 34;
+  const firstTop = 250, nextTop = 120, bottom = H - 64;
+  const perFirst = Math.floor((bottom - firstTop - headH - rowH) / rowH);
+  const perNext = Math.floor((bottom - nextTop - headH - rowH) / rowH);
+  const chunks = [list.slice(0, perFirst)];
+  for (let i = perFirst; i < list.length; i += perNext) chunks.push(list.slice(i, i + perNext));
+  const all = totals(list);
+  const stamp = new Date().toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
+  const cols = [
+    { k: "#", x: M + 14 },
+    { k: "Project", x: M + 48, w: 290 },
+    { k: "File", x: M + 350, w: 220 },
+    { k: "Date", x: M + 584 },
+    { k: "Upcoming Action", x: W - M - 250, right: true },
+    { k: "Delays", x: W - M - 130, right: true },
+    { k: "High Risks", x: W - M - 14, right: true },
+  ];
+  const dashPages = withDash ? list.filter((e) => e.data) : [];
+  const pages = chunks.length + dashPages.length;
+
+  wasm.pdf_begin();
+  try {
+    withLightTheme(() => {
+      const font = FONT();
+      const C = { text: css("--text"), muted: css("--muted"), faint: css("--faint"), border: css("--border"),
+                  s2: css("--surface-2"), accent: css("--accent"), info: css("--info"), warn: "#d97706", bad: "#dc2626" };
+      chunks.forEach((rows, p) => {
+        const cv = document.createElement("canvas");
+        cv.width = W * scale; cv.height = H * scale;
+        const ctx = cv.getContext("2d");
+        ctx.scale(scale, scale);
+        ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, W, H);
+        const text = (t, x, y, f, c, align = "left") => { ctx.font = `${f} ${font}`; ctx.fillStyle = c; ctx.textAlign = align; ctx.textBaseline = "middle"; ctx.fillText(t, x, y); };
+        const fit = (t, w, f) => { ctx.font = `${f} ${font}`; return ellipsize(ctx, t, w); };
+
+        drawLogo(ctx, M, 38, 44);
+        text("HUB Overview", M + 58, 51, "700 20px", C.text);
+        text(`${plural(list.length, "project")} · Today ${TODAY}`, M + 58, 72, "12.5px", C.muted);
+        text(stamp, W - M, 60, "12px", C.faint, "right");
+        const g = ctx.createLinearGradient(M, 0, W - M, 0);
+        g.addColorStop(0, "#7dd3c8"); g.addColorStop(.5, "#c064b8"); g.addColorStop(1, "#c9b06a");
+        ctx.fillStyle = g; ctx.fillRect(M, 98, W - M * 2, 2);
+
+        let top = nextTop;
+        if (p === 0) {
+          const kw = (W - M * 2 - 3 * 16) / 4;
+          [["Projects", String(list.length), "", C.accent],
+           ["Upcoming Action", String(all.upcoming[0]), `(${all.upcoming[1]})`, C.info],
+           ["Delays", String(all.delays[0]), `(${all.delays[1]})`, C.warn],
+           ["High Risks", String(all.risks[0]), `(${all.risks[1]})`, C.bad]].forEach(([l, v, a, c], i) => {
+            const x = M + i * (kw + 16), y = 120;
+            ctx.fillStyle = C.s2; roundRect(ctx, x, y, kw, 100, 12); ctx.fill();
+            ctx.save(); roundRect(ctx, x, y, kw, 100, 12); ctx.clip(); ctx.fillStyle = c; ctx.fillRect(x, y, 4, 100); ctx.restore();
+            text(l, x + 20, y + 26, "600 12.5px", C.muted);
+            text(v, x + 20, y + 64, "800 34px", C.text);
+            ctx.font = `800 34px ${font}`;
+            if (a) text(a, x + 28 + ctx.measureText(v).width, y + 68, "600 16px", C.muted);
+          });
+          top = firstTop;
+        }
+
+        ctx.fillStyle = C.s2; roundRect(ctx, M, top, W - M * 2, headH, 8); ctx.fill();
+        cols.forEach((c) => text(c.k, c.x, top + headH / 2, "600 11.5px", C.muted, c.right ? "right" : "left"));
+        let y = top + headH;
+
+        const metric = (pair, x, hot) => {
+          const [v, auto] = pair, val = v ?? auto, aTxt = `(${auto})`;
+          ctx.font = `600 12px ${font}`; const aw = ctx.measureText(aTxt).width;
+          text(aTxt, x, y + rowH / 2, "600 12px", v != null && v !== auto ? C.warn : C.faint, "right");
+          text(String(val), x - aw - 5, y + rowH / 2, "700 14px", val === 0 ? C.faint : hot || C.text, "right");
+        };
+
+        rows.forEach((e) => {
+          const cy = y + rowH / 2;
+          text(String(list.indexOf(e) + 1), cols[0].x, cy, "12px", C.faint);
+          text(fit(titleOf(e), cols[1].w, "600 13px"), cols[1].x, cy, "600 13px", e.error ? C.bad : C.text);
+          text(fit(e.file, cols[2].w, "11.5px"), cols[2].x, cy, "11.5px", C.muted);
+          if (e.error) {
+            text(fit(e.error, W - M - cols[3].x - 14, "12px"), cols[3].x, cy, "12px", C.bad);
+          } else {
+            const m = metricsOf(e);
+            text(e.data.hub.project.date || "—", cols[3].x, cy, "12.5px", C.muted);
+            metric(m.upcoming, cols[4].x, null);
+            metric(m.delays, cols[5].x, C.warn);
+            metric(m.risks, cols[6].x, C.bad);
+          }
+          y += rowH;
+          ctx.fillStyle = C.border; ctx.fillRect(M, y - 0.5, W - M * 2, 1);
+        });
+
+        if (p === chunks.length - 1) {
+          ctx.fillStyle = C.s2; ctx.fillRect(M, y, W - M * 2, rowH);
+          ctx.fillStyle = C.border; ctx.fillRect(M, y, W - M * 2, 1.5);
+          text("Total", cols[1].x, y + rowH / 2, "700 13px", C.text);
+          text(plural(list.filter((e) => e.data).length, "file"), cols[2].x, y + rowH / 2, "11.5px", C.muted);
+          metric(all.upcoming, cols[4].x, null);
+          metric(all.delays, cols[5].x, null);
+          metric(all.risks, cols[6].x, null);
+        }
+
+        text("Values: TOML summary (auto-calculated)", M, H - 34, "11px", C.faint);
+        text(`Page ${p + 1} / ${pages}`, W - M, H - 34, "11px", C.faint, "right");
+        addPdfPage(cv);
+      });
+      for (const e of dashPages) addPdfPage(buildDashboardCanvas(e, 1.5));
+    });
+    const pdf = wasmCall("pdf_finish", `HUB Overview ${TODAY}`);
+    download(new Blob([pdf], { type: "application/pdf" }), `HUB_Overview_${TODAY}.pdf`);
+    toast(`Exported HUB_Overview_${TODAY}.pdf (${plural(pages, "page")})`);
+  } catch (e) {
+    wasm.pdf_begin();
+    throw e;
+  }
+}
+
+// ==================================================================
+// UI wiring
+// ==================================================================
+const guard = (fn) => () => { try { fn(); } catch (e) { toast(e.message, true); } };
+
+$("btnOpen").onclick = () => $("files").click();
+$("btnFolder").onclick = () => $("folder").click();
+$("files").onchange = (e) => { addFiles(e.target.files); e.target.value = ""; };
+$("folder").onchange = (e) => { addFiles(e.target.files); e.target.value = ""; };
+$("btnPdfAll").onclick = guard(exportPdfAll);
+$("btnClear").onclick = () => {
+  const edited = entries.filter((e) => e.dirty).length;
+  if (confirm(`Remove all ${entries.length} loaded files from the list?${edited ? `\n${edited} of them have unsaved edits.` : ""}`)) { entries = []; renderOverview(); }
+};
+$("search").addEventListener("input", renderOverview);
+document.querySelectorAll("th[data-key]").forEach((th) => {
+  th.onclick = () => {
+    const k = th.dataset.key;
+    if (sortKey === k) sortDir = -sortDir;
+    else { sortKey = k; sortDir = ["upcoming", "delays", "risks"].includes(k) ? -1 : 1; }
+    renderOverview();
+  };
+});
+
+$("btnBack").onclick = showOverview;
+$("btnPrev").onclick = () => step(-1);
+$("btnNext").onclick = () => step(1);
+$("btnSave").onclick = guard(saveToml);
+$("btnPng").onclick = guard(exportPng);
+$("btnPdfOne").onclick = guard(exportPdfOne);
+$("notes").addEventListener("input", () => { markDirty(); updateCharCount(); });
+for (const id of ["kUpcoming", "kDelays", "kRisks"]) $(id).addEventListener("input", (e) => { e.target.dataset.auto = ""; markDirty(); });
+for (const id of ["actions", "risks"]) {
+  $(id).addEventListener("input", markDirty);
+  $(id).addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); e.target.blur(); } });
+}
+$("addAction").onclick = () => {
+  const hub = collect(); hub.actions.push({ description: "New action item", assignee: "Unassigned" });
+  reanalyze(hub);
+  $("actions").lastElementChild?.querySelector(".desc")?.focus();
+};
+$("addRisk").onclick = () => {
+  const hub = collect(); hub.risks.push({ description: "New risk", severity: "Medium" });
+  reanalyze(hub);
+  $("risks").lastElementChild?.querySelector(".desc")?.focus();
+};
+
+function repaintTheme() {
+  if (!state) return;
+  renderRisks(collect().risks); renderLegend(); drawGanttOnScreen();
+}
+$("btnTheme").onclick = () => {
+  const root = document.documentElement;
+  const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  root.dataset.theme = dark ? "light" : "dark";
+  try { localStorage.setItem("snqall-theme", root.dataset.theme); } catch {}
+  repaintTheme();
+};
+try { const t = localStorage.getItem("snqall-theme"); if (t) document.documentElement.dataset.theme = t; } catch {}
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", repaintTheme);
+
+let resizeRaf;
+addEventListener("resize", () => { cancelAnimationFrame(resizeRaf); resizeRaf = requestAnimationFrame(drawGanttOnScreen); });
+
+// drag & drop (files and folders)
+let dragDepth = 0;
+addEventListener("dragenter", (e) => { e.preventDefault(); dragDepth++; $("drop").classList.add("show"); });
+addEventListener("dragleave", () => { if (--dragDepth <= 0) { dragDepth = 0; $("drop").classList.remove("show"); } });
+addEventListener("dragover", (e) => e.preventDefault());
+addEventListener("drop", async (e) => {
+  e.preventDefault(); dragDepth = 0; $("drop").classList.remove("show");
+  const items = [...e.dataTransfer.items].map((i) => i.webkitGetAsEntry?.()).filter(Boolean);
+  if (items.some((i) => i.isDirectory)) {
+    const files = [];
+    const walk = async (entry, path) => {
+      if (entry.isFile) {
+        const f = await new Promise((res, rej) => entry.file(res, rej));
+        const nf = new File([f], f.name, { type: f.type });
+        Object.defineProperty(nf, "webkitRelativePath", { value: path + f.name });
+        files.push(nf);
+      } else if (entry.isDirectory) {
+        const reader = entry.createReader();
+        let batch;
+        do {
+          batch = await new Promise((res, rej) => reader.readEntries(res, rej));
+          for (const c of batch) await walk(c, path + entry.name + "/");
+        } while (batch.length);
+      }
+    };
+    for (const it of items) await walk(it, "");
+    return addFiles(files);
+  }
+  const fs = [...e.dataTransfer.files];
+  const w = fs.find((f) => f.name.endsWith(".wasm"));
+  if (w) { await initWasm(await w.arrayBuffer()); toast("snqall.wasm loaded"); renderOverview(); return; }
+  addFiles(fs);
+});
+
+addEventListener("keydown", (e) => {
+  const detail = document.body.classList.contains("view-detail");
+  if (e.ctrlKey || e.metaKey) {
+    if (e.key === "o") { e.preventDefault(); if (detail) showOverview(); $("btnOpen").click(); }
+    if (e.key === "s" && detail) { e.preventDefault(); $("btnSave").click(); }
+    return;
+  }
+  if (detail && e.key === "Escape" && !e.target.closest("textarea, [contenteditable='true'], input")) showOverview();
+});
+addEventListener("beforeunload", (e) => {
+  if (current) collect();
+  if (entries.some((x) => x.dirty)) { e.preventDefault(); e.returnValue = ""; }
+});
+
+// boot
+renderOverview();
+(async () => {
+  try {
+    await initWasm();
+  } catch {
+    // fetch may be blocked under file:// → offer manual selection
+    const td = $("rows").querySelector("td");
+    td.innerHTML = "Could not load snqall.wasm automatically.<br><button class='btn' id='pickWasm' style='margin-top:12px'>Select snqall.wasm manually</button>";
+    $("pickWasm").onclick = () => $("wasmFile").click();
+    $("wasmFile").onchange = async (ev) => {
+      try { await initWasm(await ev.target.files[0].arrayBuffer()); toast("snqall.wasm loaded"); renderOverview(); }
+      catch (err) { toast(err.message, true); }
+    };
+  }
+})();
+</script>
+</body>
+</html>
