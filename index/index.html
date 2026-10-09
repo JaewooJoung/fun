@@ -121,6 +121,10 @@ main { padding: 20px 0 40px; }
 .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px 16px 12px; min-width: 0; display: flex; flex-direction: column; }
 .card.wide { grid-column: 1 / -1; }
 .card h3 { margin: 0; font-size: 15.5px; line-height: 1.35; display: flex; gap: 8px; align-items: flex-start; }
+.scope { flex: none; margin-left: auto; font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: 999px; white-space: nowrap; background: var(--accent-soft); color: var(--ink-2); }
+.scope.gbg { background: #fff4d6; color: #7a5600; }
+:root[data-theme="dark"] .scope.gbg { background: #3a3014; color: #f5d27a; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .scope.gbg { background: #3a3014; color: #f5d27a; } }
 .card h3 .kind { width: 22px; height: 22px; flex: none; color: var(--tab-c); margin-top: 0; }
 .legend { display: flex; flex-wrap: wrap; gap: 4px 6px; margin: 8px 0 4px; }
 .legend button {
@@ -234,7 +238,7 @@ const I18N = {
   ko: { title: "스웨덴 통계 대시보드", sub: "스웨덴 통계청(SCB) 주요 지표 · 매일 08:30 자동 갱신",
         src: "출처: 스웨덴 통계청(SCB) Statistikdatabasen · 그래프 엔진: Rust/WebAssembly",
         upd: "데이터 갱신", loading: "불러오는 중…", err: "데이터를 불러오지 못했습니다.", errWasm: "이 브라우저는 WebAssembly 를 지원하지 않습니다.",
-        stale: "이전 데이터", source: "표", latest: "최근", vs: "전년 대비", vsPrev: "직전 대비", pp: "%p",
+        stale: "이전 데이터", scope: { gbg: "📍 예테보리", vg: "📍 서예탈란드주", se: "스웨덴 전체" }, source: "표", latest: "최근", vs: "전년 대비", vsPrev: "직전 대비", pp: "%p",
         x: { M: "월", Q: "분기", Y: "연도", A: "학년도", C: "" },
         q: (y, q) => `${y}년 ${q}분기`,
         food: { six: "6개월 누적", yoy: "1년 전 대비", byGroup: "분류별", rise: "많이 오른 순", fall: "많이 내린 순", all: "전체",
@@ -242,17 +246,17 @@ const I18N = {
                 sub: (a, b) => `${a} – ${b} · 막대 = 전월 대비 변화율 (모든 품목 같은 눈금)`, clip: "눈금 밖" },
         tabs: {
           cpi: ["소비자물가 (CPI)", "월별 소비자물가지수와 인플레이션율"],
-          lfs: ["노동시장 (LFS)", "실업률·고용률·경제활동참가율 (노동력조사)"],
-          pop: ["인구 및 가계 소득", "인구 확정치, 출생·사망·이민, 가계 소득과 복지 지출"],
+          lfs: ["노동시장 (LFS)", "예테보리 실업률·고용률(월별 등록통계) + 스웨덴 전체 노동력조사"],
+          pop: ["인구 및 가계 소득", "예테보리 인구·출생·사망·이동과 가계 소득 · 복지 지출은 스웨덴 전체"],
           biz: ["기업 및 산업", "기업 구조, 매출, R&D 투자, 에너지 소비"],
-          edu: ["교육 및 연구", "졸업생, 학력, 취업률, 공공 R&D 예산"],
-          env: ["농림·어업 및 환경", "작물 생산, 농지, 온실가스, 폐기물"],
-          house: ["주거 및 부동산", "주택 완공·착공, 보유 형태, 과세평가액"],
-          pub: ["지방재정 및 공공부문", "정부 수입·지출, 재정수지, 부채, 지자체 재정"] } },
+          edu: ["교육 및 연구", "예테보리 학력 분포 + 스웨덴 전체 졸업생·취업률·공공 R&D"],
+          env: ["농림·어업 및 환경", "서예탈란드주 작물·농지 + 스웨덴 전체 온실가스·폐기물"],
+          house: ["주거 및 부동산", "예테보리 주택 완공·착공, 보유 형태, 과세평가액"],
+          pub: ["지방재정 및 공공부문", "예테보리시 재정(세입·순이익·세율·지출·건전성) + 중앙정부 재정"] } },
   en: { title: "Sweden Statistics Dashboard", sub: "Key indicators from Statistics Sweden (SCB) · refreshed daily at 08:30",
         src: "Source: Statistics Sweden (SCB) Statistical Database · Chart engine: Rust/WebAssembly",
         upd: "Data updated", loading: "Loading…", err: "Could not load the data.", errWasm: "This browser does not support WebAssembly.",
-        stale: "previous data", source: "Table", latest: "Latest", vs: "vs. year earlier", vsPrev: "vs. previous", pp: "pp",
+        stale: "previous data", scope: { gbg: "📍 Gothenburg", vg: "📍 Västra Götaland", se: "All Sweden" }, source: "Table", latest: "Latest", vs: "vs. year earlier", vsPrev: "vs. previous", pp: "pp",
         x: { M: "Month", Q: "Quarter", Y: "Year", A: "Academic year", C: "" },
         q: (y, q) => `Q${q} ${y}`,
         food: { six: "6-month change", yoy: "vs. a year ago", byGroup: "By group", rise: "Biggest rises", fall: "Biggest falls", all: "All",
@@ -260,17 +264,17 @@ const I18N = {
                 sub: (a, b) => `${a} – ${b} · bars = change on previous month (same scale for every item)`, clip: "off scale" },
         tabs: {
           cpi: ["Consumer prices (CPI)", "Monthly consumer price index and inflation"],
-          lfs: ["Labour market (LFS)", "Unemployment, employment and participation (Labour Force Survey)"],
-          pop: ["Population & household income", "Population, births, deaths, migration, income and welfare"],
+          lfs: ["Labour market (LFS)", "Gothenburg unemployment & employment (monthly register data) + national Labour Force Survey"],
+          pop: ["Population & household income", "Gothenburg population, births, deaths, migration and income · welfare spending for all Sweden"],
           biz: ["Business & industry", "Enterprise structure, turnover, R&D and energy use"],
-          edu: ["Education & research", "Graduates, attainment, employment and public R&D"],
-          env: ["Agriculture & environment", "Crops, farmland, greenhouse gases and waste"],
-          house: ["Housing & property", "Completions, starts, tenure and taxation values"],
-          pub: ["Public finances", "Government revenue, spending, balance, debt and municipalities"] } },
+          edu: ["Education & research", "Gothenburg educational attainment + national graduates, employment and public R&D"],
+          env: ["Agriculture & environment", "Västra Götaland crops and farmland + national greenhouse gases and waste"],
+          house: ["Housing & property", "Gothenburg completions, starts, tenure and taxation values"],
+          pub: ["Public finances", "City of Gothenburg finances (revenue, result, tax rate, costs, solvency) + central government"] } },
   sv: { title: "Statistikpanel för Sverige", sub: "Nyckeltal från Statistiska centralbyrån (SCB) · uppdateras dagligen 08.30",
         src: "Källa: SCB, Statistikdatabasen · Diagrammotor: Rust/WebAssembly",
         upd: "Data uppdaterad", loading: "Laddar…", err: "Kunde inte läsa in data.", errWasm: "Webbläsaren saknar stöd för WebAssembly.",
-        stale: "äldre data", source: "Tabell", latest: "Senaste", vs: "mot året innan", vsPrev: "mot föregående", pp: "procenten.",
+        stale: "äldre data", scope: { gbg: "📍 Göteborg", vg: "📍 Västra Götaland", se: "Hela Sverige" }, source: "Tabell", latest: "Senaste", vs: "mot året innan", vsPrev: "mot föregående", pp: "procenten.",
         x: { M: "Månad", Q: "Kvartal", Y: "År", A: "Läsår", C: "" },
         q: (y, q) => `kv. ${q} ${y}`,
         food: { six: "Förändring 6 mån", yoy: "mot för ett år sedan", byGroup: "Per grupp", rise: "Störst ökning", fall: "Störst minskning", all: "Alla",
@@ -278,13 +282,13 @@ const I18N = {
                 sub: (a, b) => `${a} – ${b} · staplar = förändring från föregående månad (samma skala för alla varor)`, clip: "utanför skalan" },
         tabs: {
           cpi: ["Konsumentpriser (KPI)", "Konsumentprisindex och inflation per månad"],
-          lfs: ["Arbetsmarknad (AKU)", "Arbetslöshet, sysselsättning och arbetskraftsdeltagande"],
-          pop: ["Befolkning & hushållens ekonomi", "Folkmängd, födda, döda, migration, inkomster och välfärd"],
+          lfs: ["Arbetsmarknad (AKU)", "Arbetslöshet och sysselsättning i Göteborg (BAS, månadsvis) + AKU för hela riket"],
+          pop: ["Befolkning & hushållens ekonomi", "Folkmängd, födda, döda, flyttningar och inkomster i Göteborg · välfärdsutgifter för riket"],
           biz: ["Näringsliv & företag", "Företagsstruktur, omsättning, FoU och energianvändning"],
-          edu: ["Utbildning & forskning", "Examina, utbildningsnivå, etablering och offentlig FoU"],
-          env: ["Jordbruk, skog & miljö", "Skördar, jordbruksmark, växthusgaser och avfall"],
-          house: ["Boende & fastigheter", "Färdigställda och påbörjade bostäder, upplåtelseform, taxering"],
-          pub: ["Offentlig ekonomi", "Offentliga inkomster, utgifter, sparande, skuld och kommuner"] } },
+          edu: ["Utbildning & forskning", "Utbildningsnivå i Göteborg + examina, etablering och offentlig FoU för riket"],
+          env: ["Jordbruk, skog & miljö", "Skördar och jordbruksmark i Västra Götaland + växthusgaser och avfall för riket"],
+          house: ["Boende & fastigheter", "Bostadsbyggande, upplåtelseform och taxeringsvärden i Göteborg"],
+          pub: ["Offentlig ekonomi", "Göteborgs kommuns ekonomi (intäkter, resultat, skattesats, kostnader, soliditet) + staten"] } },
 };
 const LOCALE = { ko: "ko-KR", en: "en-GB", sv: "sv-SE" };
 
@@ -311,13 +315,13 @@ const svg = (p, sw = 1.8) => `<svg viewBox="0 0 24 24" fill="none" stroke="curre
 // 탭별 핵심 지표 타일: [차트 id, 시리즈 key]
 const KPI = {
   cpi: [["cpi_inflation", "cpi"], ["cpi_inflation", "cpif"], ["cpi_index", "cpi"]],
-  lfs: [["lfs_unemp", "sa"], ["lfs_rates", "emp"], ["lfs_employed", "emp"]],
-  pop: [["pop_total", "pop"], ["pop_births", "b"], ["hh_gini", "disp"]],
+  lfs: [["lfs_gbg_unemp", "gbg"], ["lfs_gbg_emp", "gbg"], ["lfs_unemp", "sa"]],
+  pop: [["pop_total", "pop"], ["hh_disp", "median"], ["hh_gini", "disp"]],
   biz: [["biz_turnover", "turn"], ["biz_rd", "rd"], ["biz_electricity", "ind"]],
   edu: [["edu_degrees", "w"], ["edu_attainment", "long"], ["edu_gbard", "gbard"]],
   env: [["env_harvest", "wheat"], ["env_ghg", "hh"], ["env_agri_ghg", "enteric"]],
   house: [["house_completed", "multi"], ["house_tenure", "rent"], ["house_avg_small", "avg"]],
-  pub: [["pub_debt", "gg"], ["pub_revexp", "exp"], ["pub_muni_result", "res"]],
+  pub: [["pub_gbg_income", "tax"], ["pub_gbg_result", "res"], ["pub_gbg_taxrate", "tot"]],
 };
 
 // ======================================================================
@@ -429,7 +433,7 @@ class ChartCard {
     this.el = document.createElement("section");
     this.el.className = "card" + (c.kind === "hbar" ? " hb" : "") + (c.periods.length > 120 && c.kind !== "line" ? " wide" : "");
     this.el.style.setProperty("--tab-c", TABC[tabKey]);
-    this.el.innerHTML = `<h3><span class="kind">${svg(KIND_ICON[c.kind] || KIND_ICON.line, 2)}</span><span class="ttl"></span></h3>
+    this.el.innerHTML = `<h3><span class="kind">${svg(KIND_ICON[c.kind] || KIND_ICON.line, 2)}</span><span class="ttl"></span><span class="scope ${c.scope || "se"}"></span></h3>
       <div class="legend" role="group"></div>
       <div class="plot"><canvas class="base"></canvas><canvas class="over"></canvas><div class="tip" role="tooltip"></div></div>
       <p class="note" hidden></p>
@@ -456,6 +460,8 @@ class ChartCard {
       for (let i = 0; i < n; i++) vals[k * n + i] = src[i] == null ? NaN : src[i];
     }
     g.chart_set_mask(this.h, this.mask);
+    // 비율(%) 누적 막대는 0–100 으로 고정
+    if (c.kind === "stack" && c.unit === "%") g.chart_set_range(this.h, 0, 100);
   }
   free() {
     if (this.h >= 0) { state.g.chart_free(this.h); this.h = -1; }
@@ -464,6 +470,7 @@ class ChartCard {
   texts() {
     const c = this.c, t = T();
     this.el.querySelector(".ttl").textContent = loc(c.title);
+    this.el.querySelector(".scope").textContent = t.scope[c.scope || "se"];
     const lg = this.el.querySelector(".legend");
     lg.innerHTML = "";
     lg.hidden = c.series.length < 2;
@@ -993,7 +1000,8 @@ function kpiTiles(key, data) {
       }
     }
     const unit = c.unit === "%" ? "%" : "";
-    const label = c.series.length > 1 ? `${loc(c.title)} · ${loc(s.label)}` : loc(c.title);
+    const pin = c.scope === "gbg" || c.scope === "vg" ? "📍 " : "";
+    const label = pin + (c.series.length > 1 ? `${loc(c.title)} · ${loc(s.label)}` : loc(c.title));
     const el = document.createElement("div");
     el.className = "kpi";
     el.innerHTML = `<div class="k-label"></div><div class="k-val">${fmt(v, c.digits ?? 1)}<small>${unit || esc(loc(c.y))}</small></div>

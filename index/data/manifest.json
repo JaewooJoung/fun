@@ -1,8 +1,8 @@
 {
   "api": "https://statistikdatabasen.scb.se/api/v2",
   "failed": 0,
-  "generated": "2026-10-10T00:30:00",
-  "ok": 51,
+  "generated": "2026-10-10T00:53:45",
+  "ok": 58,
   "source": "Statistics Sweden (SCB) PxWebApi v2",
   "tabs": [
     {
@@ -16,7 +16,7 @@
       }
     },
     {
-      "charts": 5,
+      "charts": 8,
       "errors": [],
       "key": "lfs",
       "name": {
@@ -26,13 +26,13 @@
       }
     },
     {
-      "charts": 8,
+      "charts": 9,
       "errors": [],
       "key": "pop",
       "name": {
-        "en": "Population & household income",
-        "ko": "인구 및 가계 소득",
-        "sv": "Befolkning & hushållens ekonomi"
+        "en": "Population & household income · Gothenburg",
+        "ko": "인구 및 가계 소득 · 예테보리",
+        "sv": "Befolkning & hushållens ekonomi · Göteborg"
       }
     },
     {
@@ -76,13 +76,13 @@
       }
     },
     {
-      "charts": 6,
+      "charts": 9,
       "errors": [],
       "key": "pub",
       "name": {
-        "en": "Public finances",
-        "ko": "공공재정",
-        "sv": "Offentlig ekonomi"
+        "en": "Public finances · Gothenburg",
+        "ko": "공공재정 · 예테보리",
+        "sv": "Offentlig ekonomi · Göteborg"
       }
     }
   ],
