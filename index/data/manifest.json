@@ -1,0 +1,90 @@
+{
+  "api": "https://statistikdatabasen.scb.se/api/v2",
+  "failed": 0,
+  "generated": "2026-10-09T23:47:10",
+  "ok": 50,
+  "source": "Statistics Sweden (SCB) PxWebApi v2",
+  "tabs": [
+    {
+      "charts": 3,
+      "errors": [],
+      "key": "cpi",
+      "name": {
+        "en": "Consumer prices",
+        "ko": "소비자물가",
+        "sv": "Konsumentpriser"
+      }
+    },
+    {
+      "charts": 5,
+      "errors": [],
+      "key": "lfs",
+      "name": {
+        "en": "Labour market",
+        "ko": "노동시장",
+        "sv": "Arbetsmarknad"
+      }
+    },
+    {
+      "charts": 8,
+      "errors": [],
+      "key": "pop",
+      "name": {
+        "en": "Population & household income",
+        "ko": "인구 및 가계 소득",
+        "sv": "Befolkning & hushållens ekonomi"
+      }
+    },
+    {
+      "charts": 8,
+      "errors": [],
+      "key": "biz",
+      "name": {
+        "en": "Business & industry",
+        "ko": "기업 및 산업",
+        "sv": "Näringsliv & företag"
+      }
+    },
+    {
+      "charts": 9,
+      "errors": [],
+      "key": "edu",
+      "name": {
+        "en": "Education & research",
+        "ko": "교육 및 연구",
+        "sv": "Utbildning & forskning"
+      }
+    },
+    {
+      "charts": 6,
+      "errors": [],
+      "key": "env",
+      "name": {
+        "en": "Agriculture & environment",
+        "ko": "농림·환경",
+        "sv": "Jordbruk, skog & miljö"
+      }
+    },
+    {
+      "charts": 5,
+      "errors": [],
+      "key": "house",
+      "name": {
+        "en": "Housing & property",
+        "ko": "주거 및 부동산",
+        "sv": "Boende & fastigheter"
+      }
+    },
+    {
+      "charts": 6,
+      "errors": [],
+      "key": "pub",
+      "name": {
+        "en": "Public finances",
+        "ko": "공공재정",
+        "sv": "Offentlig ekonomi"
+      }
+    }
+  ],
+  "timezone": "Europe/Stockholm"
+}

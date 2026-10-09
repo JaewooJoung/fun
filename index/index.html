@@ -1,0 +1,818 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SCB 통계 대시보드</title>
+<meta name="description" content="Statistics Sweden (SCB) indicators, updated daily — Korean, English, Swedish. Charts rendered by Rust/WebAssembly.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23005293'/%3E%3Crect x='6' y='17' width='4' height='9' rx='1' fill='%23FECB00'/%3E%3Crect x='14' y='11' width='4' height='15' rx='1' fill='%23fff'/%3E%3Crect x='22' y='6' width='4' height='20' rx='1' fill='%23FECB00'/%3E%3C/svg%3E">
+<style>
+:root {
+  --bg: #f4f6f9;
+  --panel: #ffffff;
+  --ink: #18212f;
+  --ink-2: #4a5568;
+  --ink-3: #7b8594;
+  --line: #e3e7ee;
+  --grid: #edf0f4;
+  --axis: #c6ccd6;
+  --brand: #005293;
+  --brand-2: #FECB00;
+  --brand-ink: #ffffff;
+  --accent-soft: #e8f0fa;
+  --up: #c2410c;
+  --down: #15803d;
+  --tip-bg: #18212f;
+  --tip-ink: #f8fafc;
+  --shadow: 0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.08);
+  --s1: #2563eb; --s2: #e8833a; --s3: #0f9d8a; --s4: #9b5de5;
+  --s5: #d9486b; --s6: #7c8f1d; --s7: #64748b; --s8: #0ea5e9;
+  --radius: 14px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d131c; --panel: #151d29; --ink: #e8edf4; --ink-2: #b4bfcd; --ink-3: #8592a3;
+    --line: #253041; --grid: #1e2835; --axis: #3a4657;
+    --brand: #0b4f8a; --accent-soft: #1b2a3d; --up: #fb923c; --down: #4ade80;
+    --tip-bg: #f1f5f9; --tip-ink: #0f172a;
+    --shadow: 0 1px 2px rgba(0,0,0,.4);
+    --s1: #60a5fa; --s2: #f59e57; --s3: #2dd4bf; --s4: #b794f6;
+    --s5: #f472b6; --s6: #a3b93a; --s7: #94a3b8; --s8: #38bdf8;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d131c; --panel: #151d29; --ink: #e8edf4; --ink-2: #b4bfcd; --ink-3: #8592a3;
+  --line: #253041; --grid: #1e2835; --axis: #3a4657;
+  --brand: #0b4f8a; --accent-soft: #1b2a3d; --up: #fb923c; --down: #4ade80;
+  --tip-bg: #f1f5f9; --tip-ink: #0f172a;
+  --shadow: 0 1px 2px rgba(0,0,0,.4);
+  --s1: #60a5fa; --s2: #f59e57; --s3: #2dd4bf; --s4: #b794f6;
+  --s5: #f472b6; --s6: #a3b93a; --s7: #94a3b8; --s8: #38bdf8;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--ink);
+  font: 15px/1.5 "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", "Noto Sans CJK KR",
+        system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; }
+
+/* ---------- header ---------- */
+header.top {
+  background: linear-gradient(120deg, #003c6e 0%, var(--brand) 60%, #0a6cb8 100%);
+  color: var(--brand-ink);
+  position: relative; overflow: hidden;
+}
+.wrap { max-width: 1240px; margin: 0 auto; padding: 0 16px; }
+.top .wrap { display: flex; align-items: center; gap: 16px; padding-top: 18px; padding-bottom: 14px; position: relative; z-index: 1; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 12px; flex: 1 1 auto; min-width: 0; }
+.brand .logo { width: 42px; height: 42px; flex: none; }
+.brand h1 { margin: 0; font-size: 20px; line-height: 1.25; font-weight: 700; letter-spacing: -.01em; }
+.brand p { margin: 2px 0 0; font-size: 13px; opacity: .85; }
+.langs { display: flex; background: rgba(255,255,255,.14); border-radius: 999px; padding: 3px; gap: 2px; flex: none; }
+.langs button {
+  border: 0; background: transparent; color: #fff; padding: 5px 12px; border-radius: 999px;
+  cursor: pointer; font-size: 13px; font-weight: 600; letter-spacing: .02em;
+}
+.langs button[aria-pressed="true"] { background: #fff; color: var(--brand); }
+.langs button:focus-visible { outline: 2px solid var(--brand-2); outline-offset: 1px; }
+
+/* ---------- tabs ---------- */
+nav.tabs { background: var(--panel); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 20; }
+nav.tabs .wrap { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; padding-top: 8px; padding-bottom: 0; }
+nav.tabs .wrap::-webkit-scrollbar { display: none; }
+.tab {
+  display: flex; align-items: center; gap: 8px; flex: none;
+  border: 0; background: transparent; cursor: pointer;
+  padding: 9px 12px 11px; border-radius: 10px 10px 0 0; color: var(--ink-2);
+  font-size: 14px; font-weight: 600; white-space: nowrap; position: relative;
+}
+.tab .ic { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: var(--accent-soft); color: var(--tab-c); flex: none; }
+.tab .ic svg { width: 18px; height: 18px; }
+.tab:hover { color: var(--ink); background: var(--bg); }
+.tab[aria-selected="true"] { color: var(--ink); }
+.tab[aria-selected="true"]::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: 0; height: 3px; border-radius: 3px 3px 0 0; background: var(--tab-c); }
+.tab[aria-selected="true"] .ic { background: var(--tab-c); color: #fff; }
+.tab:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+
+/* ---------- content ---------- */
+main { padding: 20px 0 40px; }
+.tabhead { display: flex; align-items: center; gap: 14px; margin: 0 0 16px; }
+.tabhead .ic { width: 46px; height: 46px; border-radius: 13px; display: grid; place-items: center; background: var(--tab-c); color: #fff; flex: none; }
+.tabhead .ic svg { width: 26px; height: 26px; }
+.tabhead h2 { margin: 0; font-size: 21px; line-height: 1.3; }
+.tabhead p { margin: 2px 0 0; color: var(--ink-2); font-size: 14px; }
+
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.kpi { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); min-width: 0; }
+.kpi .k-label { font-size: 12.5px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kpi .k-val { font-size: 26px; font-weight: 700; letter-spacing: -.02em; margin: 2px 0 0; font-variant-numeric: tabular-nums; }
+.kpi .k-val small { font-size: 14px; font-weight: 600; color: var(--ink-2); margin-left: 3px; }
+.kpi .k-sub { font-size: 12.5px; color: var(--ink-3); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.delta { font-weight: 600; font-variant-numeric: tabular-nums; }
+.delta.up { color: var(--up); } .delta.down { color: var(--down); }
+
+.grid { align-items: start; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 520px), 1fr)); gap: 16px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px 16px 12px; min-width: 0; display: flex; flex-direction: column; }
+.card.wide { grid-column: 1 / -1; }
+.card h3 { margin: 0; font-size: 15.5px; line-height: 1.35; display: flex; gap: 8px; align-items: flex-start; }
+.card h3 .kind { width: 22px; height: 22px; flex: none; color: var(--tab-c); margin-top: 0; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 6px; margin: 8px 0 4px; }
+.legend button {
+  display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: transparent;
+  border-radius: 999px; padding: 2px 10px 2px 8px; font-size: 12.5px; color: var(--ink-2); cursor: pointer;
+}
+.legend button i { width: 10px; height: 10px; border-radius: 3px; background: var(--c); display: inline-block; }
+.legend button[aria-pressed="false"] { opacity: .45; text-decoration: line-through; }
+.legend button:focus-visible { outline: 2px solid var(--brand); }
+.plot { position: relative; height: 290px; touch-action: pan-y; }
+.card.hb .plot { height: auto; }
+.plot canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.foot { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 12px; color: var(--ink-3); margin-top: 6px; }
+.note { font-size: 12.5px; color: var(--ink-2); margin: 4px 0 0; }
+.badge { font-size: 11px; padding: 1px 7px; border-radius: 999px; background: var(--accent-soft); color: var(--ink-2); }
+.tip {
+  position: absolute; pointer-events: none; z-index: 5; background: var(--tip-bg); color: var(--tip-ink);
+  border-radius: 9px; padding: 8px 10px; font-size: 12.5px; line-height: 1.45; min-width: 140px; max-width: 280px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.22); opacity: 0; transition: opacity .08s; font-variant-numeric: tabular-nums;
+}
+.tip b { display: block; margin-bottom: 3px; font-size: 13px; }
+.tip .r { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.tip .r i { width: 8px; height: 8px; border-radius: 2px; background: var(--c); flex: none; }
+.tip .r span { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+.tip .r em { font-style: normal; font-weight: 600; margin-left: 10px; }
+.msg { background: var(--panel); border: 1px dashed var(--axis); border-radius: var(--radius); padding: 24px; color: var(--ink-2); text-align: center; }
+.skeleton { height: 360px; border-radius: var(--radius); background: linear-gradient(90deg, var(--panel), var(--grid), var(--panel)); background-size: 200% 100%; animation: sh 1.4s infinite; border: 1px solid var(--line); }
+@keyframes sh { to { background-position: -200% 0; } }
+footer { color: var(--ink-3); font-size: 12.5px; padding: 0 0 32px; }
+footer .wrap { display: flex; flex-wrap: wrap; gap: 6px 18px; justify-content: space-between; border-top: 1px solid var(--line); padding-top: 14px; }
+footer a { color: inherit; }
+@media (max-width: 560px) {
+  .brand h1 { font-size: 17px; }
+  .brand p { display: none; }
+  .tab { padding: 8px 9px 10px; font-size: 13px; }
+  .tab .label { max-width: 7.5em; overflow: hidden; text-overflow: ellipsis; }
+  .plot { height: 250px; }
+  .kpi .k-val { font-size: 22px; }
+  .card { padding: 12px 12px 10px; }
+}
+@media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="rgba(255,255,255,.14)"/><rect x="6" y="17" width="4" height="9" rx="1" fill="#FECB00"/><rect x="14" y="11" width="4" height="15" rx="1" fill="#fff"/><rect x="22" y="6" width="4" height="20" rx="1" fill="#FECB00"/></svg>
+      <div><h1 id="t-title"></h1><p id="t-sub"></p></div>
+    </div>
+    <div class="langs" role="group" aria-label="Language">
+      <button type="button" data-lang="ko">KO</button>
+      <button type="button" data-lang="en">EN</button>
+      <button type="button" data-lang="sv">SV</button>
+    </div>
+  </div>
+</header>
+<nav class="tabs" aria-label="Categories"><div class="wrap" role="tablist" id="tabs"></div></nav>
+<main><div class="wrap" id="main"><div class="skeleton"></div></div></main>
+<footer><div class="wrap"><span id="f-src"></span><span id="f-upd"></span></div></footer>
+
+<script>
+"use strict";
+// ======================================================================
+//  i18n — UI 문구 (차트 제목·범례·축 이름은 data/*.json 안에 3개 언어로 들어 있다)
+// ======================================================================
+const I18N = {
+  ko: { title: "스웨덴 통계 대시보드", sub: "스웨덴 통계청(SCB) 주요 지표 · 매일 08:30 자동 갱신",
+        src: "출처: 스웨덴 통계청(SCB) Statistikdatabasen · 그래프 엔진: Rust/WebAssembly",
+        upd: "데이터 갱신", loading: "불러오는 중…", err: "데이터를 불러오지 못했습니다.", errWasm: "이 브라우저는 WebAssembly 를 지원하지 않습니다.",
+        stale: "이전 데이터", source: "표", latest: "최근", vs: "전년 대비", vsPrev: "직전 대비", pp: "%p",
+        x: { M: "월", Q: "분기", Y: "연도", A: "학년도", C: "" },
+        q: (y, q) => `${y}년 ${q}분기`,
+        tabs: {
+          cpi: ["소비자물가 (CPI)", "월별 소비자물가지수와 인플레이션율"],
+          lfs: ["노동시장 (LFS)", "실업률·고용률·경제활동참가율 (노동력조사)"],
+          pop: ["인구 및 가계 소득", "인구 확정치, 출생·사망·이민, 가계 소득과 복지 지출"],
+          biz: ["기업 및 산업", "기업 구조, 매출, R&D 투자, 에너지 소비"],
+          edu: ["교육 및 연구", "졸업생, 학력, 취업률, 공공 R&D 예산"],
+          env: ["농림·어업 및 환경", "작물 생산, 농지, 온실가스, 폐기물"],
+          house: ["주거 및 부동산", "주택 완공·착공, 보유 형태, 과세평가액"],
+          pub: ["지방재정 및 공공부문", "정부 수입·지출, 재정수지, 부채, 지자체 재정"] } },
+  en: { title: "Sweden Statistics Dashboard", sub: "Key indicators from Statistics Sweden (SCB) · refreshed daily at 08:30",
+        src: "Source: Statistics Sweden (SCB) Statistical Database · Chart engine: Rust/WebAssembly",
+        upd: "Data updated", loading: "Loading…", err: "Could not load the data.", errWasm: "This browser does not support WebAssembly.",
+        stale: "previous data", source: "Table", latest: "Latest", vs: "vs. year earlier", vsPrev: "vs. previous", pp: "pp",
+        x: { M: "Month", Q: "Quarter", Y: "Year", A: "Academic year", C: "" },
+        q: (y, q) => `Q${q} ${y}`,
+        tabs: {
+          cpi: ["Consumer prices (CPI)", "Monthly consumer price index and inflation"],
+          lfs: ["Labour market (LFS)", "Unemployment, employment and participation (Labour Force Survey)"],
+          pop: ["Population & household income", "Population, births, deaths, migration, income and welfare"],
+          biz: ["Business & industry", "Enterprise structure, turnover, R&D and energy use"],
+          edu: ["Education & research", "Graduates, attainment, employment and public R&D"],
+          env: ["Agriculture & environment", "Crops, farmland, greenhouse gases and waste"],
+          house: ["Housing & property", "Completions, starts, tenure and taxation values"],
+          pub: ["Public finances", "Government revenue, spending, balance, debt and municipalities"] } },
+  sv: { title: "Statistikpanel för Sverige", sub: "Nyckeltal från Statistiska centralbyrån (SCB) · uppdateras dagligen 08.30",
+        src: "Källa: SCB, Statistikdatabasen · Diagrammotor: Rust/WebAssembly",
+        upd: "Data uppdaterad", loading: "Laddar…", err: "Kunde inte läsa in data.", errWasm: "Webbläsaren saknar stöd för WebAssembly.",
+        stale: "äldre data", source: "Tabell", latest: "Senaste", vs: "mot året innan", vsPrev: "mot föregående", pp: "procenten.",
+        x: { M: "Månad", Q: "Kvartal", Y: "År", A: "Läsår", C: "" },
+        q: (y, q) => `kv. ${q} ${y}`,
+        tabs: {
+          cpi: ["Konsumentpriser (KPI)", "Konsumentprisindex och inflation per månad"],
+          lfs: ["Arbetsmarknad (AKU)", "Arbetslöshet, sysselsättning och arbetskraftsdeltagande"],
+          pop: ["Befolkning & hushållens ekonomi", "Folkmängd, födda, döda, migration, inkomster och välfärd"],
+          biz: ["Näringsliv & företag", "Företagsstruktur, omsättning, FoU och energianvändning"],
+          edu: ["Utbildning & forskning", "Examina, utbildningsnivå, etablering och offentlig FoU"],
+          env: ["Jordbruk, skog & miljö", "Skördar, jordbruksmark, växthusgaser och avfall"],
+          house: ["Boende & fastigheter", "Färdigställda och påbörjade bostäder, upplåtelseform, taxering"],
+          pub: ["Offentlig ekonomi", "Offentliga inkomster, utgifter, sparande, skuld och kommuner"] } },
+};
+const LOCALE = { ko: "ko-KR", en: "en-GB", sv: "sv-SE" };
+
+// 탭 아이콘 (24×24 선 아이콘) 과 탭 색
+const ICON = {
+  cpi: '<path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z"/><circle cx="7.5" cy="7.5" r="1.6"/><path d="M10.5 15.5l4-4"/>',
+  lfs: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7"/><path d="M3 12.5h18"/><path d="M11 12.5v2h2v-2"/>',
+  pop: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.4 2.7-6 6-6s6 2.6 6 6"/><circle cx="17.2" cy="9" r="2.4"/><path d="M16.5 14.1c2.6.3 4.5 2.6 4.5 5.4"/>',
+  biz: '<path d="M3 21V10.5l5 3v-3l5 3v-3l5 3V4h3v17Z"/><path d="M7 17h2M12 17h2"/>',
+  edu: '<path d="M2 9.5 12 4.5l10 5-10 5Z"/><path d="M6 11.6v4.6c0 1.5 2.7 3.3 6 3.3s6-1.8 6-3.3v-4.6"/><path d="M21.5 9.8v5.2"/>',
+  env: '<path d="M5 20c0-8.5 5.8-14.5 15-15 .2 9.4-5.8 15-14 15Z"/><path d="M5 20c2.5-4.5 5.5-7.5 9.5-10"/>',
+  house: '<path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 9.8V20h13V9.8"/><path d="M10 20v-5.5h4V20"/>',
+  pub: '<path d="M3 9.2 12 4l9 5.2Z"/><path d="M5.5 11.5v6M10 11.5v6M14 11.5v6M18.5 11.5v6"/><path d="M3.5 20.5h17"/>',
+};
+const TABC = { cpi: "#e8833a", lfs: "#2563eb", pop: "#d9486b", biz: "#6d5bd0", edu: "#0f9d8a", env: "#4d8f2a", house: "#c2710c", pub: "#005293" };
+const KIND_ICON = {
+  line: '<path d="M4 18 9 12l4 3 7-9"/><path d="M4 21h16"/>',
+  bar: '<path d="M5 21v-7M10 21V9M15 21v-5M20 21V5"/>',
+  stack: '<rect x="4" y="12" width="5" height="8" rx="1"/><rect x="4" y="6" width="5" height="6" rx="1"/><rect x="14" y="9" width="5" height="11" rx="1"/><rect x="14" y="4" width="5" height="5" rx="1"/>',
+  hbar: '<path d="M4 5h11M4 10h16M4 15h8M4 20h13"/>',
+};
+const svg = (p, sw = 1.8) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+
+// 탭별 핵심 지표 타일: [차트 id, 시리즈 key]
+const KPI = {
+  cpi: [["cpi_inflation", "cpi"], ["cpi_inflation", "cpif"], ["cpi_index", "cpi"]],
+  lfs: [["lfs_unemp", "sa"], ["lfs_rates", "emp"], ["lfs_employed", "emp"]],
+  pop: [["pop_total", "pop"], ["pop_births", "b"], ["hh_gini", "disp"]],
+  biz: [["biz_turnover", "turn"], ["biz_rd", "rd"], ["biz_electricity", "ind"]],
+  edu: [["edu_degrees", "w"], ["edu_attainment", "long"], ["edu_gbard", "gbard"]],
+  env: [["env_harvest", "wheat"], ["env_ghg", "hh"], ["env_agri_ghg", "enteric"]],
+  house: [["house_completed", "multi"], ["house_tenure", "rent"], ["house_avg_small", "avg"]],
+  pub: [["pub_debt", "gg"], ["pub_revexp", "exp"], ["pub_muni_result", "res"]],
+};
+
+// ======================================================================
+//  상태
+// ======================================================================
+const KIND = { line: 0, bar: 1, stack: 2, hbar: 3 };
+const FREQ = { Y: 1, Q: 4, M: 12, C: 0 };
+const OP = { YTICK: 1, XTICK: 2, PATH: 3, RECT: 4, ZERO: 5, CAT: 6, VTICK: 7, DOT: 8, ZEROV: 9 };
+const state = { lang: "ko", tab: null, manifest: null, data: {}, cards: [], g: null };
+
+function pickLang() {
+  const q = new URLSearchParams(location.search).get("lang");
+  if (q && I18N[q]) return q;
+  try { const s = localStorage.getItem("scb.lang"); if (s && I18N[s]) return s; } catch (e) {}
+  const nav = (navigator.language || "ko").slice(0, 2);
+  return I18N[nav] ? nav : "ko";
+}
+const T = () => I18N[state.lang];
+const loc = (o) => (o && (o[state.lang] ?? o.en)) ?? "";
+const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const SER = ["--s1", "--s2", "--s3", "--s4", "--s5", "--s6", "--s7", "--s8"];
+function seriesColor(c, k) {
+  if (c.series[k] && c.series[k].key === "target") return css("--ink-3");
+  return css(SER[k % SER.length]);
+}
+
+// ---------- 숫자·기간 포맷 ----------
+const nfCache = new Map();
+function nf(opts) {
+  const key = state.lang + JSON.stringify(opts);
+  if (!nfCache.has(key)) nfCache.set(key, new Intl.NumberFormat(LOCALE[state.lang], opts));
+  return nfCache.get(key);
+}
+function fmt(v, digits) {
+  if (v == null || !Number.isFinite(v)) return "–";
+  return nf({ maximumFractionDigits: digits, minimumFractionDigits: Math.min(digits, Math.abs(v) < 100 && digits > 0 ? 1 : 0) }).format(v);
+}
+function fmtTick(v, step) {
+  const a = Math.abs(v);
+  if (a >= 1e5) return nf({ notation: "compact", maximumFractionDigits: 1 }).format(v);
+  const d = step >= 1 || step === 0 ? 0 : Math.min(3, Math.ceil(-Math.log10(step)));
+  return nf({ maximumFractionDigits: d, minimumFractionDigits: d }).format(v);
+}
+function fmtPeriod(p, freq, long) {
+  let m;
+  if ((m = /^(\d{4})-(\d{2})$/.exec(p))) {
+    const d = new Date(Date.UTC(+m[1], +m[2] - 1, 1));
+    return new Intl.DateTimeFormat(LOCALE[state.lang], { year: "numeric", month: long ? "long" : "short", timeZone: "UTC" }).format(d);
+  }
+  if ((m = /^(\d{4})-Q(\d)$/.exec(p))) return T().q(m[1], m[2]);
+  return p;
+}
+function tickLabel(p, freq) {
+  if (freq === "M" || freq === "Q") return p.slice(0, 4);
+  return p;
+}
+function phaseOf(c) {
+  if (c.freq === "M") { const i = c.periods.findIndex(p => p.endsWith("-01")); return Math.max(0, i); }
+  if (c.freq === "Q") { const i = c.periods.findIndex(p => p.endsWith("-Q1")); return Math.max(0, i); }
+  if (c.freq === "Y") {   // 5·10 단위 해에 눈금이 오도록
+    const y0 = parseInt(c.periods[0], 10);
+    return Number.isFinite(y0) ? ((10 - (y0 % 10)) % 10) : 0;
+  }
+  return 0;
+}
+const xTitle = (c) => T().x[c.freq === "Y" && c.periods[0] && c.periods[0].includes("/") ? "A" : c.freq] || "";
+
+// ======================================================================
+//  WebAssembly
+// ======================================================================
+async function loadWasm() {
+  if (typeof WebAssembly !== "object") throw new Error(T().errWasm);
+  const url = "graph.wasm";
+  try {
+    if (WebAssembly.instantiateStreaming) {
+      const r = await WebAssembly.instantiateStreaming(fetch(url), {});
+      return r.instance.exports;
+    }
+  } catch (e) { /* 서버가 application/wasm 을 안 주면 아래로 */ }
+  const buf = await (await fetch(url)).arrayBuffer();
+  return (await WebAssembly.instantiate(buf, {})).instance.exports;
+}
+
+// ======================================================================
+//  데이터
+// ======================================================================
+async function getJSON(url, nocache) {
+  const r = await fetch(url, nocache ? { cache: "no-cache" } : {});
+  if (!r.ok) throw new Error(url + " → HTTP " + r.status);
+  return r.json();
+}
+async function loadTab(key) {
+  if (!state.data[key]) {
+    const v = encodeURIComponent(state.manifest.generated || "");
+    state.data[key] = await getJSON(`data/${key}.json?v=${v}`);
+  }
+  return state.data[key];
+}
+
+// ======================================================================
+//  차트 카드
+// ======================================================================
+class ChartCard {
+  constructor(c, tabKey) {
+    this.c = c;
+    this.h = -1;
+    this.mask = 0;
+    this.hover = -1;
+    this.el = document.createElement("section");
+    this.el.className = "card" + (c.kind === "hbar" ? " hb" : "") + (c.periods.length > 120 && c.kind !== "line" ? " wide" : "");
+    this.el.style.setProperty("--tab-c", TABC[tabKey]);
+    this.el.innerHTML = `<h3><span class="kind">${svg(KIND_ICON[c.kind] || KIND_ICON.line, 2)}</span><span class="ttl"></span></h3>
+      <div class="legend" role="group"></div>
+      <div class="plot"><canvas class="base"></canvas><canvas class="over"></canvas><div class="tip" role="tooltip"></div></div>
+      <p class="note" hidden></p>
+      <div class="foot"><span class="src"></span><span class="badge" hidden></span></div>`;
+    this.base = this.el.querySelector("canvas.base");
+    this.over = this.el.querySelector("canvas.over");
+    this.tip = this.el.querySelector(".tip");
+    this.plot = this.el.querySelector(".plot");
+    if (c.kind === "hbar") this.plot.style.height = Math.max(200, c.periods.length * 30 + 44) + "px";
+    this.plot.addEventListener("pointermove", (e) => this.onMove(e));
+    this.plot.addEventListener("pointerdown", (e) => this.onMove(e));
+    this.plot.addEventListener("pointerleave", () => this.setHover(-1));
+    this.texts();
+  }
+
+  /** wasm 쪽 차트를 만들고 값을 wasm 메모리에 직접 써 넣는다. */
+  ensure() {
+    if (this.h >= 0) return;
+    const g = state.g, c = this.c, n = c.periods.length, ns = c.series.length;
+    this.h = g.chart_new(KIND[c.kind] ?? 0, n, ns, FREQ[c.freq] ?? 1, phaseOf(c));
+    const vals = new Float64Array(g.memory.buffer, g.chart_values(this.h), n * ns);
+    for (let k = 0; k < ns; k++) {
+      const src = c.series[k].values;
+      for (let i = 0; i < n; i++) vals[k * n + i] = src[i] == null ? NaN : src[i];
+    }
+    g.chart_set_mask(this.h, this.mask);
+  }
+  free() {
+    if (this.h >= 0) { state.g.chart_free(this.h); this.h = -1; }
+  }
+
+  texts() {
+    const c = this.c, t = T();
+    this.el.querySelector(".ttl").textContent = loc(c.title);
+    const lg = this.el.querySelector(".legend");
+    lg.innerHTML = "";
+    lg.hidden = c.series.length < 2;
+    c.series.forEach((s, k) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.style.setProperty("--c", seriesColor(c, k));
+      b.setAttribute("aria-pressed", String(!(this.mask & (1 << k))));
+      b.innerHTML = `<i></i>`;
+      b.append(document.createTextNode(loc(s.label)));
+      b.onclick = () => {
+        const visible = c.series.length - [...Array(c.series.length).keys()].filter(j => this.mask & (1 << j)).length;
+        if (!(this.mask & (1 << k)) && visible === 1) return;   // 마지막 하나는 남긴다
+        this.mask ^= (1 << k);
+        b.setAttribute("aria-pressed", String(!(this.mask & (1 << k))));
+        if (this.h >= 0) state.g.chart_set_mask(this.h, this.mask);
+        this.draw();
+      };
+      lg.append(b);
+    });
+    const note = this.el.querySelector(".note");
+    note.hidden = !c.note;
+    if (c.note) note.textContent = loc(c.note);
+    this.el.querySelector(".src").textContent = `SCB · ${t.source} ${c.source}`;
+    const badge = this.el.querySelector(".badge");
+    badge.hidden = !c.stale;
+    badge.textContent = t.stale;
+  }
+
+  draw() {
+    if (!this.visible) { this.dirty = true; return; }
+    this.dirty = false;
+    this.ensure();
+    const g = state.g, c = this.c, h = this.h;
+    const W = this.plot.clientWidth, H = this.plot.clientHeight;
+    if (W < 10 || H < 10) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 3);
+    for (const cv of [this.base, this.over]) {
+      if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) {
+        cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+      }
+    }
+    const ctx = this.base.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    const font = "12px " + getComputedStyle(document.body).fontFamily;
+    ctx.font = font;
+    const ink3 = css("--ink-3"), grid = css("--grid"), axis = css("--axis"), ink2 = css("--ink-2");
+    const hbar = c.kind === "hbar";
+
+    // 1) 여백: 눈금 글자 폭을 재려면 범위가 필요하므로 대략 배치 → 글자 폭 측정 → 재배치
+    let left, top = 22, right = hbar ? 26 : 14, bottom = hbar ? 38 : 40;
+    if (hbar) {
+      const cats = (c.categories || []).map(loc);
+      const lw = Math.max(...cats.map(s => ctx.measureText(s).width), 20);
+      left = Math.min(lw + 14, W * 0.46);
+      top = 6;
+    } else {
+      const n0 = g.chart_layout(h, 60, top, W - 60 - right, H - top - bottom);
+      const cmd = new Float32Array(g.memory.buffer, g.chart_cmd_ptr(h), n0);
+      const step = this.tickStep(cmd, OP.YTICK);
+      let lw = 0;
+      this.eachOp(cmd, (op, a) => { if (op === OP.YTICK) lw = Math.max(lw, ctx.measureText(fmtTick(a[1], step)).width); });
+      left = Math.ceil(lw) + 12;
+    }
+    const pw = W - left - right, ph = H - top - bottom;
+    const len = g.chart_layout(h, left, top, pw, ph);
+    // memory.buffer 는 grow 시 바뀌므로 매번 새로 본다
+    const cmd = new Float32Array(g.memory.buffer, g.chart_cmd_ptr(h), len);
+    this.box = { left, top, pw, ph, W, H };
+
+    // 2) 격자·눈금
+    const vstep = this.tickStep(cmd, hbar ? OP.VTICK : OP.YTICK);
+    ctx.lineWidth = 1;
+    ctx.fillStyle = ink3;
+    ctx.textBaseline = "middle";
+    this.eachOp(cmd, (op, a) => {
+      if (op === OP.YTICK) {
+        const y = Math.round(a[2]) + 0.5;
+        ctx.strokeStyle = grid; ctx.beginPath(); ctx.moveTo(left, y); ctx.lineTo(left + pw, y); ctx.stroke();
+        ctx.textAlign = "right"; ctx.fillText(fmtTick(a[1], vstep), left - 7, y);
+      } else if (op === OP.VTICK) {
+        const x = Math.round(a[2]) + 0.5;
+        ctx.strokeStyle = grid; ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x, top + ph); ctx.stroke();
+        ctx.textAlign = "center"; ctx.textBaseline = "top"; ctx.fillText(fmtTick(a[1], vstep), x, top + ph + 6); ctx.textBaseline = "middle";
+      } else if (op === OP.XTICK) {
+        const x = Math.round(a[2]) + 0.5;
+        ctx.strokeStyle = axis; ctx.beginPath(); ctx.moveTo(x, top + ph); ctx.lineTo(x, top + ph + 4); ctx.stroke();
+        ctx.textAlign = "center"; ctx.textBaseline = "top";
+        ctx.fillText(tickLabel(c.periods[a[1] | 0], c.freq), Math.min(Math.max(x, left + 14), W - 16), top + ph + 7);
+        ctx.textBaseline = "middle";
+      } else if (op === OP.CAT) {
+        ctx.fillStyle = ink2; ctx.textAlign = "right";
+        let s = loc((c.categories || [])[a[1] | 0]) || c.periods[a[1] | 0];
+        while (s.length > 2 && ctx.measureText(s).width > left - 12) s = s.slice(0, -2) + "…";
+        ctx.fillText(s, left - 8, a[2]);
+        ctx.fillStyle = ink3;
+      }
+    });
+    // 기준선
+    ctx.strokeStyle = axis;
+    if (!hbar) { ctx.beginPath(); ctx.moveTo(left, Math.round(top + ph) + 0.5); ctx.lineTo(left + pw, Math.round(top + ph) + 0.5); ctx.stroke(); }
+    this.eachOp(cmd, (op, a) => {
+      ctx.strokeStyle = css("--ink-3");
+      if (op === OP.ZERO) { const y = Math.round(a[1]) + 0.5; ctx.beginPath(); ctx.moveTo(left, y); ctx.lineTo(left + pw, y); ctx.stroke(); }
+      if (op === OP.ZEROV) { const x = Math.round(a[1]) + 0.5; ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x, top + ph); ctx.stroke(); }
+    });
+
+    // 3) 축 이름
+    ctx.fillStyle = ink3; ctx.font = "11.5px " + getComputedStyle(document.body).fontFamily;
+    const yt = loc(c.y);
+    if (hbar) { ctx.textAlign = "right"; ctx.textBaseline = "top"; ctx.fillText(yt, left + pw, top + ph + 6 + 13); }
+    else {
+      ctx.textAlign = "left"; ctx.textBaseline = "alphabetic"; ctx.fillText(yt, 2, 13);
+      const xt = xTitle(c);
+      if (xt) { ctx.textAlign = "right"; ctx.fillText(xt, left + pw, H - 3); }
+    }
+    ctx.font = font;
+
+    // 4) 데이터
+    const colors = c.series.map((_, k) => seriesColor(c, k));
+    const dashed = c.series.map(s => s.key === "target");
+    ctx.lineJoin = "round"; ctx.lineCap = "round";
+    this.eachOp(cmd, (op, a, i) => {
+      if (op === OP.RECT) {
+        ctx.fillStyle = colors[a[1] | 0];
+        const r = Math.min(3, a[4] / 3, a[5] / 3);
+        roundRect(ctx, a[2], a[3], a[4], a[5], r);
+      } else if (op === OP.PATH) {
+        const s = a[1] | 0, n = a[2] | 0;
+        ctx.strokeStyle = colors[s];
+        ctx.lineWidth = n > 200 ? 1.6 : 2.2;
+        ctx.setLineDash(dashed[s] ? [5, 4] : []);
+        ctx.beginPath();
+        for (let k = 0; k < n; k++) {
+          const x = cmd[i + 3 + 2 * k], y = cmd[i + 4 + 2 * k];
+          k ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+        }
+        if (n === 1) { ctx.arc(cmd[i + 3], cmd[i + 4], 2.5, 0, 7); ctx.fillStyle = colors[s]; ctx.fill(); }
+        ctx.stroke();
+        ctx.setLineDash([]);
+      } else if (op === OP.DOT) {
+        const s = a[1] | 0;
+        if (dashed[s]) return;
+        ctx.fillStyle = colors[s]; ctx.beginPath(); ctx.arc(a[2], a[3], 3.2, 0, 7); ctx.fill();
+        ctx.strokeStyle = css("--panel"); ctx.lineWidth = 1.5; ctx.stroke();
+      }
+    });
+    this.drawHover();
+  }
+
+  /** 명령 버퍼 순회: 각 명령의 [op, ...인자] 와 시작 위치를 넘긴다. */
+  eachOp(cmd, fn) {
+    let i = 0;
+    while (i < cmd.length) {
+      const op = cmd[i];
+      let n;
+      switch (op) {
+        case OP.YTICK: case OP.XTICK: case OP.CAT: case OP.VTICK: n = 3; break;
+        case OP.ZERO: case OP.ZEROV: n = 2; break;
+        case OP.RECT: n = 6; break;
+        case OP.DOT: n = 4; break;
+        case OP.PATH: n = 3 + 2 * cmd[i + 2]; break;
+        default: return;
+      }
+      fn(op, op === OP.PATH ? cmd.subarray(i, i + 3) : cmd.subarray(i, i + n), i);
+      i += n;
+    }
+  }
+  tickStep(cmd, kind) {
+    const v = [];
+    this.eachOp(cmd, (op, a) => { if (op === kind) v.push(a[1]); });
+    return v.length > 1 ? Math.abs(v[1] - v[0]) : 1;
+  }
+
+  onMove(e) {
+    if (this.h < 0 || !this.box) return;
+    const r = this.plot.getBoundingClientRect();
+    const mx = e.clientX - r.left, my = e.clientY - r.top;
+    if (this.raf) cancelAnimationFrame(this.raf);
+    this.raf = requestAnimationFrame(() => this.setHover(state.g.chart_hit(this.h, mx, my), mx, my));
+  }
+  setHover(i, mx, my) {
+    if (i === this.hover && i < 0) return;
+    this.hover = i; this.mx = mx; this.my = my;
+    this.drawHover();
+  }
+  drawHover() {
+    const ctx = this.over.getContext("2d");
+    const dpr = this.base.width / (this.box ? this.box.W : 1) || 1;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, this.over.width, this.over.height);
+    const i = this.hover;
+    if (i < 0 || this.h < 0 || !this.box) { this.tip.style.opacity = 0; return; }
+    const g = state.g, c = this.c, { left, top, pw, ph, W, H } = this.box;
+    const hbar = c.kind === "hbar";
+    const p = g.chart_ipos(this.h, i), band = g.chart_band(this.h);
+    ctx.fillStyle = css("--ink"); ctx.globalAlpha = 0.07;
+    if (hbar) ctx.fillRect(left, p - band / 2, pw, band);
+    else if (c.kind === "line") { ctx.globalAlpha = 0.35; ctx.fillRect(Math.round(p), top, 1, ph); }
+    else ctx.fillRect(p - band / 2, top, band, ph);
+    ctx.globalAlpha = 1;
+    if (c.kind === "line") {
+      c.series.forEach((s, k) => {
+        const v = s.values[i];
+        if (v == null || (this.mask & (1 << k))) return;
+        const y = g.chart_vpos(this.h, v);
+        ctx.fillStyle = seriesColor(c, k); ctx.beginPath(); ctx.arc(p, y, 4, 0, 7); ctx.fill();
+        ctx.strokeStyle = css("--panel"); ctx.lineWidth = 2; ctx.stroke();
+      });
+    }
+    // 툴팁
+    const unit = c.unit ? (c.unit === "%" ? " %" : " " + c.unit) : "";
+    const head = hbar ? loc((c.categories || [])[i]) || c.periods[i] : fmtPeriod(c.periods[i], c.freq, true);
+    let rows = "";
+    c.series.forEach((s, k) => {
+      if (this.mask & (1 << k)) return;
+      rows += `<div class="r" style="--c:${seriesColor(c, k)}"><i></i><span>${esc(loc(s.label))}</span><em>${fmt(s.values[i], c.digits ?? 1)}${unit}</em></div>`;
+    });
+    this.tip.innerHTML = `<b>${esc(head)}</b>${rows}<div style="opacity:.7;margin-top:3px;font-size:11.5px">${esc(loc(c.y))}</div>`;
+    const tw = this.tip.offsetWidth, th = this.tip.offsetHeight;
+    let x = (hbar ? (this.mx ?? left + pw / 2) : p) + 14, y = (hbar ? p : (this.my ?? top)) - th / 2;
+    if (x + tw > W - 4) x = (hbar ? (this.mx ?? 0) : p) - tw - 14;
+    x = Math.max(4, x);
+    y = Math.max(2, Math.min(y, H - th - 2));
+    this.tip.style.transform = `translate(${x}px, ${y}px)`;
+    this.tip.style.left = "0"; this.tip.style.top = "0";
+    this.tip.style.opacity = 1;
+  }
+}
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  if (ctx.roundRect && r > 0.5) ctx.roundRect(x, y, w, h, r); else ctx.rect(x, y, w, h);
+  ctx.fill();
+}
+const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+
+// ======================================================================
+//  화면 구성
+// ======================================================================
+const io = new IntersectionObserver((ents) => {
+  for (const e of ents) {
+    const card = e.target.__card;
+    if (!card) continue;
+    card.visible = e.isIntersecting;
+    if (card.visible && card.dirty !== false) card.draw();
+  }
+}, { rootMargin: "200px 0px" });
+const ro = new ResizeObserver((ents) => {
+  for (const e of ents) { const card = e.target.__card; if (card) { card.dirty = true; if (card.visible) card.draw(); } }
+});
+
+function renderTabs() {
+  const box = document.getElementById("tabs");
+  box.innerHTML = "";
+  for (const t of state.manifest.tabs) {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "tab"; b.setAttribute("role", "tab"); b.id = "tab-" + t.key;
+    b.style.setProperty("--tab-c", TABC[t.key] || "#005293");
+    b.setAttribute("aria-selected", String(t.key === state.tab));
+    b.setAttribute("aria-controls", "main");
+    b.tabIndex = t.key === state.tab ? 0 : -1;
+    b.innerHTML = `<span class="ic">${svg(ICON[t.key] || ICON.cpi)}</span><span class="label"></span>`;
+    b.querySelector(".label").textContent = (T().tabs[t.key] || [loc(t.name)])[0];
+    b.onclick = () => selectTab(t.key, true);
+    b.onkeydown = (e) => {
+      const keys = state.manifest.tabs.map(x => x.key), i = keys.indexOf(t.key);
+      if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+        const k = keys[(i + (e.key === "ArrowRight" ? 1 : keys.length - 1)) % keys.length];
+        selectTab(k, true); document.getElementById("tab-" + k).focus();
+      }
+    };
+    box.append(b);
+  }
+  const sel = document.getElementById("tab-" + state.tab);
+  if (sel) sel.scrollIntoView({ block: "nearest", inline: "nearest" });
+}
+
+function kpiTiles(key, data) {
+  const out = document.createElement("div");
+  out.className = "kpis";
+  for (const [cid, skey] of KPI[key] || []) {
+    const c = data.charts.find(x => x.id === cid);
+    const s = c && c.series.find(x => x.key === skey);
+    if (!s) continue;
+    let i = s.values.length - 1;
+    while (i >= 0 && s.values[i] == null) i--;
+    if (i < 0) continue;
+    const back = c.freq === "M" ? 12 : c.freq === "Q" ? 4 : 1;
+    const prev = i - back >= 0 ? s.values[i - back] : null;
+    const v = s.values[i];
+    let delta = "";
+    if (prev != null) {
+      const pct = c.unit === "%";
+      const d = pct ? v - prev : (prev !== 0 ? 100 * (v / prev - 1) : null);
+      if (d != null && Number.isFinite(d)) {
+        const cls = d > 0 ? "up" : d < 0 ? "down" : "";
+        const arrow = d > 0 ? "▲" : d < 0 ? "▼" : "■";
+        delta = `<span class="delta ${cls}">${arrow} ${fmt(Math.abs(d), 1)}${pct ? " " + T().pp : " %"}</span><span>${back === 1 ? T().vsPrev : T().vs}</span>`;
+      }
+    }
+    const unit = c.unit === "%" ? "%" : "";
+    const label = c.series.length > 1 ? `${loc(c.title)} · ${loc(s.label)}` : loc(c.title);
+    const el = document.createElement("div");
+    el.className = "kpi";
+    el.innerHTML = `<div class="k-label"></div><div class="k-val">${fmt(v, c.digits ?? 1)}<small>${unit || esc(loc(c.y))}</small></div>
+      <div class="k-sub"><span>${esc(fmtPeriod(c.periods[i], c.freq, false))}</span>${delta}</div>`;
+    el.querySelector(".k-label").textContent = label;
+    el.querySelector(".k-label").title = label;
+    out.append(el);
+  }
+  return out;
+}
+
+async function selectTab(key, push) {
+  if (!state.manifest.tabs.some(t => t.key === key)) key = state.manifest.tabs[0].key;
+  state.tab = key;
+  if (push) history.replaceState(null, "", location.pathname + location.search + "#" + key);
+  renderTabs();
+  // 이전 탭의 wasm 차트를 해제한다 (메모리 재사용)
+  for (const card of state.cards) { io.unobserve(card.el); ro.unobserve(card.plot); card.free(); }
+  state.cards = [];
+  const main = document.getElementById("main");
+  main.style.setProperty("--tab-c", TABC[key]);
+  main.innerHTML = `<div class="skeleton" aria-label="${esc(T().loading)}"></div>`;
+  let data;
+  try { data = await loadTab(key); }
+  catch (e) { if (state.tab === key) main.innerHTML = `<div class="msg">${esc(T().err)}<br><small>${esc(e.message)}</small></div>`; return; }
+  if (state.tab !== key) return;      // 그 사이 다른 탭을 눌렀다
+  main.innerHTML = "";
+  const head = document.createElement("div");
+  head.className = "tabhead";
+  const [name, desc] = T().tabs[key] || [key, ""];
+  head.innerHTML = `<div class="ic">${svg(ICON[key] || ICON.cpi, 1.9)}</div><div><h2></h2><p></p></div>`;
+  head.querySelector("h2").textContent = name;
+  head.querySelector("p").textContent = desc;
+  main.append(head, kpiTiles(key, data));
+  const grid = document.createElement("div");
+  grid.className = "grid";
+  main.append(grid);
+  for (const c of data.charts) {
+    const card = new ChartCard(c, key);
+    card.el.__card = card; card.plot.__card = card;
+    card.dirty = true;
+    grid.append(card.el);
+    state.cards.push(card);
+    io.observe(card.el); ro.observe(card.plot);
+  }
+}
+
+function applyLang(lang) {
+  state.lang = lang;
+  nfCache.clear();
+  try { localStorage.setItem("scb.lang", lang); } catch (e) {}
+  document.documentElement.lang = lang;
+  const t = T();
+  document.title = t.title;
+  document.getElementById("t-title").textContent = t.title;
+  document.getElementById("t-sub").textContent = t.sub;
+  document.getElementById("f-src").textContent = t.src;
+  document.querySelectorAll(".langs button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
+  if (state.manifest) {
+    const d = new Date(state.manifest.generated);
+    document.getElementById("f-upd").textContent = `${t.upd}: ` + (isNaN(d) ? state.manifest.generated
+      : new Intl.DateTimeFormat(LOCALE[lang], { dateStyle: "long", timeStyle: "short" }).format(d));
+  }
+}
+
+async function main() {
+  applyLang(pickLang());
+  document.querySelectorAll(".langs button").forEach(b => b.onclick = () => {
+    if (b.dataset.lang === state.lang) return;
+    applyLang(b.dataset.lang);
+    if (!state.manifest) return;
+    renderTabs();
+    // 언어만 바뀌면 탭을 다시 만들 필요 없이 글자만 바꾸고 다시 그린다
+    const main = document.getElementById("main");
+    const head = main.querySelector(".tabhead");
+    if (head) {
+      const [name, desc] = T().tabs[state.tab] || [state.tab, ""];
+      head.querySelector("h2").textContent = name; head.querySelector("p").textContent = desc;
+      const k = main.querySelector(".kpis");
+      if (k && state.data[state.tab]) k.replaceWith(kpiTiles(state.tab, state.data[state.tab]));
+    }
+    for (const card of state.cards) { card.texts(); card.dirty = true; if (card.visible) card.draw(); }
+  });
+  const main = document.getElementById("main");
+  try {
+    [state.g, state.manifest] = await Promise.all([loadWasm(), getJSON("data/manifest.json", true)]);
+  } catch (e) {
+    main.innerHTML = `<div class="msg">${esc(T().err)}<br><small>${esc(e.message)}</small></div>`;
+    return;
+  }
+  applyLang(state.lang);
+  const want = location.hash.slice(1);
+  await selectTab(want || state.manifest.tabs[0].key, false);
+  window.addEventListener("hashchange", () => { const k = location.hash.slice(1); if (k && k !== state.tab) selectTab(k, false); });
+  // 다크모드 전환 시 캔버스 색 다시 칠하기
+  matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", () => state.cards.forEach(c => { c.texts(); c.dirty = true; if (c.visible) c.draw(); }));
+}
+main();
+</script>
+</body>
+</html>
