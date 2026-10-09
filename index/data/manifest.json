@@ -1,12 +1,12 @@
 {
   "api": "https://statistikdatabasen.scb.se/api/v2",
   "failed": 0,
-  "generated": "2026-10-09T23:47:10",
-  "ok": 50,
+  "generated": "2026-10-10T00:30:00",
+  "ok": 51,
   "source": "Statistics Sweden (SCB) PxWebApi v2",
   "tabs": [
     {
-      "charts": 3,
+      "charts": 4,
       "errors": [],
       "key": "cpi",
       "name": {
