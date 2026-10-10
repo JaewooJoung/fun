@@ -122,9 +122,9 @@ main { padding: 20px 0 40px; }
 .card.wide { grid-column: 1 / -1; }
 .card h3 { margin: 0; font-size: 15.5px; line-height: 1.35; display: flex; gap: 8px; align-items: flex-start; }
 .scope { flex: none; margin-left: auto; font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: 999px; white-space: nowrap; background: var(--accent-soft); color: var(--ink-2); }
-.scope.gbg { background: #fff4d6; color: #7a5600; }
-:root[data-theme="dark"] .scope.gbg { background: #3a3014; color: #f5d27a; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .scope.gbg { background: #3a3014; color: #f5d27a; } }
+.scope.gbg, .scope.vg, .scope.vast { background: #fff4d6; color: #7a5600; }
+:root[data-theme="dark"] .scope.gbg, :root[data-theme="dark"] .scope.vg, :root[data-theme="dark"] .scope.vast { background: #3a3014; color: #f5d27a; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .scope.gbg, :root:not([data-theme="light"]) .scope.vg, :root:not([data-theme="light"]) .scope.vast { background: #3a3014; color: #f5d27a; } }
 .card h3 .kind { width: 22px; height: 22px; flex: none; color: var(--tab-c); margin-top: 0; }
 .legend { display: flex; flex-wrap: wrap; gap: 4px 6px; margin: 8px 0 4px; }
 .legend button {
@@ -236,9 +236,9 @@ footer a { color: inherit; }
 // ======================================================================
 const I18N = {
   ko: { title: "스웨덴 통계 대시보드", sub: "스웨덴 통계청(SCB) 주요 지표 · 매일 08:30 자동 갱신",
-        src: "출처: 스웨덴 통계청(SCB) Statistikdatabasen · 그래프 엔진: Rust/WebAssembly",
+        src: "출처: 스웨덴 통계청(SCB) · 범죄: Brå·Kolada · 2026 선거: Valmyndigheten · 그래프 엔진: Rust/WebAssembly",
         upd: "데이터 갱신", loading: "불러오는 중…", err: "데이터를 불러오지 못했습니다.", errWasm: "이 브라우저는 WebAssembly 를 지원하지 않습니다.",
-        stale: "이전 데이터", scope: { gbg: "📍 예테보리", vg: "📍 서예탈란드주", se: "스웨덴 전체" }, source: "표", latest: "최근", vs: "전년 대비", vsPrev: "직전 대비", pp: "%p",
+        stale: "이전 데이터", scope: { gbg: "📍 예테보리", vg: "📍 서예탈란드주", vast: "📍 서부 경찰권역", se: "스웨덴 전체" }, source: "표", latest: "최근", vs: "전년 대비", vsPrev: "직전 대비", pp: "%p",
         x: { M: "월", Q: "분기", Y: "연도", A: "학년도", C: "" },
         q: (y, q) => `${y}년 ${q}분기`,
         food: { six: "6개월 누적", yoy: "1년 전 대비", byGroup: "분류별", rise: "많이 오른 순", fall: "많이 내린 순", all: "전체",
@@ -252,11 +252,15 @@ const I18N = {
           edu: ["교육 및 연구", "예테보리 학력 분포 + 스웨덴 전체 졸업생·취업률·공공 R&D"],
           env: ["농림·어업 및 환경", "서예탈란드주 작물·농지 + 스웨덴 전체 온실가스·폐기물"],
           house: ["주거 및 부동산", "예테보리 주택 완공·착공, 보유 형태, 과세평가액"],
+          macro: ["거시경제 및 대외 무역", "GDP 성장률, 수출입·무역수지, 주요 교역국, 국가 부채 · 예테보리 1인당 GRDP"],
+          dem: ["민주주의 및 선거", "2026 총선 결과(의석·득표율), 예테보리 시의회, 투표율, 정당 지지도(PSU)"],
+          int: ["이민 및 사회 통합", "예테보리 이민 배경 인구·출생지별 고용, 노동력조사, 국적 취득, 이민자 출생국"],
+          crime: ["범죄 및 사법", "예테보리·서부 경찰권역 범죄 + 스웨덴 전체 신고·해결·처벌 (출처: Brå, Kolada)"],
           pub: ["지방재정 및 공공부문", "예테보리시 재정(세입·순이익·세율·지출·건전성) + 중앙정부 재정"] } },
   en: { title: "Sweden Statistics Dashboard", sub: "Key indicators from Statistics Sweden (SCB) · refreshed daily at 08:30",
-        src: "Source: Statistics Sweden (SCB) Statistical Database · Chart engine: Rust/WebAssembly",
+        src: "Source: Statistics Sweden (SCB) · crime: Brå, Kolada · 2026 election: Valmyndigheten · Chart engine: Rust/WebAssembly",
         upd: "Data updated", loading: "Loading…", err: "Could not load the data.", errWasm: "This browser does not support WebAssembly.",
-        stale: "previous data", scope: { gbg: "📍 Gothenburg", vg: "📍 Västra Götaland", se: "All Sweden" }, source: "Table", latest: "Latest", vs: "vs. year earlier", vsPrev: "vs. previous", pp: "pp",
+        stale: "previous data", scope: { gbg: "📍 Gothenburg", vg: "📍 Västra Götaland", vast: "📍 Police region West", se: "All Sweden" }, source: "Table", latest: "Latest", vs: "vs. year earlier", vsPrev: "vs. previous", pp: "pp",
         x: { M: "Month", Q: "Quarter", Y: "Year", A: "Academic year", C: "" },
         q: (y, q) => `Q${q} ${y}`,
         food: { six: "6-month change", yoy: "vs. a year ago", byGroup: "By group", rise: "Biggest rises", fall: "Biggest falls", all: "All",
@@ -270,11 +274,15 @@ const I18N = {
           edu: ["Education & research", "Gothenburg educational attainment + national graduates, employment and public R&D"],
           env: ["Agriculture & environment", "Västra Götaland crops and farmland + national greenhouse gases and waste"],
           house: ["Housing & property", "Gothenburg completions, starts, tenure and taxation values"],
+          macro: ["Economy & foreign trade", "GDP growth, exports/imports, trade balance, partners, government debt · Gothenburg GRDP"],
+          dem: ["Democracy & elections", "2026 election results (seats, votes), Gothenburg council, turnout, party preference survey"],
+          int: ["Integration & migration", "Gothenburg foreign-background population and employment, LFS, citizenship, immigrants' origin"],
+          crime: ["Crime & justice", "Gothenburg and police region West + national reported crime, clearance and sanctions (source: Brå, Kolada)"],
           pub: ["Public finances", "City of Gothenburg finances (revenue, result, tax rate, costs, solvency) + central government"] } },
   sv: { title: "Statistikpanel för Sverige", sub: "Nyckeltal från Statistiska centralbyrån (SCB) · uppdateras dagligen 08.30",
-        src: "Källa: SCB, Statistikdatabasen · Diagrammotor: Rust/WebAssembly",
+        src: "Källa: SCB · brott: Brå, Kolada · val 2026: Valmyndigheten · Diagrammotor: Rust/WebAssembly",
         upd: "Data uppdaterad", loading: "Laddar…", err: "Kunde inte läsa in data.", errWasm: "Webbläsaren saknar stöd för WebAssembly.",
-        stale: "äldre data", scope: { gbg: "📍 Göteborg", vg: "📍 Västra Götaland", se: "Hela Sverige" }, source: "Tabell", latest: "Senaste", vs: "mot året innan", vsPrev: "mot föregående", pp: "procenten.",
+        stale: "äldre data", scope: { gbg: "📍 Göteborg", vg: "📍 Västra Götaland", vast: "📍 Polisregion Väst", se: "Hela Sverige" }, source: "Tabell", latest: "Senaste", vs: "mot året innan", vsPrev: "mot föregående", pp: "procenten.",
         x: { M: "Månad", Q: "Kvartal", Y: "År", A: "Läsår", C: "" },
         q: (y, q) => `kv. ${q} ${y}`,
         food: { six: "Förändring 6 mån", yoy: "mot för ett år sedan", byGroup: "Per grupp", rise: "Störst ökning", fall: "Störst minskning", all: "Alla",
@@ -288,6 +296,10 @@ const I18N = {
           edu: ["Utbildning & forskning", "Utbildningsnivå i Göteborg + examina, etablering och offentlig FoU för riket"],
           env: ["Jordbruk, skog & miljö", "Skördar och jordbruksmark i Västra Götaland + växthusgaser och avfall för riket"],
           house: ["Boende & fastigheter", "Bostadsbyggande, upplåtelseform och taxeringsvärden i Göteborg"],
+          macro: ["Nationalräkenskaper & utrikeshandel", "BNP-tillväxt, export/import, handelsnetto, handelspartner, statsskuld · BRP i Göteborg"],
+          dem: ["Demokrati & val", "Valresultat 2026 (mandat, röster), kommunfullmäktige i Göteborg, valdeltagande, PSU"],
+          int: ["Integration & migration", "Utländsk bakgrund och sysselsättning i Göteborg, AKU, medborgarskap, födelseländer"],
+          crime: ["Brott och rättsväsende", "Göteborg och polisregion Väst + anmälda brott, lagföring och påföljder i riket (källa: Brå, Kolada)"],
           pub: ["Offentlig ekonomi", "Göteborgs kommuns ekonomi (intäkter, resultat, skattesats, kostnader, soliditet) + staten"] } },
 };
 const LOCALE = { ko: "ko-KR", en: "en-GB", sv: "sv-SE" };
@@ -301,14 +313,19 @@ const ICON = {
   edu: '<path d="M2 9.5 12 4.5l10 5-10 5Z"/><path d="M6 11.6v4.6c0 1.5 2.7 3.3 6 3.3s6-1.8 6-3.3v-4.6"/><path d="M21.5 9.8v5.2"/>',
   env: '<path d="M5 20c0-8.5 5.8-14.5 15-15 .2 9.4-5.8 15-14 15Z"/><path d="M5 20c2.5-4.5 5.5-7.5 9.5-10"/>',
   house: '<path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 9.8V20h13V9.8"/><path d="M10 20v-5.5h4V20"/>',
+  crime: '<path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.4 7.5 9.5 4.3-1.1 7.5-4.9 7.5-9.5V6Z"/><path d="M9 12l2 2 4-4"/>',
+  macro: '<path d="M3 17l5-5 4 4 8-8"/><path d="M15 8h5v5"/><path d="M3 21h18"/>',
+  dem: '<path d="M4 13h16v7H4Z"/><path d="M8 13V6.5a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1V13"/><path d="M10 9l1.5 1.5L14.5 7.5"/>',
+  int: '<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17"/><path d="M12 3.5c2.4 2.3 3.6 5.2 3.6 8.5s-1.2 6.2-3.6 8.5c-2.4-2.3-3.6-5.2-3.6-8.5s1.2-6.2 3.6-8.5Z"/>',
   pub: '<path d="M3 9.2 12 4l9 5.2Z"/><path d="M5.5 11.5v6M10 11.5v6M14 11.5v6M18.5 11.5v6"/><path d="M3.5 20.5h17"/>',
 };
-const TABC = { cpi: "#e8833a", lfs: "#2563eb", pop: "#d9486b", biz: "#6d5bd0", edu: "#0f9d8a", env: "#4d8f2a", house: "#c2710c", pub: "#005293" };
+const TABC = { cpi: "#e8833a", lfs: "#2563eb", pop: "#d9486b", biz: "#6d5bd0", edu: "#0f9d8a", env: "#4d8f2a", house: "#c2710c", crime: "#475569", macro: "#0e7490", dem: "#be185d", int: "#9333ea", pub: "#005293" };
 const KIND_ICON = {
   line: '<path d="M4 18 9 12l4 3 7-9"/><path d="M4 21h16"/>',
   bar: '<path d="M5 21v-7M10 21V9M15 21v-5M20 21V5"/>',
   stack: '<rect x="4" y="12" width="5" height="8" rx="1"/><rect x="4" y="6" width="5" height="6" rx="1"/><rect x="14" y="9" width="5" height="11" rx="1"/><rect x="14" y="4" width="5" height="5" rx="1"/>',
   hbar: '<path d="M4 5h11M4 10h16M4 15h8M4 20h13"/>',
+  hgroup: '<path d="M4 4h12M4 7h8M4 12h16M4 15h11M4 20h9"/>',
 };
 const svg = (p, sw = 1.8) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
 
@@ -321,13 +338,18 @@ const KPI = {
   edu: [["edu_degrees", "w"], ["edu_attainment", "long"], ["edu_gbard", "gbard"]],
   env: [["env_harvest", "wheat"], ["env_ghg", "hh"], ["env_agri_ghg", "enteric"]],
   house: [["house_completed", "multi"], ["house_tenure", "rent"], ["house_avg_small", "avg"]],
+  macro: [["mac_gdp_growth", "gdp"], ["mac_gdp_q", "q"], ["mac_statsskuld", "debt"]],
+  dem: [["dem_turnout", "se"], ["dem_turnout", "gbg"], ["dem_history", "S"]],
+  int: [["int_bg_share", "gbg"], ["int_gbg_unemp", "gbg_ut"], ["int_citizenship", "cit"]],
+  crime: [["crime_gbg_total", "gbg"], ["crime_gbg_violence", "gbg"], ["crime_fatal_gun", "gun"]],
   pub: [["pub_gbg_income", "tax"], ["pub_gbg_result", "res"], ["pub_gbg_taxrate", "tot"]],
 };
 
 // ======================================================================
 //  상태
 // ======================================================================
-const KIND = { line: 0, bar: 1, stack: 2, hbar: 3 };
+const KIND = { line: 0, bar: 1, stack: 2, hbar: 3, hgroup: 4 };
+const isH = (c) => c.kind === "hbar" || c.kind === "hgroup";
 const FREQ = { Y: 1, Q: 4, M: 12, C: 0 };
 const OP = { YTICK: 1, XTICK: 2, PATH: 3, RECT: 4, ZERO: 5, CAT: 6, VTICK: 7, DOT: 8, ZEROV: 9 };
 const state = { lang: "ko", tab: null, manifest: null, data: {}, cards: [], g: null, food: null };
@@ -345,6 +367,8 @@ const css = (name) => getComputedStyle(document.documentElement).getPropertyValu
 const SER = ["--s1", "--s2", "--s3", "--s4", "--s5", "--s6", "--s7", "--s8"];
 function seriesColor(c, k) {
   if (c.series[k] && c.series[k].key === "target") return css("--ink-3");
+  if (c.series[k] && c.series[k].color) return c.series[k].color;      // 정당 색 등
+  if (c.catColors) return css("--ink-2");                                // 막대 색은 범주(정당)별
   return css(SER[k % SER.length]);
 }
 
@@ -431,7 +455,7 @@ class ChartCard {
     this.mask = 0;
     this.hover = -1;
     this.el = document.createElement("section");
-    this.el.className = "card" + (c.kind === "hbar" ? " hb" : "") + (c.periods.length > 120 && c.kind !== "line" ? " wide" : "");
+    this.el.className = "card" + (isH(c) ? " hb" : "") + (c.periods.length > 120 && c.kind !== "line" ? " wide" : "");
     this.el.style.setProperty("--tab-c", TABC[tabKey]);
     this.el.innerHTML = `<h3><span class="kind">${svg(KIND_ICON[c.kind] || KIND_ICON.line, 2)}</span><span class="ttl"></span><span class="scope ${c.scope || "se"}"></span></h3>
       <div class="legend" role="group"></div>
@@ -442,7 +466,7 @@ class ChartCard {
     this.over = this.el.querySelector("canvas.over");
     this.tip = this.el.querySelector(".tip");
     this.plot = this.el.querySelector(".plot");
-    if (c.kind === "hbar") this.plot.style.height = Math.max(200, c.periods.length * 30 + 44) + "px";
+    if (isH(c)) this.plot.style.height = Math.max(200, c.periods.length * (c.kind === "hgroup" ? 40 : 30) + 44) + "px";
     this.plot.addEventListener("pointermove", (e) => this.onMove(e));
     this.plot.addEventListener("pointerdown", (e) => this.onMove(e));
     this.plot.addEventListener("pointerleave", () => this.setHover(-1));
@@ -478,6 +502,7 @@ class ChartCard {
       const b = document.createElement("button");
       b.type = "button";
       b.style.setProperty("--c", seriesColor(c, k));
+      if (c.catColors && k > 0) b.style.setProperty("--c", `color-mix(in srgb, ${seriesColor(c, k)} 40%, transparent)`);
       b.setAttribute("aria-pressed", String(!(this.mask & (1 << k))));
       b.innerHTML = `<i></i>`;
       b.append(document.createTextNode(loc(s.label)));
@@ -494,7 +519,7 @@ class ChartCard {
     const note = this.el.querySelector(".note");
     note.hidden = !c.note;
     if (c.note) note.textContent = loc(c.note);
-    this.el.querySelector(".src").textContent = `SCB · ${t.source} ${c.source}`;
+    this.el.querySelector(".src").textContent = /^(Brå|Kolada|Valmyndigheten)/.test(c.source) ? c.source : `SCB · ${t.source} ${c.source}`;
     const badge = this.el.querySelector(".badge");
     badge.hidden = !c.stale;
     badge.textContent = t.stale;
@@ -519,7 +544,7 @@ class ChartCard {
     const font = "12px " + getComputedStyle(document.body).fontFamily;
     ctx.font = font;
     const ink3 = css("--ink-3"), grid = css("--grid"), axis = css("--axis"), ink2 = css("--ink-2");
-    const hbar = c.kind === "hbar";
+    const hbar = isH(c);
 
     // 1) 여백: 눈금 글자 폭을 재려면 범위가 필요하므로 대략 배치 → 글자 폭 측정 → 재배치
     let left, top = 22, right = hbar ? 26 : 14, bottom = hbar ? 38 : 40;
@@ -594,11 +619,15 @@ class ChartCard {
     const colors = c.series.map((_, k) => seriesColor(c, k));
     const dashed = c.series.map(s => s.key === "target");
     ctx.lineJoin = "round"; ctx.lineCap = "round";
+    let curCat = 0;
     this.eachOp(cmd, (op, a, i) => {
+      if (op === OP.CAT) curCat = a[1] | 0;
       if (op === OP.RECT) {
-        ctx.fillStyle = colors[a[1] | 0];
+        ctx.fillStyle = c.catColors ? c.catColors[curCat] : colors[a[1] | 0];
+        ctx.globalAlpha = c.catColors && (a[1] | 0) > 0 ? 0.38 : 1;      // 비교 시리즈(예: 2022년)는 옅게
         const r = Math.min(3, a[4] / 3, a[5] / 3);
         roundRect(ctx, a[2], a[3], a[4], a[5], r);
+        ctx.globalAlpha = 1;
       } else if (op === OP.PATH) {
         const s = a[1] | 0, n = a[2] | 0;
         ctx.strokeStyle = colors[s];
@@ -666,7 +695,7 @@ class ChartCard {
     const i = this.hover;
     if (i < 0 || this.h < 0 || !this.box) { this.tip.style.opacity = 0; return; }
     const g = state.g, c = this.c, { left, top, pw, ph, W, H } = this.box;
-    const hbar = c.kind === "hbar";
+    const hbar = isH(c);
     const p = g.chart_ipos(this.h, i), band = g.chart_band(this.h);
     ctx.fillStyle = css("--ink"); ctx.globalAlpha = 0.07;
     if (hbar) ctx.fillRect(left, p - band / 2, pw, band);
@@ -831,7 +860,7 @@ class FoodBoard {
       this.addMini(el.querySelector("canvas"), it, false);
     }
     this.el.querySelector(".note").textContent = loc(c.note);
-    this.el.querySelector(".src").textContent = `SCB · ${t.source} ${c.source}`;
+    this.el.querySelector(".src").textContent = /^(Brå|Kolada|Valmyndigheten)/.test(c.source) ? c.source : `SCB · ${t.source} ${c.source}`;
   }
 
   addMini(canvas, it, big) {
@@ -1000,7 +1029,7 @@ function kpiTiles(key, data) {
       }
     }
     const unit = c.unit === "%" ? "%" : "";
-    const pin = c.scope === "gbg" || c.scope === "vg" ? "📍 " : "";
+    const pin = c.scope && c.scope !== "se" ? "📍 " : "";
     const label = pin + (c.series.length > 1 ? `${loc(c.title)} · ${loc(s.label)}` : loc(c.title));
     const el = document.createElement("div");
     el.className = "kpi";

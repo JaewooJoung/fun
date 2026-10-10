@@ -1,8 +1,8 @@
 {
   "api": "https://statistikdatabasen.scb.se/api/v2",
-  "failed": 3,
-  "generated": "2026-10-10T10:32:06",
-  "ok": 95,
+  "failed": 0,
+  "generated": "2026-10-10T11:02:03",
+  "ok": 98,
   "source": "Statistics Sweden (SCB) PxWebApi v2",
   "tabs": [
     {
@@ -87,11 +87,7 @@
     },
     {
       "charts": 13,
-      "errors": [
-        "http tls transport error: tls read failed: i/o timeout [i/o timeout]",
-        "http tls transport error: tls read failed: i/o timeout [i/o timeout]",
-        "http tls transport error: tls read failed: i/o timeout [i/o timeout]"
-      ],
+      "errors": [],
       "key": "crime",
       "name": {
         "en": "Crime & justice",
