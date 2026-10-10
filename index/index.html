@@ -84,21 +84,27 @@ header.top {
 
 /* ---------- tabs ---------- */
 nav.tabs { background: var(--panel); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 20; }
-nav.tabs .wrap { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; padding-top: 8px; padding-bottom: 0; }
-nav.tabs .wrap::-webkit-scrollbar { display: none; }
+nav.tabs .wrap { display: grid; grid-template-columns: repeat(var(--ntabs, 12), minmax(0, 60px)); gap: 4px; padding-top: 8px; padding-bottom: 0; }
 .tab {
-  display: flex; align-items: center; gap: 8px; flex: none;
+  display: grid; place-items: center; min-width: 0;
   border: 0; background: transparent; cursor: pointer;
-  padding: 9px 12px 11px; border-radius: 10px 10px 0 0; color: var(--ink-2);
-  font-size: 14px; font-weight: 600; white-space: nowrap; position: relative;
+  padding: 7px 0 10px; border-radius: 10px 10px 0 0; color: var(--ink-2); position: relative;
+  -webkit-tap-highlight-color: transparent;
 }
-.tab .ic { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: var(--accent-soft); color: var(--tab-c); flex: none; }
-.tab .ic svg { width: 18px; height: 18px; }
-.tab:hover { color: var(--ink); background: var(--bg); }
-.tab[aria-selected="true"] { color: var(--ink); }
-.tab[aria-selected="true"]::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: 0; height: 3px; border-radius: 3px 3px 0 0; background: var(--tab-c); }
-.tab[aria-selected="true"] .ic { background: var(--tab-c); color: #fff; }
+.tab .ic { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; background: var(--accent-soft); color: var(--tab-c); transition: transform .12s; }
+.tab .ic svg { width: 21px; height: 21px; }
+.tab:hover .ic { transform: translateY(-1px); }
+.tab[aria-selected="true"]::after { content: ""; position: absolute; left: 18%; right: 18%; bottom: 0; height: 3px; border-radius: 3px 3px 0 0; background: var(--tab-c); }
+.tab[aria-selected="true"] .ic { background: var(--tab-c); color: #fff; box-shadow: 0 2px 8px color-mix(in srgb, var(--tab-c) 45%, transparent); }
 .tab:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+#tabtip {
+  position: fixed; z-index: 50; pointer-events: none; background: var(--tip-bg); color: var(--tip-ink);
+  font-size: 13px; font-weight: 600; line-height: 1.3; padding: 6px 10px; border-radius: 8px; white-space: nowrap;
+  box-shadow: 0 6px 20px rgba(0,0,0,.22); opacity: 0; transform: translateY(-3px); transition: opacity .1s, transform .1s;
+}
+#tabtip.on { opacity: 1; transform: none; }
+#tabtip::before { content: ""; position: absolute; top: -5px; left: var(--ax, 50%); margin-left: -5px; border: 5px solid transparent; border-top: 0; border-bottom-color: var(--tip-bg); }
 
 /* ---------- content ---------- */
 main { padding: 20px 0 40px; }
@@ -202,8 +208,10 @@ footer a { color: inherit; }
 @media (max-width: 560px) {
   .brand h1 { font-size: 17px; }
   .brand p { display: none; }
-  .tab { padding: 8px 9px 10px; font-size: 13px; }
-  .tab .label { max-width: 7.5em; overflow: hidden; text-overflow: ellipsis; }
+  nav.tabs .wrap { grid-template-columns: repeat(var(--ntabs, 12), minmax(0, 1fr)); gap: 2px; padding-left: 8px; padding-right: 8px; }
+  .tab { padding: 6px 0 9px; }
+  .tab .ic { width: min(30px, 100%); height: 30px; border-radius: 9px; }
+  .tab .ic svg { width: 17px; height: 17px; }
   .plot { height: 250px; }
   .kpi .k-val { font-size: 22px; }
   .card { padding: 12px 12px 10px; }
@@ -226,6 +234,7 @@ footer a { color: inherit; }
   </div>
 </header>
 <nav class="tabs" aria-label="Categories"><div class="wrap" role="tablist" id="tabs"></div></nav>
+<div id="tabtip" role="tooltip"></div>
 <main><div class="wrap" id="main"><div class="skeleton"></div></div></main>
 <footer><div class="wrap"><span id="f-src"></span><span id="f-upd"></span></div></footer>
 
@@ -982,6 +991,7 @@ const ro = new ResizeObserver((ents) => {
 function renderTabs() {
   const box = document.getElementById("tabs");
   box.innerHTML = "";
+  box.style.setProperty("--ntabs", state.manifest.tabs.length);
   for (const t of state.manifest.tabs) {
     const b = document.createElement("button");
     b.type = "button"; b.className = "tab"; b.setAttribute("role", "tab"); b.id = "tab-" + t.key;
@@ -989,9 +999,19 @@ function renderTabs() {
     b.setAttribute("aria-selected", String(t.key === state.tab));
     b.setAttribute("aria-controls", "main");
     b.tabIndex = t.key === state.tab ? 0 : -1;
-    b.innerHTML = `<span class="ic">${svg(ICON[t.key] || ICON.cpi)}</span><span class="label"></span>`;
-    b.querySelector(".label").textContent = (T().tabs[t.key] || [loc(t.name)])[0];
-    b.onclick = () => selectTab(t.key, true);
+    const name = (T().tabs[t.key] || [loc(t.name)])[0];
+    b.innerHTML = `<span class="ic">${svg(ICON[t.key] || ICON.cpi)}</span><span class="sr-only"></span>`;
+    b.querySelector(".sr-only").textContent = name;
+    b.setAttribute("aria-label", name);
+    // 이름은 툴팁으로: 마우스는 올렸을 때, 키보드는 포커스 때, 폰은 누르면 잠깐 보여 준다
+    b.onpointerenter = (e) => { if (e.pointerType === "mouse") showTabTip(b, name); };
+    b.onpointerleave = (e) => { if (e.pointerType === "mouse") hideTabTip(); };
+    b.onfocus = () => { if (b.matches(":focus-visible")) showTabTip(b, name); };
+    b.onblur = hideTabTip;
+    b.onclick = (e) => {
+      if (e.pointerType !== "mouse") showTabTip(b, name, 1600);
+      if (t.key !== state.tab) selectTab(t.key, true);
+    };
     b.onkeydown = (e) => {
       const keys = state.manifest.tabs.map(x => x.key), i = keys.indexOf(t.key);
       if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
@@ -1001,9 +1021,24 @@ function renderTabs() {
     };
     box.append(b);
   }
-  const sel = document.getElementById("tab-" + state.tab);
-  if (sel) sel.scrollIntoView({ block: "nearest", inline: "nearest" });
 }
+
+let tipTimer = 0;
+function showTabTip(btn, text, ms) {
+  const tip = document.getElementById("tabtip");
+  tip.textContent = text;
+  const r = btn.getBoundingClientRect(), w = tip.offsetWidth;
+  const cx = r.left + r.width / 2;
+  const x = Math.max(8, Math.min(cx - w / 2, document.documentElement.clientWidth - w - 8));
+  tip.style.left = x + "px";
+  tip.style.top = (r.bottom + 6) + "px";
+  tip.style.setProperty("--ax", (cx - x) + "px");
+  tip.classList.add("on");
+  clearTimeout(tipTimer);
+  if (ms) tipTimer = setTimeout(hideTabTip, ms);
+}
+function hideTabTip() { clearTimeout(tipTimer); document.getElementById("tabtip").classList.remove("on"); }
+window.addEventListener("scroll", hideTabTip, { passive: true });
 
 function kpiTiles(key, data) {
   const out = document.createElement("div");
