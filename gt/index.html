@@ -883,7 +883,15 @@ document.querySelectorAll("#langs .btn").forEach(b => b.onclick = () => {
 // 고정 머리글 높이 → 상태 상자가 그 아래에 붙도록
 const setHead = () => document.documentElement.style.setProperty("--head", document.querySelector("header").offsetHeight + "px");
 addEventListener("resize", setHead);
+/** 초대 링크 (…/gt/#k=앱암호): 암호를 이 기기에 저장하고 주소창에서는 지운다. '#' 뒤는 서버로 전송되지 않는다. */
+function takeInviteKey() {
+  const m = /(?:^#|&)k=([^&]+)/.exec(location.hash);
+  if (!m) return;
+  store.set("pass", decodeURIComponent(m[1]));
+  history.replaceState(null, "", location.pathname + location.search);
+}
 (async function main() {
+  takeInviteKey();
   document.documentElement.dataset.contrast = store.get("contrast", "high");
   const f = document.createElement("footer"); f.innerHTML = `<div class="wrap" id="foot"></div>`; document.body.append(f);
   applyLang(S.lang);
