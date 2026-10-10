@@ -189,7 +189,6 @@ footer { color: var(--dim); font-size: 15px; font-weight: 500; padding: 20px 0 4
   <fieldset><legend id="lgContrast"></legend><div class="choice">
     <button type="button" class="btn small" data-contrast="high" id="cHigh"></button><button type="button" class="btn small" data-contrast="normal" id="cNormal"></button>
   </div></fieldset>
-  <label class="field"><span id="lbPass"></span><input type="password" id="pass" autocomplete="current-password"></label>
   <details><summary id="lbDev" style="cursor:pointer;margin-bottom:10px"></summary>
     <label class="field"><span id="lbToken"></span><input type="password" id="manualToken" autocomplete="off"></label>
   </details>
@@ -395,14 +394,14 @@ async function getToken(force) {
   if (!force && S.token && S.tokenExp - now > 60000) return S.token;
   const manual = store.get("manualToken", "");
   if (manual && jwtExp(manual) - now > 60000) { S.token = manual; S.tokenExp = jwtExp(manual); return S.token; }
-  const pass = store.get("pass", "gt-McHA1yPy6s0D");
-  if (!pass) throw new Error("needPass");
+  // 사용자 결정(2026-10-10): 암호를 묻지 않는다 — 키를 페이지에 둔다 (토큰은 사실상 공개, 비밀키는 Pi 의 .env 에만)
+  const pass = "gt-McHA1yPy6s0D";
   const r = await fetch("token.enc?t=" + Math.floor(now / 60000), { cache: "no-store" });
   if (!r.ok) throw new Error("expired");
   const f = await r.json();
   let tok;
   try { tok = await decryptToken(f.data, pass, f.iter || 200000); } catch (e) { tok = ""; }
-  if (!tok.startsWith("ey")) { store.set("pass", ""); throw new Error("badPass"); }   // 틀린 암호는 지우고 다시 묻는다
+  if (!tok.startsWith("ey")) throw new Error("expired");
   S.token = tok; S.tokenExp = jwtExp(tok) || Date.parse(f.expires) || now + 3600e3;
   if (S.tokenExp - now < 60000) throw new Error("expired");
   return tok;
@@ -441,7 +440,6 @@ async function loadWasm() {
 // ======================================================================
 function viewSearch(msg) {
   stopGuidance();
-  if (msg === t().badPass || msg === t().needPass) setTimeout(openSettings, 300);   // 암호 문제면 바로 입력 창
   const v = $("view"), L = t();
   v.innerHTML = `
     <h2 id="h"></h2>
@@ -821,7 +819,6 @@ document.addEventListener("keydown", (e) => {
 // ======================================================================
 function openSettings() {
   const d = $("settings");
-  $("pass").value = store.get("pass", "");
   $("manualToken").value = store.get("manualToken", "");
   updateSettingsText();
   d.showModal();
@@ -830,7 +827,7 @@ function updateSettingsText() {
   const L = t();
   $("setTitle").textContent = L.setTitle; $("lgVoice").textContent = L.voice; $("voiceOn").textContent = L.on; $("voiceOff").textContent = L.off;
   $("lgContrast").textContent = L.contrast; $("cHigh").textContent = L.high; $("cNormal").textContent = L.normal;
-  $("lbPass").textContent = L.pass; $("lbDev").textContent = L.dev; $("lbToken").textContent = L.token;
+  $("lbDev").textContent = L.dev; $("lbToken").textContent = L.token;
   $("setSave").textContent = L.save; $("setClose").textContent = L.close;
   $("voiceOn").setAttribute("aria-pressed", String(S.voice)); $("voiceOff").setAttribute("aria-pressed", String(!S.voice));
   const c = document.documentElement.dataset.contrast;
@@ -846,7 +843,6 @@ for (const id of ["cHigh", "cNormal"]) $(id).onclick = (e) => {
   const c = e.currentTarget.dataset.contrast; document.documentElement.dataset.contrast = c; store.set("contrast", c); updateSettingsText();
 };
 $("setSave").onclick = async () => {
-  store.set("pass", $("pass").value.replace(/\s+/g, ""));
   store.set("manualToken", $("manualToken").value.trim());
   S.token = null;
   try { await getToken(true); updateSettingsText(); say(t().tokOk(Math.floor((S.tokenExp - Date.now()) / 3600e3))); $("settings").close(); }
@@ -884,15 +880,7 @@ document.querySelectorAll("#langs .btn").forEach(b => b.onclick = () => {
 // 고정 머리글 높이 → 상태 상자가 그 아래에 붙도록
 const setHead = () => document.documentElement.style.setProperty("--head", document.querySelector("header").offsetHeight + "px");
 addEventListener("resize", setHead);
-/** 초대 링크 (…/gt/#k=앱암호): 암호를 이 기기에 저장하고 주소창에서는 지운다. '#' 뒤는 서버로 전송되지 않는다. */
-function takeInviteKey() {
-  const m = /(?:^#|&)k=([^&]+)/.exec(location.hash);
-  if (!m) return;
-  store.set("pass", decodeURIComponent(m[1]).trim());
-  history.replaceState(null, "", location.pathname + location.search);
-}
 (async function main() {
-  takeInviteKey();
   document.documentElement.dataset.contrast = store.get("contrast", "high");
   const f = document.createElement("footer"); f.innerHTML = `<div class="wrap" id="foot"></div>`; document.body.append(f);
   applyLang(S.lang);
@@ -900,8 +888,7 @@ function takeInviteKey() {
   try { S.g = await loadWasm(); }
   catch (e) { $("view").innerHTML = `<p class="msg bad" role="alert">WebAssembly: ${esc(e.message)}</p>`; return; }
   viewSearch();
-  try { await getToken(); }
-  catch (e) { if (e.message === "needPass") openSettings(); }
+  getToken().catch(() => {});        // 미리 받아 두기 (실패하면 검색할 때 다시)
 })();
 </script>
 </body>
