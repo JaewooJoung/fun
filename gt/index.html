@@ -33,6 +33,7 @@ body {
 button, input { font: inherit; color: inherit; }
 :focus-visible { outline: 4px solid var(--focus); outline-offset: 3px; }
 .wrap { max-width: 760px; margin: 0 auto; padding: 0 16px; }
+[hidden] { display: none !important; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
 /* ---------- 상단 ---------- */
@@ -63,12 +64,27 @@ input[type=text], input[type=password] {
   background: var(--panel); color: var(--fg); border: 3px solid var(--border); border-radius: var(--radius);
 }
 input::placeholder { color: var(--dim); }
-.sugs { list-style: none; margin: 6px 0 0; padding: 0; border: 3px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-.sugs:empty { display: none; }
-.sugs li { padding: 14px 16px; border-top: 2px solid var(--border); cursor: pointer; }
-.sugs li:first-child { border-top: 0; }
-.sugs li[aria-selected="true"], .sugs li:hover { background: var(--accent); color: var(--accent-ink); }
-.sugs small { display: block; font-size: 16px; opacity: .8; font-weight: 600; }
+.inrow { position: relative; }
+.inrow .clear { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); min-height: 44px; min-width: 44px; border-width: 2px; }
+.inrow input { padding-right: 60px; }
+.sugs { list-style: none; margin: 6px 0 0; padding: 0; border: 3px solid var(--accent); border-radius: var(--radius); overflow: auto; max-height: min(62vh, 520px); background: var(--panel); }
+.sugs li[role="option"] { display: flex; gap: 12px; align-items: center; padding: 10px 14px; min-height: 60px; border-top: 2px solid color-mix(in srgb, var(--border) 35%, transparent); cursor: pointer; }
+.sugs li[aria-selected="true"], .sugs li[role="option"]:hover { background: var(--accent); color: var(--accent-ink); }
+.sugs .ic { font-size: 26px; width: 34px; text-align: center; flex: none; }
+.sugs .tx { min-width: 0; }
+.sugs .mn { display: block; font-size: 21px; font-weight: 800; overflow-wrap: anywhere; }
+.sugs mark { background: transparent; color: inherit; text-decoration: underline 3px; text-underline-offset: 3px; }
+.sugs small { display: block; font-size: 16px; opacity: .85; font-weight: 600; }
+.sugs .sgh { padding: 8px 14px 4px; font-size: 15px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); border-top: 2px solid var(--border); }
+.sugs .sgh:first-child { border-top: 0; }
+.sugs .sgs { padding: 12px 14px; color: var(--muted); border-top: 2px solid color-mix(in srgb, var(--border) 35%, transparent); }
+.pick { display: flex; align-items: center; gap: 10px; margin: 8px 0 4px; }
+.pick:empty { display: none; }
+.pick { border: 3px solid var(--ok); border-radius: var(--radius); padding: 8px 12px; }
+.pick .ok { color: var(--ok); font-size: 24px; font-weight: 900; }
+.pick .ic { font-size: 24px; }
+.pick b { display: block; font-size: 21px; }
+.pick small { display: block; font-size: 16px; color: var(--muted); font-weight: 600; }
 .actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 6px 0 18px; }
 .actions .btn { flex: 1 1 auto; }
 .recent { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
@@ -226,6 +242,9 @@ const T = {
     netErr: "Kunde inte nå Västtrafik. Kontrollera internet.", geoErr: "Kunde inte hitta din position.",
     footer: "Data: Västtrafik Planera Resa v4. Vägledningen är ett hjälpmedel — lyssna också på utrop och skyltar.",
     swipeHint: "Svep åt vänster för nästa, åt höger för föregående.",
+    types: { stoparea: "Hållplats", address: "Adress", pointofinterest: "Plats", metastation: "Station", myloc: "GPS" },
+    recentPl: "Senaste platser", popular: "Vanliga hållplatser", results: "Sökresultat", noHits: "Inga träffar.",
+    chosen: "Vald", clear: "Rensa", nSugs: (n) => `${n} förslag. Använd pil upp och ner.`,
   },
   en: {
     app: "Linjen", skip: "Skip to content", settings: "Settings",
@@ -260,6 +279,9 @@ const T = {
     netErr: "Could not reach Västtrafik. Check your connection.", geoErr: "Could not find your location.",
     footer: "Data: Västtrafik Planera Resa v4. This guidance is an aid — also listen to announcements and signs.",
     swipeHint: "Swipe left for next, right for previous.",
+    types: { stoparea: "Stop", address: "Address", pointofinterest: "Place", metastation: "Station", myloc: "GPS" },
+    recentPl: "Recent places", popular: "Common stops", results: "Search results", noHits: "No matches.",
+    chosen: "Chosen", clear: "Clear", nSugs: (n) => `${n} suggestions. Use the up and down arrows.`,
   },
   ko: {
     app: "린옌", skip: "본문으로 건너뛰기", settings: "설정",
@@ -294,6 +316,9 @@ const T = {
     netErr: "Västtrafik 에 연결할 수 없습니다. 인터넷을 확인하세요.", geoErr: "현재 위치를 찾지 못했습니다.",
     footer: "데이터: Västtrafik Planera Resa v4. 이 안내는 보조 수단입니다 — 차내 방송과 안내판도 함께 확인하세요.",
     swipeHint: "왼쪽으로 밀면 다음, 오른쪽으로 밀면 이전 안내를 듣습니다.",
+    types: { stoparea: "정류장", address: "주소", pointofinterest: "장소", metastation: "역", myloc: "GPS" },
+    recentPl: "최근 장소", popular: "자주 가는 정류장", results: "검색 결과", noHits: "일치하는 곳이 없습니다.",
+    chosen: "선택됨", clear: "지우기", nSugs: (n) => `보기 ${n}개. 위아래 화살표로 고르세요.`,
   },
 };
 const cap = (s) => s ? s[0].toUpperCase() + s.slice(1) : s;
@@ -328,7 +353,7 @@ const hhmm = (ms) => ms ? new Intl.DateTimeFormat(LOCALE[S.lang], { hour: "2-dig
 // ======================================================================
 //  음성 (Web Speech API) + 화면 읽기 프로그램 + 진동
 // ======================================================================
-function say(text, urgent) {
+function say(text, urgent, cut) {
   if (!text) return;
   S.lastSay = text;
   const live = $("live");
@@ -341,7 +366,7 @@ function say(text, urgent) {
   const v = speechSynthesis.getVoices().find(v => v.lang && v.lang.replace("_", "-").startsWith(LOCALE[S.lang].slice(0, 2)));
   if (v) u.voice = v;
   u.rate = S.lang === "ko" ? 1.0 : 0.95;
-  if (urgent) speechSynthesis.cancel();
+  if (urgent || cut) speechSynthesis.cancel();
   speechSynthesis.speak(u);
 }
 if ("speechSynthesis" in window) speechSynthesis.onvoiceschanged = () => {};
@@ -434,7 +459,7 @@ function viewSearch(msg) {
   $("h").textContent = L.search;
   for (const k of ["from", "to"]) bindAuto(k);
   $("geo").onclick = useMyLocation;
-  $("swap").onclick = () => { [S.from, S.to] = [S.to, S.from]; $("in-from").value = S.from ? S.from.name : ""; $("in-to").value = S.to ? S.to.name : ""; };
+  $("swap").onclick = () => { [S.from, S.to] = [S.to, S.from]; $("in-from").value = S.from ? splitName(S.from.name)[0] : ""; $("in-to").value = S.to ? splitName(S.to.name)[0] : ""; showPick("from"); showPick("to"); };
   $("f").onsubmit = (e) => { e.preventDefault(); search(); };
   const rec = store.get("recent", []);
   const ul = $("recent");
@@ -445,56 +470,139 @@ function viewSearch(msg) {
     b.onclick = () => { S.from = r.from; S.to = r.to; search(); };
     li.append(b); ul.append(li);
   }
-  if (S.from) $("in-from").value = S.from.name;
-  if (S.to) $("in-to").value = S.to.name;
+  if (S.from) { $("in-from").value = splitName(S.from.name)[0]; showPick("from"); }
+  if (S.to) { $("in-to").value = splitName(S.to.name)[0]; showPick("to"); }
 }
 function field(k, label, ph) {
   return `<label class="field" for="in-${k}"><span>${esc(label)}</span></label>
     <div class="inrow"><input type="text" id="in-${k}" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sg-${k}"
-      autocomplete="off" autocapitalize="words" spellcheck="false" placeholder="${esc(ph)}"></div>
-    <ul class="sugs" id="sg-${k}" role="listbox" aria-label="${esc(label)}"></ul>`;
+      aria-describedby="pv-${k}" autocomplete="off" autocapitalize="words" spellcheck="false" enterkeyhint="next" placeholder="${esc(ph)}">
+      <button type="button" class="btn small clear" id="cl-${k}" hidden>✕<span class="sr-only">${esc(t().clear)}</span></button></div>
+    <div class="pick" id="pv-${k}" aria-live="polite"></div>
+    <ul class="sugs" id="sg-${k}" role="listbox" aria-label="${esc(label)}" hidden></ul>
+    <p class="sr-only" id="ct-${k}" aria-live="polite"></p>`;
+}
+// 자주 쓰는 정류장 (Västtrafik 공개 정류장 ID) — 토큰이나 네트워크 없이도 바로 보이는 보기
+const POPULAR = [{"name": "Göteborg Central, Göteborg", "gid": "9021014008000000"}, {"name": "Nils Ericson Terminalen, Göteborg", "gid": "9021014004940000"}, {"name": "Brunnsparken, Göteborg", "gid": "9021014001760000"}, {"name": "Drottningtorget, Göteborg", "gid": "9021014002135000"}, {"name": "Järntorget, Göteborg", "gid": "9021014003640000"}, {"name": "Korsvägen, Göteborg", "gid": "9021014003980000"}, {"name": "Chalmers, Göteborg", "gid": "9021014001960000"}, {"name": "Valand, Göteborg", "gid": "9021014007220000"}, {"name": "Kungsportsplatsen, Göteborg", "gid": "9021014004090000"}, {"name": "Lindholmen, Göteborg", "gid": "9021014004490000"}, {"name": "Hjalmar Brantingsplatsen, Göteborg", "gid": "9021014003180000"}, {"name": "Frölunda Torg, Göteborg", "gid": "9021014002530000"}, {"name": "Sahlgrenska Huvudentré, Göteborg", "gid": "9021014005600000"}, {"name": "Liseberg Södra, Göteborg", "gid": "9021014004527000"}, {"name": "Svingeln, Göteborg", "gid": "9021014006480000"}, {"name": "Gamlestads Torg, Göteborg", "gid": "9021014002670000"}, {"name": "Angered Centrum, Göteborg", "gid": "9021014001075000"}, {"name": "Mölndals Innerstad, Mölndal", "gid": "9021014012110000"}, {"name": "Saltholmen, Göteborg", "gid": "9021014005630000"}, {"name": "Eriksbergs Färjeläge, Göteborg", "gid": "9021014002239000"}, {"name": "Linnéplatsen, Göteborg", "gid": "9021014004510000"}, {"name": "Vasaplatsen, Göteborg", "gid": "9021014007300000"}, {"name": "Ullevi Södra, Göteborg", "gid": "9021014007172000"}, {"name": "Marklandsgatan, Göteborg", "gid": "9021014004760000"}, {"name": "Stenpiren, Göteborg", "gid": "9021014006242000"}, {"name": "Kortedala Torg, Göteborg", "gid": "9021014004000000"}, {"name": "Wieselgrensplatsen, Göteborg", "gid": "9021014007430000"}, {"name": "Östra Sjukhuset, Göteborg", "gid": "9021014007880000"}, {"name": "Landvetter flygplats, Härryda", "gid": "9021014018323000"}].map(p => ({ ...p, type: "stoparea" }));
+const TYPE_ICON = { stoparea: "🚏", address: "🏠", pointofinterest: "📍", metastation: "🚉", myloc: "🧭" };
+const fold = (x) => String(x || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+function splitName(name) {
+  const i = String(name).lastIndexOf(", ");
+  return i > 0 ? [name.slice(0, i), name.slice(i + 2)] : [name, ""];
+}
+/** 일치하는 부분을 <mark> 로 (악센트 무시) */
+function markMatch(text, q) {
+  const f = fold(text), fq = fold(q).trim();
+  const i = fq ? f.indexOf(fq) : -1;
+  if (i < 0) return esc(text);
+  return esc(text.slice(0, i)) + "<mark>" + esc(text.slice(i, i + fq.length)) + "</mark>" + esc(text.slice(i + fq.length));
+}
+function rememberPlace(p) {
+  if (!p || p.type === "myloc") return;
+  const list = store.get("places", []).filter(x => x.name !== p.name);
+  store.set("places", [{ name: p.name, gid: p.gid, lat: p.lat, lon: p.lon, type: p.type }, ...list].slice(0, 8));
+}
+function showPick(k) {
+  const pv = $("pv-" + k), p = S[k], L = t();
+  if (!pv) return;
+  $("cl-" + k).hidden = !$("in-" + k).value;
+  if (!p) { pv.innerHTML = ""; return; }
+  const [main, area] = splitName(p.name);
+  pv.innerHTML = `<span class="ok" aria-hidden="true">✔</span><span class="ic" aria-hidden="true">${TYPE_ICON[p.type] || "📍"}</span>
+    <span><b>${esc(main)}</b><small>${esc([area, L.types[p.type] || ""].filter(Boolean).join(" · "))}</small></span>`;
 }
 function bindAuto(k) {
-  const inp = $("in-" + k), ul = $("sg-" + k);
-  let timer = 0, items = [], sel = -1;
-  const show = () => {
+  const inp = $("in-" + k), ul = $("sg-" + k), L = t();
+  let timer = 0, seq = 0, items = [], sel = -1, remote = [], state = "";   // state: "" | "loading" | 오류 문장
+  const local = (q) => {
+    const fq = fold(q).trim();
+    const pool = [...store.get("places", []).map(p => ({ ...p, src: "recent" })), ...POPULAR.map(p => ({ ...p, src: "popular" }))];
+    const seen = new Set(), out = [];
+    for (const p of pool) {
+      if (seen.has(p.name)) continue;
+      const f = fold(p.name);
+      if (!fq || f.startsWith(fq) || f.includes(" " + fq) || (fq.length > 2 && f.includes(fq))) { seen.add(p.name); out.push(p); }
+    }
+    return fq ? out.slice(0, 6) : out.filter(p => p.src === "recent").slice(0, 5).concat(out.filter(p => p.src === "popular").slice(0, 8));
+  };
+  const build = () => {
+    const q = inp.value;
+    const loc = local(q), names = new Set(loc.map(p => p.name));
+    const rem = remote.filter(r => !names.has(r.name)).map(r => ({ ...r, src: "remote" }));
+    items = [];
+    if (k === "from" && !q.trim()) items.push({ name: L.myPos, type: "myloc", src: "myloc" });
+    items.push(...loc, ...rem);
+    if (sel >= items.length) sel = items.length - 1;
+    render();
+  };
+  const render = () => {
+    const q = inp.value;
     ul.innerHTML = "";
+    let lastSrc = "";
+    const head = (txt) => { const h = document.createElement("li"); h.className = "sgh"; h.setAttribute("role", "presentation"); h.textContent = txt; ul.append(h); };
     items.forEach((it, i) => {
+      const grp = it.src === "recent" ? L.recentPl : it.src === "popular" ? L.popular : it.src === "remote" ? L.results : "";
+      if (grp && grp !== lastSrc) { head(grp); lastSrc = grp; }
+      const [main, area] = splitName(it.name);
       const li = document.createElement("li");
       li.id = `sg-${k}-${i}`; li.setAttribute("role", "option"); li.setAttribute("aria-selected", String(i === sel));
-      li.innerHTML = `${esc(it.name)}${it.kind ? `<small>${esc(it.kind)}</small>` : ""}`;
+      li.innerHTML = `<span class="ic" aria-hidden="true">${TYPE_ICON[it.type] || "📍"}</span>
+        <span class="tx"><span class="mn">${markMatch(main, q)}</span><small>${esc([area, L.types[it.type] || ""].filter(Boolean).join(" · "))}</small></span>`;
       li.onpointerdown = (e) => { e.preventDefault(); choose(i); };
       ul.append(li);
     });
-    inp.setAttribute("aria-expanded", String(items.length > 0));
-    if (sel >= 0) inp.setAttribute("aria-activedescendant", `sg-${k}-${sel}`); else inp.removeAttribute("aria-activedescendant");
+    if (state) { const s2 = document.createElement("li"); s2.className = "sgs"; s2.setAttribute("role", "presentation"); s2.textContent = state; ul.append(s2); }
+    const open = document.activeElement === inp && (items.length > 0 || !!state);
+    ul.hidden = !open;
+    inp.setAttribute("aria-expanded", String(open));
+    if (sel >= 0 && open) { inp.setAttribute("aria-activedescendant", `sg-${k}-${sel}`); $(`sg-${k}-${sel}`)?.scrollIntoView({ block: "nearest" }); }
+    else inp.removeAttribute("aria-activedescendant");
+    $("ct-" + k).textContent = open && items.length ? L.nSugs(items.length) : "";
   };
   const choose = (i) => {
     const it = items[i]; if (!it) return;
-    S[k] = it; inp.value = it.name; items = []; sel = -1; show();
-    say(it.name);
+    if (it.type === "myloc") { ul.hidden = true; useMyLocation(); return; }
+    S[k] = { name: it.name, gid: it.gid, lat: it.lat, lon: it.lon, type: it.type };
+    inp.value = splitName(it.name)[0];
+    items = []; sel = -1; remote = []; state = ""; render();
+    rememberPlace(S[k]); showPick(k);
+    say(`${L.chosen}: ${it.name}`, false, true);
+    if (k === "from" && !S.to) $("in-to")?.focus();
   };
-  inp.oninput = () => {
-    S[k] = null; clearTimeout(timer);
+  const fetchRemote = () => {
     const q = inp.value.trim();
-    if (q.length < 2) { items = []; show(); return; }
+    clearTimeout(timer);
+    if (q.length < 2) { remote = []; state = ""; build(); return; }
+    state = L.searching; build();
+    const my = ++seq;
     timer = setTimeout(async () => {
       try {
-        const d = JSON.parse(await api("/locations/by-text", { q, limit: 6 }));
-        items = (d.results || []).map(r => ({ name: r.name, gid: r.gid, lat: r.latitude, lon: r.longitude, type: r.locationType,
-          kind: r.locationType === "stoparea" ? "" : r.locationType }));
-        sel = items.length ? 0 : -1; show();
-      } catch (e) { items = []; show(); say(errText(e)); }
-    }, 280);
+        const d = JSON.parse(await api("/locations/by-text", { q, limit: 8 }));
+        if (my !== seq) return;                           // 그사이 더 입력했으면 버린다
+        remote = (d.results || []).map(r => ({ name: r.name, gid: r.gid, lat: r.latitude, lon: r.longitude, type: r.locationType }));
+        state = remote.length || items.length ? "" : L.noHits;
+      } catch (e) { if (my !== seq) return; remote = []; state = errText(e); }
+      build();
+    }, 250);
   };
+  inp.oninput = () => { S[k] = null; showPick(k); sel = 0; fetchRemote(); };
+  inp.onfocus = () => { sel = S[k] ? -1 : 0; build(); };
   inp.onkeydown = (e) => {
-    if (!items.length) return;
-    if (e.key === "ArrowDown") { sel = Math.min(items.length - 1, sel + 1); show(); e.preventDefault(); }
-    else if (e.key === "ArrowUp") { sel = Math.max(0, sel - 1); show(); e.preventDefault(); }
-    else if (e.key === "Enter") { choose(sel < 0 ? 0 : sel); e.preventDefault(); }
-    else if (e.key === "Escape") { items = []; show(); }
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      if (!items.length) return;
+      sel = e.key === "ArrowDown" ? Math.min(items.length - 1, sel + 1) : Math.max(0, sel - 1);
+      render(); e.preventDefault();
+      say(items[sel].name, false, true);                  // 고른 보기 미리 듣기
+    } else if (e.key === "Enter") {
+      if (items.length && !ul.hidden) { choose(sel < 0 ? 0 : sel); e.preventDefault(); }
+    } else if (e.key === "Escape") { items = []; state = ""; render(); }
   };
-  inp.onblur = () => setTimeout(() => { if (!S[k] && items.length) choose(0); items = []; show(); }, 150);
+  inp.onblur = () => setTimeout(() => {
+    if (!S[k] && inp.value.trim() && items.length) choose(sel < 0 ? 0 : sel);   // 고르지 않고 나가면 첫 보기
+    ul.hidden = true; inp.setAttribute("aria-expanded", "false");
+  }, 180);
+  $("cl-" + k).onclick = () => { S[k] = null; inp.value = ""; showPick(k); inp.focus(); };
+  showPick(k);
 }
 function useMyLocation() {
   if (!navigator.geolocation) { say(t().geoErr); return; }
@@ -504,7 +612,7 @@ function useMyLocation() {
       const r = (d.results || [])[0];
       if (!r) throw new Error("geo");
       S.from = { name: r.name, gid: r.gid, lat: r.latitude, lon: r.longitude, type: r.locationType };
-      $("in-from").value = r.name; say(r.name);
+      $("in-from").value = splitName(r.name)[0]; showPick("from"); rememberPlace(S.from); say(`${t().chosen}: ${r.name}`, false, true);
     } catch (e) { say(errText(e)); }
   }, () => say(t().geoErr), { enableHighAccuracy: true, timeout: 15000 });
 }
