@@ -401,8 +401,8 @@ async function getToken(force) {
   if (!r.ok) throw new Error("expired");
   const f = await r.json();
   let tok;
-  try { tok = await decryptToken(f.data, pass, f.iter || 200000); } catch (e) { throw new Error("badPass"); }
-  if (!tok.startsWith("ey")) throw new Error("badPass");
+  try { tok = await decryptToken(f.data, pass, f.iter || 200000); } catch (e) { tok = ""; }
+  if (!tok.startsWith("ey")) { store.set("pass", ""); throw new Error("badPass"); }   // 틀린 암호는 지우고 다시 묻는다
   S.token = tok; S.tokenExp = jwtExp(tok) || Date.parse(f.expires) || now + 3600e3;
   if (S.tokenExp - now < 60000) throw new Error("expired");
   return tok;
@@ -441,6 +441,7 @@ async function loadWasm() {
 // ======================================================================
 function viewSearch(msg) {
   stopGuidance();
+  if (msg === t().badPass || msg === t().needPass) setTimeout(openSettings, 300);   // 암호 문제면 바로 입력 창
   const v = $("view"), L = t();
   v.innerHTML = `
     <h2 id="h"></h2>
@@ -845,7 +846,7 @@ for (const id of ["cHigh", "cNormal"]) $(id).onclick = (e) => {
   const c = e.currentTarget.dataset.contrast; document.documentElement.dataset.contrast = c; store.set("contrast", c); updateSettingsText();
 };
 $("setSave").onclick = async () => {
-  store.set("pass", $("pass").value.trim());
+  store.set("pass", $("pass").value.replace(/\s+/g, ""));
   store.set("manualToken", $("manualToken").value.trim());
   S.token = null;
   try { await getToken(true); updateSettingsText(); say(t().tokOk(Math.floor((S.tokenExp - Date.now()) / 3600e3))); $("settings").close(); }
@@ -887,7 +888,7 @@ addEventListener("resize", setHead);
 function takeInviteKey() {
   const m = /(?:^#|&)k=([^&]+)/.exec(location.hash);
   if (!m) return;
-  store.set("pass", decodeURIComponent(m[1]));
+  store.set("pass", decodeURIComponent(m[1]).trim());
   history.replaceState(null, "", location.pathname + location.search);
 }
 (async function main() {
