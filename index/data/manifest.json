@@ -1,8 +1,8 @@
 {
   "api": "https://statistikdatabasen.scb.se/api/v2",
-  "failed": 0,
-  "generated": "2026-10-10T00:53:45",
-  "ok": 58,
+  "failed": 3,
+  "generated": "2026-10-10T10:32:06",
+  "ok": 95,
   "source": "Statistics Sweden (SCB) PxWebApi v2",
   "tabs": [
     {
@@ -83,6 +83,50 @@
         "en": "Public finances · Gothenburg",
         "ko": "공공재정 · 예테보리",
         "sv": "Offentlig ekonomi · Göteborg"
+      }
+    },
+    {
+      "charts": 13,
+      "errors": [
+        "http tls transport error: tls read failed: i/o timeout [i/o timeout]",
+        "http tls transport error: tls read failed: i/o timeout [i/o timeout]",
+        "http tls transport error: tls read failed: i/o timeout [i/o timeout]"
+      ],
+      "key": "crime",
+      "name": {
+        "en": "Crime & justice",
+        "ko": "범죄 및 사법",
+        "sv": "Brott och rättsväsende"
+      }
+    },
+    {
+      "charts": 10,
+      "errors": [],
+      "key": "macro",
+      "name": {
+        "en": "Economy & trade",
+        "ko": "거시경제 및 무역",
+        "sv": "Nationalräkenskaper & utrikeshandel"
+      }
+    },
+    {
+      "charts": 9,
+      "errors": [],
+      "key": "dem",
+      "name": {
+        "en": "Democracy & elections",
+        "ko": "민주주의 및 선거",
+        "sv": "Demokrati & val"
+      }
+    },
+    {
+      "charts": 8,
+      "errors": [],
+      "key": "int",
+      "name": {
+        "en": "Integration & migration",
+        "ko": "이민 및 사회 통합",
+        "sv": "Integration & migration"
       }
     }
   ],
