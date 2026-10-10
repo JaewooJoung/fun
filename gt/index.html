@@ -128,7 +128,7 @@ input::placeholder { color: var(--dim); }
   background: var(--bg); border: 5px solid var(--line); z-index: 1;
 }
 .node.stop .dot { left: 21px; width: 22px; height: 22px; margin-top: -11px; border-width: 4px; }
-.node.board .dot, .node.alight .dot, .node.dest .dot { background: var(--fg); }
+.node.board .dot, .node.alight .dot, .node.dest .dot, .node.start .dot { background: var(--fg); }
 .node.walk .dot { display: none; }
 .node .nm { font-size: 22px; font-weight: 800; overflow-wrap: anywhere; }
 .node.stop .nm { font-size: 19px; font-weight: 700; }
@@ -213,12 +213,12 @@ const T = {
     from: "Från", to: "Till", fromPh: "Hållplats eller adress", toPh: "Vart vill du åka?",
     myPos: "Min position", swap: "Byt plats", search: "Sök resa", recent: "Senaste resor",
     searching: "Söker…", noTrips: "Inga resor hittades.", pickFrom: "Välj en hållplats i listan.",
-    options: "Välj resa", back: "Tillbaka", changes: (n) => n ? `${n} byte${n > 1 ? "n" : ""}` : "Direkt", walkMin: (m) => `${m} min gång`,
+    options: "Välj resa", back: "Tillbaka", changes: (n) => n ? `${n} byte${n > 1 ? "n" : ""}` : "Direkt", walkOnly: "Bara promenad", walkMin: (m) => `${m} min gång`,
     dep: "Avgår", arr: "Framme", min: "min",
-    status: { wait: "Vänta på", ride: "Nästa hållplats", transfer: "Byte", arrived: "Framme" },
+    status: { wait: "Vänta på", ride: "Nästa hållplats", transfer: "Byte", walk: "Gå till", arrived: "Framme" },
     repeat: "Upprepa", prev: "Föregående", next: "Nästa", stop: "Avsluta",
     here: "Du är här", passed: "passerad",
-    kind: { board: "Stig på", stop: "Hållplats", alight: "Stig av", walk: "Gå", dest: "Mål" },
+    kind: { start: "Start", board: "Stig på", stop: "Hållplats", alight: "Stig av", walk: "Gå", dest: "Mål" },
     found: (n, o) => `${n} resor hittades. Första avgår ${o}.`,
     optSay: (o) => `Avgår ${o.dep}, framme ${o.arr}, ${o.minutes} minuter, ${o.changesTxt}. ${o.lines}.`,
     start: "Starta vägledning",
@@ -231,6 +231,7 @@ const T = {
       alight_now: (e) => `Det här är ${e.stop}. Gå av nu.`,
       walk: (e) => `Gå ${e.mins} minuter till ${e.stop}${e.platform ? `, läge ${e.platform}` : ""}. Ta sedan ${e.modeTxt} ${e.line}.`,
       arrived: (e) => `Du är framme vid ${e.stop}. Vägledningen är klar.`,
+      walk_final: (e) => `Gå ${e.mins} minuter${e.meters ? `, cirka ${e.meters} meter,` : ""} till ${e.stop}.`,
     },
     nodeSay: (i, n, nd) => `${i} av ${n}. ${nd.kindTxt} ${nd.name}. ${nd.time}.`,
     setTitle: "Inställningar", voice: "Röst", on: "På", off: "Av", contrast: "Kontrast", high: "Hög kontrast", normal: "Normal",
@@ -250,12 +251,12 @@ const T = {
     from: "From", to: "To", fromPh: "Stop or address", toPh: "Where to?",
     myPos: "My location", swap: "Swap", search: "Find journey", recent: "Recent journeys",
     searching: "Searching…", noTrips: "No journeys found.", pickFrom: "Choose a stop from the list.",
-    options: "Choose a journey", back: "Back", changes: (n) => n ? `${n} change${n > 1 ? "s" : ""}` : "Direct", walkMin: (m) => `${m} min walk`,
+    options: "Choose a journey", back: "Back", changes: (n) => n ? `${n} change${n > 1 ? "s" : ""}` : "Direct", walkOnly: "Walk only", walkMin: (m) => `${m} min walk`,
     dep: "Departs", arr: "Arrives", min: "min",
-    status: { wait: "Wait for", ride: "Next stop", transfer: "Change", arrived: "Arrived" },
+    status: { wait: "Wait for", ride: "Next stop", transfer: "Change", walk: "Walk to", arrived: "Arrived" },
     repeat: "Repeat", prev: "Previous", next: "Next", stop: "End",
     here: "You are here", passed: "passed",
-    kind: { board: "Board at", stop: "Stop", alight: "Get off at", walk: "Walk to", dest: "Destination" },
+    kind: { start: "Start", board: "Board at", stop: "Stop", alight: "Get off at", walk: "Walk to", dest: "Destination" },
     found: (n, o) => `${n} journeys found. The first leaves at ${o}.`,
     optSay: (o) => `Departs ${o.dep}, arrives ${o.arr}, ${o.minutes} minutes, ${o.changesTxt}. ${o.lines}.`,
     start: "Start guidance",
@@ -268,6 +269,7 @@ const T = {
       alight_now: (e) => `This is ${e.stop}. Get off now.`,
       walk: (e) => `Walk ${e.mins} minutes to ${e.stop}${e.platform ? `, platform ${e.platform}` : ""}. Then take ${e.modeTxt} ${e.line}.`,
       arrived: (e) => `You have arrived at ${e.stop}. Guidance finished.`,
+      walk_final: (e) => `Walk ${e.mins} minute${e.mins === 1 ? "" : "s"}${e.meters ? `, about ${e.meters} metres,` : ""} to ${e.stop}.`,
     },
     nodeSay: (i, n, nd) => `${i} of ${n}. ${nd.kindTxt} ${nd.name}. ${nd.time}.`,
     setTitle: "Settings", voice: "Voice", on: "On", off: "Off", contrast: "Contrast", high: "High contrast", normal: "Normal",
@@ -287,12 +289,12 @@ const T = {
     from: "출발", to: "도착", fromPh: "정류장 또는 주소", toPh: "어디로 가세요?",
     myPos: "내 위치", swap: "바꾸기", search: "경로 찾기", recent: "최근 경로",
     searching: "찾는 중…", noTrips: "경로를 찾지 못했습니다.", pickFrom: "목록에서 정류장을 고르세요.",
-    options: "경로 선택", back: "뒤로", changes: (n) => n ? `환승 ${n}번` : "환승 없음", walkMin: (m) => `도보 ${m}분`,
+    options: "경로 선택", back: "뒤로", changes: (n) => n ? `환승 ${n}번` : "환승 없음", walkOnly: "걸어서만", walkMin: (m) => `도보 ${m}분`,
     dep: "출발", arr: "도착", min: "분",
-    status: { wait: "탈 차", ride: "다음 정류장", transfer: "환승", arrived: "도착" },
+    status: { wait: "탈 차", ride: "다음 정류장", transfer: "환승", walk: "걸어가기", arrived: "도착" },
     repeat: "다시 듣기", prev: "이전", next: "다음", stop: "안내 끝",
     here: "현재 위치", passed: "지나감",
-    kind: { board: "탑승", stop: "정류장", alight: "하차", walk: "걸어가기", dest: "목적지" },
+    kind: { start: "출발", board: "탑승", stop: "정류장", alight: "하차", walk: "걸어가기", dest: "목적지" },
     found: (n, o) => `경로 ${n}개를 찾았습니다. 첫 번째는 ${o}에 출발합니다.`,
     optSay: (o) => `${o.dep} 출발, ${o.arr} 도착, ${o.minutes}분, ${o.changesTxt}. ${o.lines}.`,
     start: "안내 시작",
@@ -305,6 +307,7 @@ const T = {
       alight_now: (e) => `이번 정류장은 ${e.stop}입니다. 지금 하차하세요.`,
       walk: (e) => `${e.mins}분 걸어서 ${e.stop}${e.platform ? ` 승강장 ${e.platform}` : ""}으로 가세요. 그다음 ${e.line}번 ${e.modeTxt}를 타세요.`,
       arrived: (e) => `${e.stop}에 도착했습니다. 안내를 마칩니다.`,
+      walk_final: (e) => `${e.stop}까지 ${e.mins}분${e.meters ? `, 약 ${e.meters}미터` : ""} 걸어가세요.`,
     },
     nodeSay: (i, n, nd) => `${n}개 중 ${i}번째. ${nd.kindTxt}, ${nd.name}. ${nd.time}.`,
     setTitle: "설정", voice: "음성 안내", on: "켜기", off: "끄기", contrast: "대비", high: "초고대비", normal: "보통",
@@ -638,7 +641,7 @@ async function search() {
 function optText(o) {
   const L = t();
   return {
-    dep: hhmm(o.dep), arr: hhmm(o.arr), minutes: o.minutes, changesTxt: L.changes(o.changes),
+    dep: hhmm(o.dep), arr: hhmm(o.arr), minutes: o.minutes, changesTxt: o.walkOnly ? L.walkOnly : L.changes(o.changes),
     lines: o.legs.map(l => `${MODE[S.lang][l.mode] || l.mode} ${l.line}`).join(", "),
   };
 }
@@ -657,8 +660,8 @@ function viewOptions() {
     b.type = "button"; b.className = "btn opt";
     b.setAttribute("aria-label", L.optSay(ot));
     b.innerHTML = `<div class="t">${esc(ot.dep)} → ${esc(ot.arr)}</div>
-      <div class="d">${o.minutes} ${esc(L.min)} · ${esc(ot.changesTxt)}${o.walk ? " · " + esc(L.walkMin(o.walk)) : ""}</div>
-      <div class="badges" aria-hidden="true">${o.legs.map(l => `<span class="badge" style="background:${esc(l.bg)};color:${esc(l.fg)}">${esc(l.line)}</span>`).join('<span class="arrow">→</span>')}</div>`;
+      <div class="d">${o.minutes} ${esc(L.min)} · ${esc(ot.changesTxt)}${o.walk && !o.walkOnly ? " · " + esc(L.walkMin(o.walk)) : ""}${o.meters ? ` · ${o.meters} m` : ""}</div>
+      <div class="badges" aria-hidden="true">${o.legs.map(l => l.mode === "walk" ? `<span class="badge">🚶 ${o.minutes} ${esc(L.min)}</span>` : `<span class="badge" style="background:${esc(l.bg)};color:${esc(l.fg)}">${esc(l.line)}</span>`).join('<span class="arrow">→</span>')}</div>`;
     b.onclick = () => startTrip(i);
     b.onfocus = () => say(L.optSay(ot));
     li.append(b); ol.append(li);
@@ -703,10 +706,10 @@ async function refresh() {
 function nodeInfo(nd) {
   const L = t();
   const line = S.model.lines[nd.leg] || {};
-  const time = hhmm(nd.kind === "board" ? nd.dep : (nd.arr || nd.dep));
+  const time = hhmm(nd.kind === "board" || nd.kind === "start" ? nd.dep : (nd.arr || nd.dep));
   let kindTxt = L.kind[nd.kind];
   if (nd.kind === "board" && line.line) kindTxt = `${L.kind.board} ${MODE[S.lang][line.mode] || line.mode} ${line.line}`;
-  if (nd.kind === "walk") kindTxt = `${L.kind.walk} (${L.walkMin(nd.walk)})`;
+  if (nd.kind === "walk") kindTxt = `${L.kind.walk} (${L.walkMin(nd.walk)}${nd.meters ? `, ${nd.meters} m` : ""})`;
   return { kindTxt, name: nd.name + (nd.platform ? ` (${nd.platform})` : ""), time, line };
 }
 function renderGuide() {
@@ -751,7 +754,7 @@ function renderLine() {
 /** 화면에 '현재 위치'로 표시할 노드: 차 안이면 방금 지난 정류장, 기다리는 중이면 탈 정류장 */
 function hereIndex() {
   const s = S.status; if (!s || !S.model) return -1;
-  if (s.phase === "wait" || s.phase === "transfer") return s.next;
+  if (s.phase === "wait" || s.phase === "transfer" || s.phase === "walk") return s.next;
   if (s.phase === "arrived") return S.model.nodes.length - 1;
   return Math.max(0, s.k);
 }
@@ -772,7 +775,7 @@ function tick(first) {
   $("stBig").textContent = s.phase === "arrived" ? S.model.nodes[S.model.nodes.length - 1].name : nd.name + (nd.platform ? ` · ${nd.platform}` : "");
   $("stSub").innerHTML = s.phase === "arrived" ? "" : `${esc(info.kindTxt)} · <span class="mins">${s.mins} ${esc(L.min)}</span> · ${esc(info.time)}`;
   if (s.event) {
-    const e = s.event, urgent = /alight|board_now|arrived/.test(e.code);
+    const e = s.event, urgent = /alight|board_now|arrived|walk_final/.test(e.code);
     const ln = e.line || {};
     const text = L.ev[e.code] ? L.ev[e.code]({ ...e, line: ln.line || "", dir: ln.dir || "", modeTxt: MODE[S.lang][ln.mode] || ln.mode || "" }) : "";
     $("status").classList.toggle("alert", urgent);
