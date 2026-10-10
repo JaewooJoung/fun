@@ -1,0 +1,791 @@
+<!doctype html>
+<html lang="sv" data-contrast="high">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>Linjen – Västtrafik</title>
+<meta name="description" content="Accessible line-based journey guidance for Västtrafik with spoken directions in Swedish, English and Korean.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23000'/%3E%3Cpath d='M16 4v24' stroke='%23ffd400' stroke-width='5'/%3E%3Ccircle cx='16' cy='7' r='4' fill='%23fff'/%3E%3Ccircle cx='16' cy='25' r='4' fill='%23fff'/%3E%3C/svg%3E">
+<style>
+/* 초고대비가 기본. '보통 대비'는 설정에서 고를 수 있다. */
+:root {
+  --bg: #000000; --panel: #111111; --fg: #ffffff; --muted: #d6d6d6; --dim: #8f8f8f;
+  --accent: #ffd400; --accent-ink: #000000; --focus: #00e5ff; --line: #ffffff;
+  --ok: #7CFC00; --warn: #ffd400; --bad: #ff6b6b; --border: #ffffff;
+  --radius: 14px;
+  color-scheme: dark;
+}
+:root[data-contrast="normal"] {
+  --bg: #f4f6f9; --panel: #ffffff; --fg: #111827; --muted: #374151; --dim: #6b7280;
+  --accent: #005293; --accent-ink: #ffffff; --focus: #ff8a00; --line: #111827;
+  --ok: #15803d; --warn: #b45309; --bad: #b91c1c; --border: #9ca3af;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--fg);
+  font: 600 20px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+  -webkit-text-size-adjust: 100%;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 4px solid var(--focus); outline-offset: 3px; }
+.wrap { max-width: 760px; margin: 0 auto; padding: 0 16px; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* ---------- 상단 ---------- */
+header { border-bottom: 3px solid var(--border); background: var(--bg); position: sticky; top: 0; z-index: 10; }
+header .wrap { display: flex; align-items: center; gap: 10px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; }
+.logo { display: flex; align-items: center; gap: 10px; flex: 1 1 auto; min-width: 0; }
+.logo svg { width: 34px; height: 34px; flex: none; }
+.logo h1 { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: .01em; }
+.langs { display: flex; gap: 6px; }
+.btn {
+  min-height: 56px; min-width: 56px; padding: 0 18px; border-radius: var(--radius);
+  border: 3px solid var(--border); background: var(--panel); color: var(--fg); cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px; font-weight: 800; text-decoration: none;
+}
+.btn[aria-pressed="true"], .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.small { min-height: 48px; min-width: 48px; padding: 0 12px; font-size: 18px; }
+.btn svg { width: 28px; height: 28px; flex: none; }
+.btn:disabled { opacity: .45; cursor: default; }
+
+/* ---------- 화면 공통 ---------- */
+main { padding: 16px 0 120px; }
+h2 { font-size: 28px; margin: 6px 0 14px; line-height: 1.25; }
+label.field { display: block; margin: 0 0 14px; }
+label.field > span { display: block; font-size: 20px; margin-bottom: 6px; }
+.inrow { display: flex; gap: 8px; }
+input[type=text], input[type=password] {
+  width: 100%; min-height: 60px; padding: 0 16px; font-size: 22px; font-weight: 700;
+  background: var(--panel); color: var(--fg); border: 3px solid var(--border); border-radius: var(--radius);
+}
+input::placeholder { color: var(--dim); }
+.sugs { list-style: none; margin: 6px 0 0; padding: 0; border: 3px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.sugs:empty { display: none; }
+.sugs li { padding: 14px 16px; border-top: 2px solid var(--border); cursor: pointer; }
+.sugs li:first-child { border-top: 0; }
+.sugs li[aria-selected="true"], .sugs li:hover { background: var(--accent); color: var(--accent-ink); }
+.sugs small { display: block; font-size: 16px; opacity: .8; font-weight: 600; }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 6px 0 18px; }
+.actions .btn { flex: 1 1 auto; }
+.recent { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.recent .btn { width: 100%; justify-content: flex-start; text-align: left; min-height: 64px; font-size: 19px; }
+.msg { border: 3px solid var(--warn); border-radius: var(--radius); padding: 14px 16px; margin: 0 0 16px; }
+.msg.bad { border-color: var(--bad); }
+.muted { color: var(--muted); font-weight: 600; }
+
+/* ---------- 경로 선택 ---------- */
+.opts { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+.opt { width: 100%; text-align: left; display: block; padding: 14px 16px; min-height: 90px; }
+.opt .t { font-size: 30px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.opt .d { color: var(--muted); font-size: 18px; margin-top: 2px; }
+.opt.btn { display: block; }
+.badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; align-items: center; }
+.badge { display: inline-flex; align-items: center; gap: 6px; border-radius: 10px; padding: 2px 10px; font-weight: 900; font-size: 20px; border: 2px solid var(--border); }
+.arrow { color: var(--muted); }
+
+/* ---------- 안내 화면: 한 줄(Line) UI ---------- */
+.pin { position: sticky; top: var(--head, 76px); z-index: 5; background: var(--bg); padding: 8px 0 6px; }
+.status { border: 4px solid var(--accent); border-radius: 18px; padding: 12px 16px; margin-bottom: 10px; background: var(--panel); }
+.status .now { font-size: 18px; color: var(--muted); }
+.status .big { font-size: 34px; font-weight: 900; line-height: 1.15; margin: 4px 0; overflow-wrap: anywhere; }
+.status .sub { font-size: 22px; }
+.status .mins { color: var(--accent); font-variant-numeric: tabular-nums; }
+.status.alert { border-color: var(--bad); animation: pulse 1s 3; }
+@keyframes pulse { 50% { box-shadow: 0 0 0 8px color-mix(in srgb, var(--bad) 45%, transparent); } }
+.controls { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.controls .btn { flex-direction: column; gap: 0; padding: 4px; min-height: 60px; font-size: 15px; }
+.line { list-style: none; margin: 0; padding: 0; position: relative; }
+.node { position: relative; padding: 10px 10px 10px 74px; min-height: 64px; border-radius: 12px; scroll-margin: calc(var(--head, 76px) + 230px) 0 120px; }
+.node::before { /* 굵은 선 — 구간 색 */
+  content: ""; position: absolute; left: 26px; top: 0; bottom: 0; width: 12px; background: var(--seg, var(--line));
+  border-left: 2px solid var(--line); border-right: 2px solid var(--line);
+}
+.node.first::before { top: 50%; }
+.node.last::before { bottom: 50%; }
+.node.walk::before { background: repeating-linear-gradient(var(--line) 0 8px, transparent 8px 16px); border: 0; left: 30px; width: 6px; }
+.node .dot {
+  position: absolute; left: 16px; top: 50%; width: 32px; height: 32px; margin-top: -16px; border-radius: 50%;
+  background: var(--bg); border: 5px solid var(--line); z-index: 1;
+}
+.node.stop .dot { left: 21px; width: 22px; height: 22px; margin-top: -11px; border-width: 4px; }
+.node.board .dot, .node.alight .dot, .node.dest .dot { background: var(--fg); }
+.node.walk .dot { display: none; }
+.node .nm { font-size: 22px; font-weight: 800; overflow-wrap: anywhere; }
+.node.stop .nm { font-size: 19px; font-weight: 700; }
+.node .meta { font-size: 17px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.node.passed { opacity: .45; }
+.node.here { background: color-mix(in srgb, var(--accent) 22%, transparent); outline: 3px solid var(--accent); }
+.node.here .dot { border-color: var(--accent); box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 45%, transparent); }
+.node.cursor { outline: 4px dashed var(--focus); }
+.here-tag { display: inline-block; background: var(--accent); color: var(--accent-ink); border-radius: 8px; padding: 0 8px; font-size: 16px; font-weight: 900; margin-left: 6px; vertical-align: middle; }
+.legbar { margin: 10px 0 6px 64px; }
+.delay { color: var(--bad); font-weight: 900; }
+
+/* ---------- 대화상자 ---------- */
+dialog { background: var(--panel); color: var(--fg); border: 4px solid var(--border); border-radius: 18px; padding: 20px; width: min(560px, calc(100% - 24px)); }
+dialog::backdrop { background: rgba(0,0,0,.75); }
+dialog h2 { margin-top: 0; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+.row .btn { flex: 1 1 auto; }
+fieldset { border: 3px solid var(--border); border-radius: var(--radius); margin: 0 0 14px; }
+legend { padding: 0 6px; }
+.choice { display: flex; gap: 8px; flex-wrap: wrap; }
+footer { color: var(--dim); font-size: 15px; font-weight: 500; padding: 20px 0 40px; }
+@media (max-width: 480px) {
+  .logo h1 { font-size: 21px; }
+  .status .big { font-size: 30px; }
+  .btn { padding: 0 12px; }
+}
+@media (prefers-reduced-motion: reduce) { .status.alert { animation: none; } }
+</style>
+</head>
+<body>
+<a class="sr-only" href="#main" id="skip"></a>
+<header>
+  <div class="wrap">
+    <div class="logo">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#000" stroke="#fff" stroke-width="2"/><path d="M16 5v22" stroke="#ffd400" stroke-width="5"/><circle cx="16" cy="8" r="4" fill="#fff"/><circle cx="16" cy="24" r="4" fill="#fff"/></svg>
+      <h1 id="appname">Linjen</h1>
+    </div>
+    <div class="langs" role="group" id="langs">
+      <button type="button" class="btn small" data-lang="sv" lang="sv">SV</button>
+      <button type="button" class="btn small" data-lang="en" lang="en">EN</button>
+      <button type="button" class="btn small" data-lang="ko" lang="ko">한</button>
+    </div>
+    <button type="button" class="btn small" id="settingsBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg><span class="sr-only" id="settingsLbl"></span></button>
+  </div>
+</header>
+
+<main id="main" tabindex="-1"><div class="wrap" id="view"></div></main>
+
+<!-- 화면 읽기 프로그램용 안내 (음성 안내와 같은 문장) -->
+<div class="sr-only" aria-live="assertive" aria-atomic="true" id="live"></div>
+
+<dialog id="settings" aria-labelledby="setTitle">
+  <h2 id="setTitle"></h2>
+  <fieldset><legend id="lgVoice"></legend><div class="choice">
+    <button type="button" class="btn small" id="voiceOn"></button><button type="button" class="btn small" id="voiceOff"></button>
+  </div></fieldset>
+  <fieldset><legend id="lgContrast"></legend><div class="choice">
+    <button type="button" class="btn small" data-contrast="high" id="cHigh"></button><button type="button" class="btn small" data-contrast="normal" id="cNormal"></button>
+  </div></fieldset>
+  <label class="field"><span id="lbPass"></span><input type="password" id="pass" autocomplete="current-password"></label>
+  <details><summary id="lbDev" style="cursor:pointer;margin-bottom:10px"></summary>
+    <label class="field"><span id="lbToken"></span><input type="password" id="manualToken" autocomplete="off"></label>
+  </details>
+  <p class="muted" id="tokenState"></p>
+  <div class="row"><button type="button" class="btn primary" id="setSave"></button><button type="button" class="btn" id="setClose"></button></div>
+</dialog>
+
+<script>
+"use strict";
+// ======================================================================
+//  다국어 문구 — 화면 글자와 음성(TTS) 문장
+// ======================================================================
+const LOCALE = { sv: "sv-SE", en: "en-GB", ko: "ko-KR" };
+const MODE = {
+  sv: { tram: "spårvagn", bus: "buss", train: "tåg", ferry: "båt", taxi: "taxi", walk: "gång" },
+  en: { tram: "tram", bus: "bus", train: "train", ferry: "ferry", taxi: "taxi", walk: "walk" },
+  ko: { tram: "트램", bus: "버스", train: "기차", ferry: "배", taxi: "택시", walk: "도보" },
+};
+const T = {
+  sv: {
+    app: "Linjen", skip: "Hoppa till innehållet", settings: "Inställningar",
+    from: "Från", to: "Till", fromPh: "Hållplats eller adress", toPh: "Vart vill du åka?",
+    myPos: "Min position", swap: "Byt plats", search: "Sök resa", recent: "Senaste resor",
+    searching: "Söker…", noTrips: "Inga resor hittades.", pickFrom: "Välj en hållplats i listan.",
+    options: "Välj resa", back: "Tillbaka", changes: (n) => n ? `${n} byte${n > 1 ? "n" : ""}` : "Direkt", walkMin: (m) => `${m} min gång`,
+    dep: "Avgår", arr: "Framme", min: "min",
+    status: { wait: "Vänta på", ride: "Nästa hållplats", transfer: "Byte", arrived: "Framme" },
+    repeat: "Upprepa", prev: "Föregående", next: "Nästa", stop: "Avsluta",
+    here: "Du är här", passed: "passerad",
+    kind: { board: "Stig på", stop: "Hållplats", alight: "Stig av", walk: "Gå", dest: "Mål" },
+    found: (n, o) => `${n} resor hittades. Första avgår ${o}.`,
+    optSay: (o) => `Avgår ${o.dep}, framme ${o.arr}, ${o.minutes} minuter, ${o.changesTxt}. ${o.lines}.`,
+    start: "Starta vägledning",
+    ev: {
+      depart_in: (e) => `${cap(e.modeTxt)} ${e.line} mot ${e.dir} avgår från ${e.stop} om ${e.mins} minuter${e.platform ? `, läge ${e.platform}` : ""}.`,
+      board_now: (e) => `${cap(e.modeTxt)} ${e.line} mot ${e.dir} kommer nu${e.platform ? ` till läge ${e.platform}` : ""}. Stig på.`,
+      delay: (e) => e.delay > 0 ? `${cap(e.modeTxt)} ${e.line} är ${e.delay} minuter försenad.` : `${cap(e.modeTxt)} ${e.line} går ${-e.delay} minuter tidigare.`,
+      next_stop: (e) => `Nästa hållplats: ${e.stop}.` + (e.left > 1 ? ` ${e.left} hållplatser kvar.` : ""),
+      alight_next: (e) => `Gå av vid nästa hållplats, ${e.stop}.`,
+      alight_now: (e) => `Det här är ${e.stop}. Gå av nu.`,
+      walk: (e) => `Gå ${e.mins} minuter till ${e.stop}${e.platform ? `, läge ${e.platform}` : ""}. Ta sedan ${e.modeTxt} ${e.line}.`,
+      arrived: (e) => `Du är framme vid ${e.stop}. Vägledningen är klar.`,
+    },
+    nodeSay: (i, n, nd) => `${i} av ${n}. ${nd.kindTxt} ${nd.name}. ${nd.time}.`,
+    setTitle: "Inställningar", voice: "Röst", on: "På", off: "Av", contrast: "Kontrast", high: "Hög kontrast", normal: "Normal",
+    pass: "Lösenord för appen (från administratören)", dev: "Utvecklare: klistra in åtkomsttoken", token: "Åtkomsttoken (giltig 24 timmar)",
+    save: "Spara", close: "Stäng",
+    tokOk: (h) => `Inloggad. Token giltig i ${h} timmar till.`, tokNone: "Inte inloggad.", needPass: "Ange appens lösenord i Inställningar.",
+    badPass: "Fel lösenord.", expired: "Åtkomsten har gått ut. Försök igen om en stund eller ange en ny token.",
+    netErr: "Kunde inte nå Västtrafik. Kontrollera internet.", geoErr: "Kunde inte hitta din position.",
+    footer: "Data: Västtrafik Planera Resa v4. Vägledningen är ett hjälpmedel — lyssna också på utrop och skyltar.",
+    swipeHint: "Svep åt vänster för nästa, åt höger för föregående.",
+  },
+  en: {
+    app: "Linjen", skip: "Skip to content", settings: "Settings",
+    from: "From", to: "To", fromPh: "Stop or address", toPh: "Where to?",
+    myPos: "My location", swap: "Swap", search: "Find journey", recent: "Recent journeys",
+    searching: "Searching…", noTrips: "No journeys found.", pickFrom: "Choose a stop from the list.",
+    options: "Choose a journey", back: "Back", changes: (n) => n ? `${n} change${n > 1 ? "s" : ""}` : "Direct", walkMin: (m) => `${m} min walk`,
+    dep: "Departs", arr: "Arrives", min: "min",
+    status: { wait: "Wait for", ride: "Next stop", transfer: "Change", arrived: "Arrived" },
+    repeat: "Repeat", prev: "Previous", next: "Next", stop: "End",
+    here: "You are here", passed: "passed",
+    kind: { board: "Board at", stop: "Stop", alight: "Get off at", walk: "Walk to", dest: "Destination" },
+    found: (n, o) => `${n} journeys found. The first leaves at ${o}.`,
+    optSay: (o) => `Departs ${o.dep}, arrives ${o.arr}, ${o.minutes} minutes, ${o.changesTxt}. ${o.lines}.`,
+    start: "Start guidance",
+    ev: {
+      depart_in: (e) => `${cap(e.modeTxt)} ${e.line} towards ${e.dir} leaves ${e.stop} in ${e.mins} minute${e.mins === 1 ? "" : "s"}${e.platform ? `, platform ${e.platform}` : ""}.`,
+      board_now: (e) => `${cap(e.modeTxt)} ${e.line} towards ${e.dir} is arriving now${e.platform ? ` at platform ${e.platform}` : ""}. Please board.`,
+      delay: (e) => e.delay > 0 ? `${cap(e.modeTxt)} ${e.line} is ${e.delay} minutes late.` : `${cap(e.modeTxt)} ${e.line} leaves ${-e.delay} minutes early.`,
+      next_stop: (e) => `Next stop: ${e.stop}.` + (e.left > 1 ? ` ${e.left} stops to go.` : ""),
+      alight_next: (e) => `Get off at the next stop, ${e.stop}.`,
+      alight_now: (e) => `This is ${e.stop}. Get off now.`,
+      walk: (e) => `Walk ${e.mins} minutes to ${e.stop}${e.platform ? `, platform ${e.platform}` : ""}. Then take ${e.modeTxt} ${e.line}.`,
+      arrived: (e) => `You have arrived at ${e.stop}. Guidance finished.`,
+    },
+    nodeSay: (i, n, nd) => `${i} of ${n}. ${nd.kindTxt} ${nd.name}. ${nd.time}.`,
+    setTitle: "Settings", voice: "Voice", on: "On", off: "Off", contrast: "Contrast", high: "High contrast", normal: "Normal",
+    pass: "App password (from the administrator)", dev: "Developer: paste an access token", token: "Access token (valid 24 hours)",
+    save: "Save", close: "Close",
+    tokOk: (h) => `Signed in. Token valid for ${h} more hours.`, tokNone: "Not signed in.", needPass: "Enter the app password in Settings.",
+    badPass: "Wrong password.", expired: "Access has expired. Try again shortly or enter a new token.",
+    netErr: "Could not reach Västtrafik. Check your connection.", geoErr: "Could not find your location.",
+    footer: "Data: Västtrafik Planera Resa v4. This guidance is an aid — also listen to announcements and signs.",
+    swipeHint: "Swipe left for next, right for previous.",
+  },
+  ko: {
+    app: "린옌", skip: "본문으로 건너뛰기", settings: "설정",
+    from: "출발", to: "도착", fromPh: "정류장 또는 주소", toPh: "어디로 가세요?",
+    myPos: "내 위치", swap: "바꾸기", search: "경로 찾기", recent: "최근 경로",
+    searching: "찾는 중…", noTrips: "경로를 찾지 못했습니다.", pickFrom: "목록에서 정류장을 고르세요.",
+    options: "경로 선택", back: "뒤로", changes: (n) => n ? `환승 ${n}번` : "환승 없음", walkMin: (m) => `도보 ${m}분`,
+    dep: "출발", arr: "도착", min: "분",
+    status: { wait: "탈 차", ride: "다음 정류장", transfer: "환승", arrived: "도착" },
+    repeat: "다시 듣기", prev: "이전", next: "다음", stop: "안내 끝",
+    here: "현재 위치", passed: "지나감",
+    kind: { board: "탑승", stop: "정류장", alight: "하차", walk: "걸어가기", dest: "목적지" },
+    found: (n, o) => `경로 ${n}개를 찾았습니다. 첫 번째는 ${o}에 출발합니다.`,
+    optSay: (o) => `${o.dep} 출발, ${o.arr} 도착, ${o.minutes}분, ${o.changesTxt}. ${o.lines}.`,
+    start: "안내 시작",
+    ev: {
+      depart_in: (e) => `${e.mins}분 뒤 ${e.dir} 방향 ${e.line}번 ${e.modeTxt}가 ${e.stop}에서 출발합니다${e.platform ? `. 승강장 ${e.platform}` : ""}.`,
+      board_now: (e) => `${e.dir} 방향 ${e.line}번 ${e.modeTxt}가 지금 도착합니다${e.platform ? `. 승강장 ${e.platform}` : ""}. 탑승하세요.`,
+      delay: (e) => e.delay > 0 ? `${e.line}번 ${e.modeTxt}가 ${e.delay}분 늦습니다.` : `${e.line}번 ${e.modeTxt}가 ${-e.delay}분 일찍 출발합니다.`,
+      next_stop: (e) => `다음 정류장은 ${e.stop}입니다.` + (e.left > 1 ? ` 내릴 때까지 ${e.left}정류장 남았습니다.` : ""),
+      alight_next: (e) => `다음 정류장 ${e.stop}에서 내리세요.`,
+      alight_now: (e) => `이번 정류장은 ${e.stop}입니다. 지금 하차하세요.`,
+      walk: (e) => `${e.mins}분 걸어서 ${e.stop}${e.platform ? ` 승강장 ${e.platform}` : ""}으로 가세요. 그다음 ${e.line}번 ${e.modeTxt}를 타세요.`,
+      arrived: (e) => `${e.stop}에 도착했습니다. 안내를 마칩니다.`,
+    },
+    nodeSay: (i, n, nd) => `${n}개 중 ${i}번째. ${nd.kindTxt}, ${nd.name}. ${nd.time}.`,
+    setTitle: "설정", voice: "음성 안내", on: "켜기", off: "끄기", contrast: "대비", high: "초고대비", normal: "보통",
+    pass: "앱 암호 (관리자에게 받은 것)", dev: "개발자: 액세스 토큰 직접 넣기", token: "액세스 토큰 (24시간 유효)",
+    save: "저장", close: "닫기",
+    tokOk: (h) => `연결됨. 토큰이 ${h}시간 더 유효합니다.`, tokNone: "연결 안 됨.", needPass: "설정에서 앱 암호를 입력하세요.",
+    badPass: "암호가 틀렸습니다.", expired: "접속 권한이 만료되었습니다. 잠시 후 다시 시도하거나 새 토큰을 넣으세요.",
+    netErr: "Västtrafik 에 연결할 수 없습니다. 인터넷을 확인하세요.", geoErr: "현재 위치를 찾지 못했습니다.",
+    footer: "데이터: Västtrafik Planera Resa v4. 이 안내는 보조 수단입니다 — 차내 방송과 안내판도 함께 확인하세요.",
+    swipeHint: "왼쪽으로 밀면 다음, 오른쪽으로 밀면 이전 안내를 듣습니다.",
+  },
+};
+const cap = (s) => s ? s[0].toUpperCase() + s.slice(1) : s;
+
+// ======================================================================
+//  상태·설정
+// ======================================================================
+const API = "https://ext-api.vasttrafik.se/pr/v4";
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("gt." + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem("gt." + k, JSON.stringify(v)); } catch (e) {} },
+};
+const S = {
+  lang: pickLang(), voice: store.get("voice", true), g: null,
+  token: null, tokenExp: 0,
+  from: null, to: null, options: [], pick: -1, model: null, status: null,
+  cursor: 0, poll: 0, tick: 0, wake: null, lastSay: "",
+};
+function pickLang() {
+  const q = new URLSearchParams(location.search).get("lang");
+  if (q && T[q]) return q;
+  const s = store.get("lang", null);
+  if (s && T[s]) return s;
+  const n = (navigator.language || "sv").slice(0, 2);
+  return T[n] ? n : "sv";
+}
+const t = () => T[S.lang];
+const $ = (id) => document.getElementById(id);
+const esc = (x) => String(x ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const hhmm = (ms) => ms ? new Intl.DateTimeFormat(LOCALE[S.lang], { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Stockholm" }).format(new Date(ms)) : "";
+
+// ======================================================================
+//  음성 (Web Speech API) + 화면 읽기 프로그램 + 진동
+// ======================================================================
+function say(text, urgent) {
+  if (!text) return;
+  S.lastSay = text;
+  const live = $("live");
+  live.textContent = "";
+  setTimeout(() => { live.textContent = text; }, 30);       // 같은 문장도 다시 읽히게
+  if (urgent && navigator.vibrate) navigator.vibrate([300, 150, 300]);
+  if (!S.voice || !("speechSynthesis" in window)) return;
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = LOCALE[S.lang];
+  const v = speechSynthesis.getVoices().find(v => v.lang && v.lang.replace("_", "-").startsWith(LOCALE[S.lang].slice(0, 2)));
+  if (v) u.voice = v;
+  u.rate = S.lang === "ko" ? 1.0 : 0.95;
+  if (urgent) speechSynthesis.cancel();
+  speechSynthesis.speak(u);
+}
+if ("speechSynthesis" in window) speechSynthesis.onvoiceschanged = () => {};
+
+// ======================================================================
+//  토큰: token.enc(암호화) → WebCrypto 로 풀기, 또는 개발자 수동 토큰
+// ======================================================================
+const b64bytes = (s) => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+function jwtExp(tok) {
+  try { const p = JSON.parse(atob(tok.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))); return (p.exp || 0) * 1000; } catch (e) { return 0; }
+}
+/** openssl enc -aes-256-cbc -pbkdf2 -md sha256 형식 풀기: "Salted__" + salt(8) + 암호문 */
+async function decryptToken(data, pass, iter) {
+  const raw = b64bytes(data);
+  const magic = new TextDecoder().decode(raw.slice(0, 8));
+  if (magic !== "Salted__") throw new Error("format");
+  const salt = raw.slice(8, 16), ct = raw.slice(16);
+  const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(pass), "PBKDF2", false, ["deriveBits"]);
+  const bits = new Uint8Array(await crypto.subtle.deriveBits({ name: "PBKDF2", salt, iterations: iter, hash: "SHA-256" }, base, 384));
+  const key = await crypto.subtle.importKey("raw", bits.slice(0, 32), "AES-CBC", false, ["decrypt"]);
+  const pt = await crypto.subtle.decrypt({ name: "AES-CBC", iv: bits.slice(32, 48) }, key, ct);
+  return new TextDecoder().decode(pt);
+}
+async function getToken(force) {
+  const now = Date.now();
+  if (!force && S.token && S.tokenExp - now > 60000) return S.token;
+  const manual = store.get("manualToken", "");
+  if (manual && jwtExp(manual) - now > 60000) { S.token = manual; S.tokenExp = jwtExp(manual); return S.token; }
+  const pass = store.get("pass", "");
+  if (!pass) throw new Error("needPass");
+  const r = await fetch("token.enc?t=" + Math.floor(now / 60000), { cache: "no-store" });
+  if (!r.ok) throw new Error("expired");
+  const f = await r.json();
+  let tok;
+  try { tok = await decryptToken(f.data, pass, f.iter || 200000); } catch (e) { throw new Error("badPass"); }
+  if (!tok.startsWith("ey")) throw new Error("badPass");
+  S.token = tok; S.tokenExp = jwtExp(tok) || Date.parse(f.expires) || now + 3600e3;
+  if (S.tokenExp - now < 60000) throw new Error("expired");
+  return tok;
+}
+async function api(path, params) {
+  const url = API + path + (params ? "?" + new URLSearchParams(params) : "");
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const tok = await getToken(attempt > 0);
+    let r;
+    try { r = await fetch(url, { headers: { Authorization: "Bearer " + tok } }); }
+    catch (e) { throw new Error("net"); }
+    if (r.status === 401) { S.token = null; continue; }      // 새 token.enc 로 한 번 더
+    if (!r.ok) throw new Error("http " + r.status);
+    return r.text();
+  }
+  throw new Error("expired");
+}
+function errText(e) {
+  const k = e && e.message;
+  return { needPass: t().needPass, badPass: t().badPass, expired: t().expired, net: t().netErr, geo: t().geoErr }[k] || (t().netErr + " (" + k + ")");
+}
+
+// ======================================================================
+//  WebAssembly 엔진
+// ======================================================================
+const enc = new TextEncoder(), dec = new TextDecoder();
+function wput(str) { const b = enc.encode(str); const p = S.g.alloc(b.length); new Uint8Array(S.g.memory.buffer, p, b.length).set(b); return [p, b.length]; }
+function wout(n) { return dec.decode(new Uint8Array(S.g.memory.buffer, S.g.out_ptr(), n)); }
+async function loadWasm() {
+  const buf = await (await fetch("graph.wasm")).arrayBuffer();
+  return (await WebAssembly.instantiate(buf, {})).instance.exports;
+}
+
+// ======================================================================
+//  화면 1: 검색
+// ======================================================================
+function viewSearch(msg) {
+  stopGuidance();
+  const v = $("view"), L = t();
+  v.innerHTML = `
+    <h2 id="h"></h2>
+    ${msg ? `<p class="msg bad" role="alert">${esc(msg)}</p>` : ""}
+    <form id="f" novalidate>
+      ${field("from", L.from, L.fromPh)}
+      <div class="actions">
+        <button type="button" class="btn" id="geo">📍 <span>${esc(L.myPos)}</span></button>
+        <button type="button" class="btn" id="swap">⇅ <span>${esc(L.swap)}</span></button>
+      </div>
+      ${field("to", L.to, L.toPh)}
+      <button type="submit" class="btn primary" style="width:100%;min-height:68px;font-size:24px">${esc(L.search)}</button>
+    </form>
+    <h2 style="margin-top:28px;font-size:22px">${esc(L.recent)}</h2>
+    <ul class="recent" id="recent"></ul>`;
+  $("h").textContent = L.search;
+  for (const k of ["from", "to"]) bindAuto(k);
+  $("geo").onclick = useMyLocation;
+  $("swap").onclick = () => { [S.from, S.to] = [S.to, S.from]; $("in-from").value = S.from ? S.from.name : ""; $("in-to").value = S.to ? S.to.name : ""; };
+  $("f").onsubmit = (e) => { e.preventDefault(); search(); };
+  const rec = store.get("recent", []);
+  const ul = $("recent");
+  for (const r of rec) {
+    const li = document.createElement("li");
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "btn"; b.textContent = `${r.from.name} → ${r.to.name}`;
+    b.onclick = () => { S.from = r.from; S.to = r.to; search(); };
+    li.append(b); ul.append(li);
+  }
+  if (S.from) $("in-from").value = S.from.name;
+  if (S.to) $("in-to").value = S.to.name;
+}
+function field(k, label, ph) {
+  return `<label class="field" for="in-${k}"><span>${esc(label)}</span></label>
+    <div class="inrow"><input type="text" id="in-${k}" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sg-${k}"
+      autocomplete="off" autocapitalize="words" spellcheck="false" placeholder="${esc(ph)}"></div>
+    <ul class="sugs" id="sg-${k}" role="listbox" aria-label="${esc(label)}"></ul>`;
+}
+function bindAuto(k) {
+  const inp = $("in-" + k), ul = $("sg-" + k);
+  let timer = 0, items = [], sel = -1;
+  const show = () => {
+    ul.innerHTML = "";
+    items.forEach((it, i) => {
+      const li = document.createElement("li");
+      li.id = `sg-${k}-${i}`; li.setAttribute("role", "option"); li.setAttribute("aria-selected", String(i === sel));
+      li.innerHTML = `${esc(it.name)}${it.kind ? `<small>${esc(it.kind)}</small>` : ""}`;
+      li.onpointerdown = (e) => { e.preventDefault(); choose(i); };
+      ul.append(li);
+    });
+    inp.setAttribute("aria-expanded", String(items.length > 0));
+    if (sel >= 0) inp.setAttribute("aria-activedescendant", `sg-${k}-${sel}`); else inp.removeAttribute("aria-activedescendant");
+  };
+  const choose = (i) => {
+    const it = items[i]; if (!it) return;
+    S[k] = it; inp.value = it.name; items = []; sel = -1; show();
+    say(it.name);
+  };
+  inp.oninput = () => {
+    S[k] = null; clearTimeout(timer);
+    const q = inp.value.trim();
+    if (q.length < 2) { items = []; show(); return; }
+    timer = setTimeout(async () => {
+      try {
+        const d = JSON.parse(await api("/locations/by-text", { q, limit: 6 }));
+        items = (d.results || []).map(r => ({ name: r.name, gid: r.gid, lat: r.latitude, lon: r.longitude, type: r.locationType,
+          kind: r.locationType === "stoparea" ? "" : r.locationType }));
+        sel = items.length ? 0 : -1; show();
+      } catch (e) { items = []; show(); say(errText(e)); }
+    }, 280);
+  };
+  inp.onkeydown = (e) => {
+    if (!items.length) return;
+    if (e.key === "ArrowDown") { sel = Math.min(items.length - 1, sel + 1); show(); e.preventDefault(); }
+    else if (e.key === "ArrowUp") { sel = Math.max(0, sel - 1); show(); e.preventDefault(); }
+    else if (e.key === "Enter") { choose(sel < 0 ? 0 : sel); e.preventDefault(); }
+    else if (e.key === "Escape") { items = []; show(); }
+  };
+  inp.onblur = () => setTimeout(() => { if (!S[k] && items.length) choose(0); items = []; show(); }, 150);
+}
+function useMyLocation() {
+  if (!navigator.geolocation) { say(t().geoErr); return; }
+  navigator.geolocation.getCurrentPosition(async (p) => {
+    try {
+      const d = JSON.parse(await api("/locations/by-coordinates", { latitude: p.coords.latitude, longitude: p.coords.longitude, radiusInMeters: 600, limit: 1, types: "stoparea" }));
+      const r = (d.results || [])[0];
+      if (!r) throw new Error("geo");
+      S.from = { name: r.name, gid: r.gid, lat: r.latitude, lon: r.longitude, type: r.locationType };
+      $("in-from").value = r.name; say(r.name);
+    } catch (e) { say(errText(e)); }
+  }, () => say(t().geoErr), { enableHighAccuracy: true, timeout: 15000 });
+}
+function locParams(prefix, l) {
+  if (l.gid && l.type === "stoparea") return { [prefix + "Gid"]: l.gid };
+  return { [prefix + "Latitude"]: l.lat, [prefix + "Longitude"]: l.lon, [prefix + "Name"]: l.name };
+}
+
+// ======================================================================
+//  화면 2: 경로 고르기
+// ======================================================================
+async function search() {
+  if (!S.from || !S.to) { say(t().pickFrom); viewSearch(t().pickFrom); return; }
+  const v = $("view"); v.innerHTML = `<h2>${esc(t().searching)}</h2>`; say(t().searching);
+  let txt;
+  try { txt = await api("/journeys", { ...locParams("origin", S.from), ...locParams("destination", S.to), limit: 5 }); }
+  catch (e) { viewSearch(errText(e)); say(errText(e), true); return; }
+  const opts = JSON.parse(wout(S.g.journeys_set(...wput(txt))));
+  S.options = opts;
+  const rec = store.get("recent", []).filter(r => !(r.from.name === S.from.name && r.to.name === S.to.name));
+  store.set("recent", [{ from: S.from, to: S.to }, ...rec].slice(0, 5));
+  viewOptions();
+}
+function optText(o) {
+  const L = t();
+  return {
+    dep: hhmm(o.dep), arr: hhmm(o.arr), minutes: o.minutes, changesTxt: L.changes(o.changes),
+    lines: o.legs.map(l => `${MODE[S.lang][l.mode] || l.mode} ${l.line}`).join(", "),
+  };
+}
+function viewOptions() {
+  const v = $("view"), L = t(), opts = S.options.filter(o => !o.departed);
+  if (!opts.length) { viewSearch(L.noTrips); say(L.noTrips); return; }
+  v.innerHTML = `<h2 id="h">${esc(L.options)}</h2>
+    <p class="muted">${esc(S.from.name)} → ${esc(S.to.name)}</p>
+    <ol class="opts" id="opts"></ol>
+    <div class="actions" style="margin-top:16px"><button type="button" class="btn" id="back">← ${esc(L.back)}</button></div>`;
+  const ol = $("opts");
+  opts.forEach((o) => {
+    const i = S.options.indexOf(o), ot = optText(o);
+    const li = document.createElement("li");
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "btn opt";
+    b.setAttribute("aria-label", L.optSay(ot));
+    b.innerHTML = `<div class="t">${esc(ot.dep)} → ${esc(ot.arr)}</div>
+      <div class="d">${o.minutes} ${esc(L.min)} · ${esc(ot.changesTxt)}${o.walk ? " · " + esc(L.walkMin(o.walk)) : ""}</div>
+      <div class="badges" aria-hidden="true">${o.legs.map(l => `<span class="badge" style="background:${esc(l.bg)};color:${esc(l.fg)}">${esc(l.line)}</span>`).join('<span class="arrow">→</span>')}</div>`;
+    b.onclick = () => startTrip(i);
+    b.onfocus = () => say(L.optSay(ot));
+    li.append(b); ol.append(li);
+  });
+  $("back").onclick = () => viewSearch();
+  $("h").focus?.();
+  say(L.found(opts.length, optText(opts[0]).dep));
+}
+
+// ======================================================================
+//  화면 3: 한 줄 안내
+// ======================================================================
+async function startTrip(i) {
+  S.pick = i;
+  const v = $("view"); v.innerHTML = `<h2>${esc(t().searching)}</h2>`;
+  const ref = wout(S.g.journey_ref(i));
+  let det = "";
+  try { det = await api("/journeys/" + encodeURIComponent(ref) + "/details", { includes: "servicejourneycalls" }); }
+  catch (e) { /* 세부 정보 없이도 출발·도착만으로 안내 가능 */ }
+  S.model = JSON.parse(wout(S.g.trip_build(i, ...wput(det || "{}"))));
+  S.cursor = 0;
+  renderGuide();
+  tick(true);
+  // 화면 꺼짐 방지 (지원되는 브라우저에서) — 응답을 기다리지 않는다
+  if (navigator.wakeLock) navigator.wakeLock.request("screen").then(w => { S.wake = w; }, () => {});
+  S.tick = setInterval(() => tick(false), 5000);
+  S.poll = setInterval(refresh, 20000);                 // 15~30초 주기로 실시간 시각 갱신
+}
+function stopGuidance() {
+  clearInterval(S.tick); clearInterval(S.poll); S.tick = S.poll = 0;
+  if (S.wake) { try { S.wake.release(); } catch (e) {} S.wake = null; }
+  if ("speechSynthesis" in window) speechSynthesis.cancel();
+}
+async function refresh() {
+  if (S.pick < 0) return;
+  try {
+    const det = await api("/journeys/" + encodeURIComponent(wout(S.g.journey_ref(S.pick))) + "/details", { includes: "servicejourneycalls" });
+    S.model = JSON.parse(wout(S.g.trip_update(S.pick, ...wput(det))));
+    renderLine();
+  } catch (e) { /* 다음 주기에 다시 */ }
+}
+function nodeInfo(nd) {
+  const L = t();
+  const line = S.model.lines[nd.leg] || {};
+  const time = hhmm(nd.kind === "board" ? nd.dep : (nd.arr || nd.dep));
+  let kindTxt = L.kind[nd.kind];
+  if (nd.kind === "board" && line.line) kindTxt = `${L.kind.board} ${MODE[S.lang][line.mode] || line.mode} ${line.line}`;
+  if (nd.kind === "walk") kindTxt = `${L.kind.walk} (${L.walkMin(nd.walk)})`;
+  return { kindTxt, name: nd.name + (nd.platform ? ` (${nd.platform})` : ""), time, line };
+}
+function renderGuide() {
+  const L = t();
+  $("view").innerHTML = `
+    <div class="pin"><section class="status" id="status" aria-labelledby="stNow"><div class="now" id="stNow"></div><div class="big" id="stBig"></div><div class="sub" id="stSub"></div></section>
+    <div class="controls">
+      <button type="button" class="btn" id="cRepeat">🔊<span>${esc(L.repeat)}</span></button>
+      <button type="button" class="btn" id="cPrev">◀<span>${esc(L.prev)}</span></button>
+      <button type="button" class="btn" id="cNext">▶<span>${esc(L.next)}</span></button>
+      <button type="button" class="btn" id="cStop">✕<span>${esc(L.stop)}</span></button>
+    </div></div>
+    <p class="muted" style="font-size:17px">${esc(L.swipeHint)}</p>
+    <ol class="line" id="line" aria-label="${esc(S.from ? S.from.name + " → " + S.to.name : "")}"></ol>`;
+  $("cRepeat").onclick = () => say(S.lastSay || statusText(), true);
+  $("cPrev").onclick = () => moveCursor(-1);
+  $("cNext").onclick = () => moveCursor(1);
+  $("cStop").onclick = () => { stopGuidance(); S.pick = -1; viewSearch(); };
+  renderLine();
+}
+function renderLine() {
+  const ol = $("line"); if (!ol || !S.model) return;
+  const L = t(), nodes = S.model.nodes, k = S.status ? S.status.k : -1;
+  ol.innerHTML = "";
+  nodes.forEach((nd, i) => {
+    const info = nodeInfo(nd);
+    const li = document.createElement("li");
+    li.className = `node ${nd.kind}` + (i === 0 ? " first" : "") + (i === nodes.length - 1 ? " last" : "") +
+      (i < hereIndex() ? " passed" : "") + (i === hereIndex() ? " here" : "") + (i + 1 === S.cursor ? " cursor" : "");
+    li.id = "n" + i; li.tabIndex = -1;
+    // 선 색 = 그 구간 노선 색 (도보는 점선, 도착지는 마지막 구간 색)
+    if (nd.kind !== "walk" && info.line.bg) li.style.setProperty("--seg", info.line.bg);
+    const delay = nd.delay ? ` <span class="delay">${nd.delay > 0 ? "+" : ""}${nd.delay}</span>` : "";
+    const badge = nd.kind === "board" && info.line.line ? `<div class="badges" aria-hidden="true"><span class="badge" style="background:${esc(info.line.bg)};color:${esc(info.line.fg)}">${esc(info.line.line)}</span><span>${esc(info.line.dir)}</span></div>` : "";
+    li.innerHTML = `<span class="dot" aria-hidden="true"></span>
+      <div class="nm">${esc(nd.name)}${nd.platform ? ` <span class="muted">· ${esc(nd.platform)}</span>` : ""}${S.status && i === hereIndex() ? `<span class="here-tag">${esc(L.here)}</span>` : ""}</div>
+      <div class="meta">${esc(info.kindTxt)} · ${esc(info.time)}${delay}</div>${badge}`;
+    li.setAttribute("aria-label", L.nodeSay(i + 1, nodes.length, info) + (S.status && i === hereIndex() ? " " + L.here : ""));
+    ol.append(li);
+  });
+}
+/** 화면에 '현재 위치'로 표시할 노드: 차 안이면 방금 지난 정류장, 기다리는 중이면 탈 정류장 */
+function hereIndex() {
+  const s = S.status; if (!s || !S.model) return -1;
+  if (s.phase === "wait" || s.phase === "transfer") return s.next;
+  if (s.phase === "arrived") return S.model.nodes.length - 1;
+  return Math.max(0, s.k);
+}
+function statusText() {
+  const s = S.status, L = t(); if (!s || !S.model) return "";
+  const nd = S.model.nodes[s.next], info = nodeInfo(nd);
+  if (s.phase === "arrived") return L.ev.arrived({ stop: S.model.nodes[S.model.nodes.length - 1].name });
+  if (s.phase === "ride") return L.ev.next_stop({ stop: nd.name, left: 0 }) + ` ${s.mins} ${L.min}.`;
+  return `${L.status[s.phase]}: ${info.kindTxt} ${info.name}, ${info.time}.`;
+}
+function tick(first) {
+  if (!S.model) return;
+  const s = JSON.parse(wout(S.g.trip_tick(Date.now())));
+  const moved = !S.status || s.k !== S.status.k || s.phase !== S.status.phase;
+  S.status = s;
+  const L = t(), nd = S.model.nodes[s.next], info = nodeInfo(nd);
+  $("stNow").textContent = L.status[s.phase] || "";
+  $("stBig").textContent = s.phase === "arrived" ? S.model.nodes[S.model.nodes.length - 1].name : nd.name + (nd.platform ? ` · ${nd.platform}` : "");
+  $("stSub").innerHTML = s.phase === "arrived" ? "" : `${esc(info.kindTxt)} · <span class="mins">${s.mins} ${esc(L.min)}</span> · ${esc(info.time)}`;
+  if (s.event) {
+    const e = s.event, urgent = /alight|board_now|arrived/.test(e.code);
+    const ln = e.line || {};
+    const text = L.ev[e.code] ? L.ev[e.code]({ ...e, line: ln.line || "", dir: ln.dir || "", modeTxt: MODE[S.lang][ln.mode] || ln.mode || "" }) : "";
+    $("status").classList.toggle("alert", urgent);
+    say(text, urgent);
+  }
+  if (moved || first) {
+    renderLine();
+    const here = $("n" + hereIndex());
+    if (here) here.scrollIntoView({ block: "center", behavior: first ? "auto" : "smooth" });
+  }
+  if (s.phase === "arrived") { clearInterval(S.tick); clearInterval(S.poll); }
+}
+/** 스와이프·이전/다음: 0 = 현재 상태, 1..n = 노드 */
+function moveCursor(d) {
+  if (!S.model) return;
+  const n = S.model.nodes.length;
+  if (S.cursor === 0 && d > 0) S.cursor = Math.max(1, hereIndex() + 1);
+  else S.cursor = Math.max(0, Math.min(n, S.cursor + d));
+  renderLine();
+  if (S.cursor === 0) { say(statusText(), true); $("status").focus?.(); return; }
+  const nd = S.model.nodes[S.cursor - 1];
+  say(t().nodeSay(S.cursor, n, nodeInfo(nd)), true);
+  const li = $("n" + (S.cursor - 1));
+  if (li) { li.scrollIntoView({ block: "center", behavior: "smooth" }); li.focus({ preventScroll: true }); }
+}
+
+// ---------- 화면 어디서든 스와이프 (가로만 — 세로는 스크롤에 양보) ----------
+let sx = 0, sy = 0, st0 = 0;
+document.addEventListener("pointerdown", (e) => { sx = e.clientX; sy = e.clientY; st0 = Date.now(); }, { passive: true });
+document.addEventListener("pointerup", (e) => {
+  if (!S.model || !$("line")) return;
+  const dx = e.clientX - sx, dy = e.clientY - sy;
+  if (Date.now() - st0 < 700 && Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) moveCursor(dx < 0 ? 1 : -1);
+}, { passive: true });
+document.addEventListener("keydown", (e) => {
+  if (!S.model || !$("line") || e.target.tagName === "INPUT") return;
+  if (e.key === "ArrowRight" || e.key === "j") { moveCursor(1); e.preventDefault(); }
+  if (e.key === "ArrowLeft" || e.key === "k") { moveCursor(-1); e.preventDefault(); }
+  if (e.key === " " || e.key === "r") { say(S.lastSay || statusText(), true); e.preventDefault(); }
+});
+
+// ======================================================================
+//  설정 대화상자
+// ======================================================================
+function openSettings() {
+  const d = $("settings");
+  $("pass").value = store.get("pass", "");
+  $("manualToken").value = store.get("manualToken", "");
+  updateSettingsText();
+  d.showModal();
+}
+function updateSettingsText() {
+  const L = t();
+  $("setTitle").textContent = L.setTitle; $("lgVoice").textContent = L.voice; $("voiceOn").textContent = L.on; $("voiceOff").textContent = L.off;
+  $("lgContrast").textContent = L.contrast; $("cHigh").textContent = L.high; $("cNormal").textContent = L.normal;
+  $("lbPass").textContent = L.pass; $("lbDev").textContent = L.dev; $("lbToken").textContent = L.token;
+  $("setSave").textContent = L.save; $("setClose").textContent = L.close;
+  $("voiceOn").setAttribute("aria-pressed", String(S.voice)); $("voiceOff").setAttribute("aria-pressed", String(!S.voice));
+  const c = document.documentElement.dataset.contrast;
+  $("cHigh").setAttribute("aria-pressed", String(c === "high")); $("cNormal").setAttribute("aria-pressed", String(c === "normal"));
+  const left = Math.floor((S.tokenExp - Date.now()) / 3600e3);
+  $("tokenState").textContent = S.token && left >= 0 ? L.tokOk(left) : L.tokNone;
+}
+$("settingsBtn").onclick = openSettings;
+$("setClose").onclick = () => $("settings").close();
+$("voiceOn").onclick = () => { S.voice = true; store.set("voice", true); updateSettingsText(); say(t().on); };
+$("voiceOff").onclick = () => { S.voice = false; store.set("voice", false); speechSynthesis?.cancel(); updateSettingsText(); };
+for (const id of ["cHigh", "cNormal"]) $(id).onclick = (e) => {
+  const c = e.currentTarget.dataset.contrast; document.documentElement.dataset.contrast = c; store.set("contrast", c); updateSettingsText();
+};
+$("setSave").onclick = async () => {
+  store.set("pass", $("pass").value.trim());
+  store.set("manualToken", $("manualToken").value.trim());
+  S.token = null;
+  try { await getToken(true); updateSettingsText(); say(t().tokOk(Math.floor((S.tokenExp - Date.now()) / 3600e3))); $("settings").close(); }
+  catch (e) { $("tokenState").textContent = errText(e); say(errText(e), true); }
+};
+
+// ======================================================================
+//  언어 전환 (화면 글자 + 음성 언어 동시에)
+// ======================================================================
+function applyLang(lang) {
+  S.lang = lang; store.set("lang", lang);
+  document.documentElement.lang = lang;
+  const L = t();
+  document.title = `${L.app} – Västtrafik`;
+  $("appname").textContent = L.app; $("skip").textContent = L.skip; $("settingsLbl").textContent = L.settings;
+  $("settingsBtn").setAttribute("aria-label", L.settings);
+  document.querySelectorAll("#langs .btn").forEach(b => {
+    b.setAttribute("aria-pressed", String(b.dataset.lang === lang));
+    b.setAttribute("aria-label", { sv: "Svenska", en: "English", ko: "한국어" }[b.dataset.lang]);
+  });
+  $("foot") && ($("foot").textContent = L.footer);
+  if ($("settings").open) updateSettingsText();
+}
+document.querySelectorAll("#langs .btn").forEach(b => b.onclick = () => {
+  applyLang(b.dataset.lang);
+  say({ sv: "Svenska", en: "English", ko: "한국어" }[b.dataset.lang], true);
+  if (S.model && $("line")) { renderGuide(); tick(true); }
+  else if ($("opts")) viewOptions();
+  else viewSearch();
+});
+
+// ======================================================================
+//  시작
+// ======================================================================
+// 고정 머리글 높이 → 상태 상자가 그 아래에 붙도록
+const setHead = () => document.documentElement.style.setProperty("--head", document.querySelector("header").offsetHeight + "px");
+addEventListener("resize", setHead);
+(async function main() {
+  document.documentElement.dataset.contrast = store.get("contrast", "high");
+  const f = document.createElement("footer"); f.innerHTML = `<div class="wrap" id="foot"></div>`; document.body.append(f);
+  applyLang(S.lang);
+  setHead();
+  try { S.g = await loadWasm(); }
+  catch (e) { $("view").innerHTML = `<p class="msg bad" role="alert">WebAssembly: ${esc(e.message)}</p>`; return; }
+  viewSearch();
+  try { await getToken(); }
+  catch (e) { if (e.message === "needPass") openSettings(); }
+})();
+</script>
+</body>
+</html>
