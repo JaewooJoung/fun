@@ -14,7 +14,6 @@
         #ui-layer { position: absolute; z-index: 10; pointer-events: none; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
         .pointer-events-auto { pointer-events: auto; }
         
-        /* Mayan Canvas Clock UI */
         #maya-ui-clock {
             background: rgba(15, 12, 10, 0.85);
             border: 2px solid #a37c35;
@@ -29,7 +28,6 @@
     <div id="canvas-container"></div>
 
     <div id="ui-layer" class="p-6">
-        <!-- Top Header & 2D UI Clock -->
         <div class="flex justify-between items-start w-full">
             <div>
                 <h1 class="text-3xl md:text-5xl font-black tracking-widest text-amber-500 drop-shadow-[0_4px_6px_rgba(0,0,0,0.9)]" style="font-family: serif;">MAYA CHRONOS</h1>
@@ -40,12 +38,10 @@
                 <div class="bg-black/80 px-3 py-1 rounded border border-amber-900/50 mb-2">
                     <p class="text-[10px] text-amber-400/80 tracking-[0.2em] font-bold uppercase">Real-Time</p>
                 </div>
-                <!-- 2D Canvas for Maya UI Clock -->
                 <canvas id="maya-ui-clock" width="120" height="240"></canvas>
             </div>
         </div>
 
-        <!-- Camera Control Button -->
         <div class="w-full flex justify-center pb-8">
             <button id="toggle-cam-btn" class="pointer-events-auto px-10 py-4 bg-gradient-to-b from-stone-800 to-stone-900 border-2 border-amber-600/60 text-amber-500 font-bold rounded-full hover:scale-105 hover:bg-stone-700 hover:text-amber-300 hover:shadow-[0_0_20px_rgba(217,119,6,0.4)] transition-all duration-300 uppercase tracking-widest text-sm shadow-2xl relative overflow-hidden">
                 <span class="relative z-10">Read The Gate (Zoom In)</span>
@@ -55,16 +51,15 @@
 
     <script>
         // ==========================================
-        // 1. MAYAN 2D DRAWING ENGINE (Canvas)
+        // 1. MAYAN 2D DRAWING ENGINE
         // ==========================================
-        
         function drawMayaNumeral(ctx, num, cx, cy, scale = 1, color = '#000000') {
             ctx.fillStyle = color;
             ctx.strokeStyle = color;
-            ctx.lineWidth = 6 * scale; // Bold lines
+            ctx.lineWidth = 6 * scale;
 
             function drawTier(n, ty) {
-                if (n === 0) { // Shell symbol for Zero
+                if (n === 0) {
                     ctx.beginPath();
                     ctx.ellipse(cx, ty, 20 * scale, 12 * scale, 0, 0, Math.PI * 2);
                     ctx.stroke();
@@ -75,20 +70,16 @@
                     ctx.stroke();
                     return;
                 }
-
                 const bars = Math.floor(n / 5);
                 const dots = n % 5;
                 const barSpacing = 14 * scale;
                 const base = ty + (bars * barSpacing) / 2 - (bars > 0 ? barSpacing/2 : 0);
                 
-                // Bars (5s)
                 for (let i = 0; i < bars; i++) {
                     ctx.beginPath();
                     ctx.roundRect(cx - 24*scale, base - i * barSpacing, 48*scale, 10*scale, 5*scale);
                     ctx.fill();
                 }
-                
-                // Dots (1s)
                 const dotY = base - bars * barSpacing - 14*scale;
                 const dotSpacing = 16 * scale; 
                 const startX = cx - ((dots - 1) * dotSpacing) / 2;
@@ -98,19 +89,13 @@
                     ctx.fill();
                 }
             }
-
-            if (num < 20) {
-                drawTier(num, cy);
-            } else {
-                // Base 20 Stacking
-                const twenties = Math.floor(num / 20);
-                const units = num % 20;
-                drawTier(twenties, cy - 25*scale);
-                drawTier(units, cy + 25*scale);
+            if (num < 20) drawTier(num, cy);
+            else {
+                drawTier(Math.floor(num / 20), cy - 25*scale);
+                drawTier(num % 20, cy + 25*scale);
             }
         }
 
-        // Procedural Cartouche for Tzolk'in / Haab Glyphs
         function drawMayaGlyph(ctx, index, cx, cy, scale = 1, color = '#000000') {
             ctx.save();
             ctx.translate(cx, cy);
@@ -120,12 +105,10 @@
             ctx.lineWidth = 8;
             ctx.lineJoin = 'round';
 
-            // Main Cartouche Body
             ctx.beginPath();
             ctx.roundRect(-32, -32, 64, 64, 16);
             ctx.stroke();
 
-            // Inner procedural design based on pseudo-random hash
             const seed = (index * 137) % 29;
             ctx.lineWidth = 5;
             
@@ -141,13 +124,11 @@
                 ctx.beginPath(); ctx.arc(-8, 5, 5, 0, Math.PI*2); ctx.fill();
                 ctx.beginPath(); ctx.arc(8, 5, 5, 0, Math.PI*2); ctx.fill();
             }
-            
             ctx.restore();
         }
 
         // ==========================================
-        // 2. PROCEDURAL HIGH-RES TEXTURE GENERATOR
-        //    (음각 emboss 효과 + 미세 질감 추가)
+        // 2. TEXTURE GENERATOR
         // ==========================================
         function generateGearTexture(innerR, outerR, slots, typeFunc, markingColor) {
             const size = 2048;
@@ -158,89 +139,47 @@
             const cx = size / 2;
             const cy = size / 2;
 
-            // ── 1. 베이스 석재 (미세 노이즈로 질감 부여) ──
-            ctx.fillStyle = '#d8cfb4';
+            // Base stone color
+            ctx.fillStyle = '#e8e0cc';
             ctx.fillRect(0, 0, size, size);
-            for (let i = 0; i < 20000; i++) {
-                const x = Math.random() * size, y = Math.random() * size;
-                const shade = 200 + Math.random() * 40;
-                ctx.fillStyle = `rgba(${shade},${shade - 10},${shade - 30},0.08)`;
-                ctx.fillRect(x, y, 2, 2);
-            }
 
             const R_out = size / 2;
             const R_in = R_out * (innerR / outerR);
             const R_mid = (R_in + R_out) / 2;
             const ringWidth = R_out - R_in;
 
-            // 스케일 대폭 상향 (가시성)
             const scaleNum   = ringWidth / 95;
             const scaleGlyph = ringWidth / 80;
 
-            // ── 2. 링 경계 홈 (음각 느낌) ──
-            ctx.strokeStyle = '#a89c78';
-            ctx.lineWidth = 14;
-            ctx.beginPath(); ctx.arc(cx, cy, R_out - 10, 0, Math.PI * 2); ctx.stroke();
-            ctx.beginPath(); ctx.arc(cx, cy, R_in + 10, 0, Math.PI * 2); ctx.stroke();
-
             for (let i = 0; i < slots; i++) {
                 const angle = (i / slots) * Math.PI * 2;
-
-                // ── 3. 마킹 (음각 emboss: 그림자 → 본체 → 하이라이트) ──
                 ctx.save();
                 ctx.translate(cx, cy);
-                ctx.rotate(-angle);
+                ctx.rotate(-angle); 
                 ctx.translate(R_mid, 0);
                 ctx.rotate(Math.PI / 2);
 
                 const valInfo = typeFunc(i);
-
-                // 3a. 아래쪽 그림자 (음각 깊이감)
+                // Shadow
                 ctx.save();
-                ctx.translate(3, 3);
-                ctx.globalAlpha = 0.55;
-                if (valInfo.type === 'numeral') {
-                    drawMayaNumeral(ctx, valInfo.value, 0, 0, scaleNum, '#5a4f38');
-                } else {
-                    drawMayaGlyph(ctx, valInfo.value, 0, 0, scaleGlyph, '#5a4f38');
-                }
+                ctx.translate(2, 2);
+                ctx.globalAlpha = 0.4;
+                if (valInfo.type === 'numeral') drawMayaNumeral(ctx, valInfo.value, 0, 0, scaleNum, '#000000');
+                else drawMayaGlyph(ctx, valInfo.value, 0, 0, scaleGlyph, '#000000');
                 ctx.restore();
 
-                // 3b. 본체 마킹
-                if (valInfo.type === 'numeral') {
-                    drawMayaNumeral(ctx, valInfo.value, 0, 0, scaleNum, markingColor);
-                } else {
-                    drawMayaGlyph(ctx, valInfo.value, 0, 0, scaleGlyph, markingColor);
-                }
-
-                // 3c. 위쪽 하이라이트 (빛 반사)
-                ctx.save();
-                ctx.translate(-2, -2);
-                ctx.globalAlpha = 0.35;
-                if (valInfo.type === 'numeral') {
-                    drawMayaNumeral(ctx, valInfo.value, 0, 0, scaleNum, '#ffffff');
-                } else {
-                    drawMayaGlyph(ctx, valInfo.value, 0, 0, scaleGlyph, '#ffffff');
-                }
+                // Main Marking
+                if (valInfo.type === 'numeral') drawMayaNumeral(ctx, valInfo.value, 0, 0, scaleNum, markingColor);
+                else drawMayaGlyph(ctx, valInfo.value, 0, 0, scaleGlyph, markingColor);
+                
                 ctx.restore();
 
-                ctx.restore();
-
-                // ── 4. 구분 홈 (음각) ──
+                // Divider Grooves
                 ctx.save();
                 ctx.translate(cx, cy);
-                const sepAngle = -angle - (Math.PI * 2) / (slots * 2);
-                ctx.rotate(sepAngle);
-                // 그림자
-                ctx.strokeStyle = 'rgba(90,79,56,0.7)';
-                ctx.lineWidth = 10;
-                ctx.beginPath();
-                ctx.moveTo(R_in + 15, 3);
-                ctx.lineTo(R_out - 15, 3);
-                ctx.stroke();
-                // 밝은 홈
-                ctx.strokeStyle = '#f0e8d0';
-                ctx.lineWidth = 6;
+                ctx.rotate(-angle - (Math.PI * 2) / (slots * 2));
+                ctx.strokeStyle = '#a89c78';
+                ctx.lineWidth = 8;
                 ctx.beginPath();
                 ctx.moveTo(R_in + 15, 0);
                 ctx.lineTo(R_out - 15, 0);
@@ -250,12 +189,12 @@
 
             const tex = new THREE.CanvasTexture(canvas);
             tex.anisotropy = 16;
-            tex.colorSpace = THREE.SRGBColorSpace;
+            tex.colorSpace = THREE.SRGBColorSpace; 
             return tex;
         }
 
         // ==========================================
-        // 3. UI MAYAN CLOCK (Top Right)
+        // 3. UI MAYAN CLOCK
         // ==========================================
         const uiCtx = document.getElementById('maya-ui-clock').getContext('2d');
         function updateUIClock(h, m, s) {
@@ -264,7 +203,6 @@
             drawMayaNumeral(uiCtx, h, 60, 45, 1.1, gold);
             drawMayaNumeral(uiCtx, m, 60, 120, 1.1, gold);
             drawMayaNumeral(uiCtx, s, 60, 195, 1.1, gold);
-
             uiCtx.strokeStyle = 'rgba(234, 179, 8, 0.3)';
             uiCtx.lineWidth = 1;
             uiCtx.beginPath(); uiCtx.moveTo(20, 82); uiCtx.lineTo(100, 82); uiCtx.stroke();
@@ -272,13 +210,12 @@
         }
 
         // ==========================================
-        // 4. THREE.JS SCENE SETUP & LIGHTING
-        //    (측면광 추가로 음각 그림자 강조)
+        // 4. SCENE SETUP & LIGHTING (강화됨)
         // ==========================================
         const scene = new THREE.Scene();
         scene.fog = new THREE.FogExp2(0x050505, 0.012);
 
-        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -286,38 +223,33 @@
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+        // 빛을 대폭 늘려 기어의 질감과 텍스처가 확실히 보이게 함
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
         scene.add(ambientLight);
 
-        const topLight = new THREE.DirectionalLight(0xffffff, 1.0);
-        topLight.position.set(0, 30, 10);
+        const topLight = new THREE.DirectionalLight(0xffffff, 1.5);
+        topLight.position.set(0, 40, 20);
         topLight.castShadow = true;
         topLight.shadow.mapSize.width = 2048;
         topLight.shadow.mapSize.height = 2048;
         scene.add(topLight);
 
-        // 측면 방향광 2개 → 음각 그림자 생성
-        const sideLightL = new THREE.DirectionalLight(0xfff2d0, 0.8);
-        sideLightL.position.set(-15, 8, 12);
-        scene.add(sideLightL);
-
-        const sideLightR = new THREE.DirectionalLight(0xd0e0ff, 0.6);
-        sideLightR.position.set(15, 8, -12);
-        scene.add(sideLightR);
+        const fillLight = new THREE.DirectionalLight(0xfff2d0, 0.8);
+        fillLight.position.set(-20, 10, -20);
+        scene.add(fillLight);
 
         // ==========================================
-        // 5. GEAR CONSTRUCTION ENGINE
+        // 5. GEAR CONSTRUCTION
         // ==========================================
         const bodyMat = new THREE.MeshStandardMaterial({ 
-            color: 0xe0d8c0, 
-            roughness: 0.85, 
-            metalness: 0.1 
+            color: 0xd8cfb4, // 기어 바닥면도 밝게
+            roughness: 0.9, 
+            metalness: 0.0 
         });
 
         function createThickRing(innerR, outerR, height, slots, typeFunc, hasTeeth, markingColor) {
             const group = new THREE.Group();
 
-            // 1. Solid Body (ExtrudeGeometry)
             const shape = new THREE.Shape();
             shape.absarc(0, 0, outerR, 0, Math.PI * 2, false);
             const hole = new THREE.Path();
@@ -326,34 +258,30 @@
 
             const extSettings = { depth: height, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 0.1, bevelThickness: 0.1, curveSegments: 64 };
             const geo = new THREE.ExtrudeGeometry(shape, extSettings);
-            geo.rotateX(Math.PI / 2);
+            geo.rotateX(Math.PI / 2); 
             
             const ringMesh = new THREE.Mesh(geo, bodyMat);
             ringMesh.receiveShadow = true;
             ringMesh.castShadow = true;
             group.add(ringMesh);
 
-            // 2. Top Face with Canvas Texture — 조명 반응 + 음각 음영
+            // Top face with texture (조명을 받도록 Standard 재질 사용)
             const topTex = generateGearTexture(innerR, outerR, slots, typeFunc, markingColor);
-            const topMat = new THREE.MeshStandardMaterial({
-                color: 0xffffff,
-                map: topTex,
-                roughness: 0.7,
-                metalness: 0.05,
-                side: THREE.DoubleSide,
-                polygonOffset: true,          // z-fighting 방지
+            const topMat = new THREE.MeshStandardMaterial({ 
+                map: topTex, 
+                roughness: 0.6,
+                metalness: 0.1,
+                polygonOffset: true,
                 polygonOffsetFactor: -1,
                 polygonOffsetUnits: -1
             });
-
-            const topGeo = new THREE.RingGeometry(innerR, outerR, 256);
-            topGeo.rotateX(-Math.PI / 2);
+            
+            const topGeo = new THREE.RingGeometry(innerR, outerR, 128);
+            topGeo.rotateX(-Math.PI / 2); 
             const topMesh = new THREE.Mesh(topGeo, topMat);
-            topMesh.position.y = 0.02;
-            topMesh.receiveShadow = true;
+            topMesh.position.y = 0.01; // z-fighting 방지
             group.add(topMesh);
 
-            // 3. Teeth (Mechanical interaction)
             if(hasTeeth) {
                 const toothGeo = new THREE.BoxGeometry(0.8, height * 0.9, (outerR - innerR)*0.3);
                 for(let i=0; i<slots; i++) {
@@ -366,68 +294,58 @@
                     group.add(tooth);
                 }
             }
-
             scene.add(group);
             return group;
         }
 
         const HEIGHT = 1.2;
-
-        // INNER DATE GEARS (Red Markings)
         const gearTzNum = createThickRing(3, 6, HEIGHT, 13, (i) => ({type: 'numeral', value: i + 1}), false, '#cc0000');
         const gearTzGlyph = createThickRing(6.2, 10, HEIGHT, 20, (i) => ({type: 'glyph', value: i}), false, '#cc0000');
         const gearHaab = createThickRing(10.2, 14, HEIGHT, 19, (i) => ({type: 'glyph', value: i + 20}), true, '#cc0000');
-
-        // OUTER TIME GEARS (Black Markings)
         const gearHours = createThickRing(15, 19, HEIGHT, 24, (i) => ({type: 'numeral', value: i}), true, '#000000');
         const gearMinutes = createThickRing(19.2, 23, HEIGHT, 60, (i) => ({type: 'numeral', value: i}), true, '#000000');
         const gearSeconds = createThickRing(23.2, 27, HEIGHT, 60, (i) => ({type: 'numeral', value: i}), true, '#000000');
 
         // Center Pin
         const coreGeo = new THREE.CylinderGeometry(2.8, 2.8, HEIGHT * 1.5, 32);
-        const coreMat = new THREE.MeshStandardMaterial({ color: 0x5a4a35, metalness: 0.6, roughness: 0.5 });
+        const coreMat = new THREE.MeshStandardMaterial({ color: 0x8a7a65, metalness: 0.5, roughness: 0.5 });
         const core = new THREE.Mesh(coreGeo, coreMat);
         core.position.y = -HEIGHT/2;
         scene.add(core);
 
         // ==========================================
-        // 6. INDICATOR GATE (Reading Frame) — 확장됨
+        // 6. INDICATOR GATE (프레임)
         // ==========================================
         const gateGroup = new THREE.Group();
-        const metalMat    = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.9, roughness: 0.2 });
-        const darkMetalMat = new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.8, roughness: 0.6 });
+        const metalMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.9, roughness: 0.2 }); 
+        const darkMetalMat = new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 0.8, roughness: 0.6 });
 
-        // ★ 안쪽 1 → 바깥쪽 28.5 로 확장 (전 기어 판독 영역 완전 커버)
         const GATE_X_IN  = 1.0;
         const GATE_X_OUT = 28.5;
-        const GATE_WIDTH = GATE_X_OUT - GATE_X_IN;   // 27.5
+        const GATE_WIDTH = GATE_X_OUT - GATE_X_IN; 
         const GATE_MID   = (GATE_X_IN + GATE_X_OUT) / 2;
 
-        // 좌/우 레일 (폭 확장)
-        const frameL = new THREE.Mesh(new THREE.BoxGeometry(GATE_WIDTH, 0.6, 0.9), metalMat);
-        frameL.position.set(GATE_MID, 0.5,  2.8); frameL.castShadow = true;
-        const frameR = new THREE.Mesh(new THREE.BoxGeometry(GATE_WIDTH, 0.6, 0.9), metalMat);
-        frameR.position.set(GATE_MID, 0.5, -2.8); frameR.castShadow = true;
+        // 레일 위치를 조금 낮춰서 기어와 밀착시킴 (y: 0.5 -> 0.2)
+        const frameL = new THREE.Mesh(new THREE.BoxGeometry(GATE_WIDTH, 0.4, 0.9), metalMat);
+        frameL.position.set(GATE_MID, 0.2,  2.8); frameL.castShadow = true;
+        const frameR = new THREE.Mesh(new THREE.BoxGeometry(GATE_WIDTH, 0.4, 0.9), metalMat);
+        frameR.position.set(GATE_MID, 0.2, -2.8); frameR.castShadow = true;
+        
+        const capIn = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.4, 6.4), metalMat);
+        capIn.position.set(GATE_X_IN, 0.2, 0); capIn.castShadow = true;
+        const capOut = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.4, 6.4), metalMat);
+        capOut.position.set(GATE_X_OUT, 0.2, 0); capOut.castShadow = true;
+        
+        const divider = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.5, 6.4), darkMetalMat);
+        divider.position.set(14.5, 0.3, 0); divider.castShadow = true;
 
-        // 안/밖 캡 (두께 확장)
-        const capIn = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.6, 6.4), metalMat);
-        capIn.position.set(GATE_X_IN, 0.5, 0); capIn.castShadow = true;
-        const capOut = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.6, 6.4), metalMat);
-        capOut.position.set(GATE_X_OUT, 0.5, 0); capOut.castShadow = true;
-
-        // 중앙 구분대 (DATE / TIME 경계)
-        const divider = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.8, 6.4), darkMetalMat);
-        divider.position.set(14.5, 0.6, 0); divider.castShadow = true;
-
-        // Text Labels for Frames
         function createGateLabel(text) {
             const canvas = document.createElement('canvas');
             canvas.width = 256; canvas.height = 64;
             const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#1a1a1a'; ctx.fillRect(0,0,256,64);
+            ctx.fillStyle = '#111111'; ctx.fillRect(0,0,256,64);
             ctx.fillStyle = '#d4af37'; ctx.font = 'bold 44px Inter'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
             ctx.fillText(text, 128, 32);
-            
             const tex = new THREE.CanvasTexture(canvas);
             const mat = new THREE.MeshBasicMaterial({ map: tex });
             const plane = new THREE.Mesh(new THREE.PlaneGeometry(5, 1.2), mat);
@@ -437,24 +355,23 @@
         }
 
         const dateLabel = createGateLabel("DATE (RED)");
-        dateLabel.position.set(14.5, 1.01, -4.2);
+        dateLabel.position.set(14.5, 0.45, -4.2);
         const timeLabel = createGateLabel("TIME (BLACK)");
-        timeLabel.position.set(14.5, 1.01,  4.2);
+        timeLabel.position.set(14.5, 0.45, 4.2);
 
-        // Position Pointers at ends
         const ptrGeo = new THREE.ConeGeometry(0.7, 1.4, 4);
         const ptr1 = new THREE.Mesh(ptrGeo, metalMat);
-        ptr1.position.set(GATE_X_OUT, 0.5, 0); ptr1.rotation.z = Math.PI / 2;
+        ptr1.position.set(GATE_X_OUT, 0.2, 0); ptr1.rotation.z = Math.PI/2;
         const ptr2 = new THREE.Mesh(ptrGeo, metalMat);
-        ptr2.position.set(GATE_X_IN, 0.5, 0); ptr2.rotation.z = -Math.PI / 2;
+        ptr2.position.set(GATE_X_IN, 0.2, 0); ptr2.rotation.z = -Math.PI/2;
 
         gateGroup.add(frameL, frameR, capIn, capOut, divider, dateLabel, timeLabel, ptr1, ptr2);
-        gateGroup.position.y = 0.2; // Float slightly above gears
+        gateGroup.position.y = 0.2; 
         scene.add(gateGroup);
 
 
         // ==========================================
-        // 7. TIME SYNC & ANIMATION MECHANICS
+        // 7. TIME SYNC
         // ==========================================
         const state = { h: -1, m: -1, s: -1, tzNum: -1, tzGlyph: -1, haab: -1 };
 
@@ -478,7 +395,6 @@
             const m = now.getMinutes();
             const h = now.getHours();
 
-            // Maya Date Proxy (Using Epoch math for visual sync)
             const daysSinceEpoch = Math.floor(now.getTime() / 86400000);
             const tzNumIdx = daysSinceEpoch % 13; 
             const tzGlyphIdx = daysSinceEpoch % 20;
@@ -486,26 +402,23 @@
 
             if (state.s !== s) {
                 updateUIClock(h, m, s);
-                // Sharp Escapement Tick
                 state.s = tickGear(gearSeconds, state.s, s, 60, 0.2, "back.out(1.5)");
             }
-            
-            // Smooth Chain Reactions
             state.m = tickGear(gearMinutes, state.m, m, 60, 0.6, "power2.inOut");
             state.h = tickGear(gearHours, state.h, h, 24, 1.0, "power2.inOut");
-            
             state.tzNum = tickGear(gearTzNum, state.tzNum, tzNumIdx, 13, 1.5, "power3.inOut");
             state.tzGlyph = tickGear(gearTzGlyph, state.tzGlyph, tzGlyphIdx, 20, 1.5, "power3.inOut");
             state.haab = tickGear(gearHaab, state.haab, haabIdx, 19, 1.5, "power3.inOut");
         }
 
-
         // ==========================================
-        // 8. CAMERA & GSAP INTERACTION
+        // 8. CAMERA & GSAP (각도 수정 완료)
         // ==========================================
         const views = {
-            overview: { pos: new THREE.Vector3(-20, 40, 30), lookAt: new THREE.Vector3(0, 0, 0) },
-            detail:   { pos: new THREE.Vector3(15, 20, 14), lookAt: new THREE.Vector3(15, 0, 0) } // 프레임 확장에 맞춰 뒤로 조정
+            // 전체 뷰: 위에서 비스듬히 내려다보게 설정 (기존 -20, 40, 30에서 수정)
+            overview: { pos: new THREE.Vector3(0, 55, 35), lookAt: new THREE.Vector3(0, 0, 0) },
+            // 상세 뷰: 프레임이 있는 곳을 정면으로 바라보게 설정
+            detail:   { pos: new THREE.Vector3(15, 35, 18), lookAt: new THREE.Vector3(15, 0, 0) } 
         };
 
         let isDetailView = false;
@@ -521,7 +434,6 @@
             const view = isDetailView ? views.detail : views.overview;
             btnText.innerText = isDetailView ? "View Entire Mechanism (Zoom Out)" : "Read The Gate (Zoom In)";
 
-            // GSAP Cinematic Transitions
             gsap.to(camera.position, {
                 x: view.pos.x, y: view.pos.y, z: view.pos.z,
                 duration: 2.0, ease: "power3.inOut"
