@@ -147,9 +147,10 @@
 
         // ==========================================
         // 2. PROCEDURAL HIGH-RES TEXTURE GENERATOR
+        //    (음각 emboss 효과 + 미세 질감 추가)
         // ==========================================
         function generateGearTexture(innerR, outerR, slots, typeFunc, markingColor) {
-            const size = 2048; // Crisp 2K resolution
+            const size = 2048;
             const canvas = document.createElement('canvas');
             canvas.width = size;
             canvas.height = size;
@@ -157,53 +158,99 @@
             const cx = size / 2;
             const cy = size / 2;
 
-            // Fill Base Stone Color
-            ctx.fillStyle = '#e0d8c0'; // Bright beige/stone
+            // ── 1. 베이스 석재 (미세 노이즈로 질감 부여) ──
+            ctx.fillStyle = '#d8cfb4';
             ctx.fillRect(0, 0, size, size);
+            for (let i = 0; i < 20000; i++) {
+                const x = Math.random() * size, y = Math.random() * size;
+                const shade = 200 + Math.random() * 40;
+                ctx.fillStyle = `rgba(${shade},${shade - 10},${shade - 30},0.08)`;
+                ctx.fillRect(x, y, 2, 2);
+            }
 
             const R_out = size / 2;
             const R_in = R_out * (innerR / outerR);
             const R_mid = (R_in + R_out) / 2;
             const ringWidth = R_out - R_in;
-            
-            const scaleNum = ringWidth / 130; 
-            const scaleGlyph = ringWidth / 110;
+
+            // 스케일 대폭 상향 (가시성)
+            const scaleNum   = ringWidth / 95;
+            const scaleGlyph = ringWidth / 80;
+
+            // ── 2. 링 경계 홈 (음각 느낌) ──
+            ctx.strokeStyle = '#a89c78';
+            ctx.lineWidth = 14;
+            ctx.beginPath(); ctx.arc(cx, cy, R_out - 10, 0, Math.PI * 2); ctx.stroke();
+            ctx.beginPath(); ctx.arc(cx, cy, R_in + 10, 0, Math.PI * 2); ctx.stroke();
 
             for (let i = 0; i < slots; i++) {
                 const angle = (i / slots) * Math.PI * 2;
-                
-                // Draw Markings
+
+                // ── 3. 마킹 (음각 emboss: 그림자 → 본체 → 하이라이트) ──
                 ctx.save();
                 ctx.translate(cx, cy);
-                ctx.rotate(-angle); 
+                ctx.rotate(-angle);
                 ctx.translate(R_mid, 0);
-                ctx.rotate(Math.PI / 2); // Orient towards outer edge
+                ctx.rotate(Math.PI / 2);
 
                 const valInfo = typeFunc(i);
+
+                // 3a. 아래쪽 그림자 (음각 깊이감)
+                ctx.save();
+                ctx.translate(3, 3);
+                ctx.globalAlpha = 0.55;
+                if (valInfo.type === 'numeral') {
+                    drawMayaNumeral(ctx, valInfo.value, 0, 0, scaleNum, '#5a4f38');
+                } else {
+                    drawMayaGlyph(ctx, valInfo.value, 0, 0, scaleGlyph, '#5a4f38');
+                }
+                ctx.restore();
+
+                // 3b. 본체 마킹
                 if (valInfo.type === 'numeral') {
                     drawMayaNumeral(ctx, valInfo.value, 0, 0, scaleNum, markingColor);
                 } else {
                     drawMayaGlyph(ctx, valInfo.value, 0, 0, scaleGlyph, markingColor);
                 }
+
+                // 3c. 위쪽 하이라이트 (빛 반사)
+                ctx.save();
+                ctx.translate(-2, -2);
+                ctx.globalAlpha = 0.35;
+                if (valInfo.type === 'numeral') {
+                    drawMayaNumeral(ctx, valInfo.value, 0, 0, scaleNum, '#ffffff');
+                } else {
+                    drawMayaGlyph(ctx, valInfo.value, 0, 0, scaleGlyph, '#ffffff');
+                }
                 ctx.restore();
 
-                // Draw Separator Grooves
+                ctx.restore();
+
+                // ── 4. 구분 홈 (음각) ──
                 ctx.save();
                 ctx.translate(cx, cy);
                 const sepAngle = -angle - (Math.PI * 2) / (slots * 2);
                 ctx.rotate(sepAngle);
-                ctx.strokeStyle = '#c5bca0'; // Slightly darker groove
+                // 그림자
+                ctx.strokeStyle = 'rgba(90,79,56,0.7)';
+                ctx.lineWidth = 10;
+                ctx.beginPath();
+                ctx.moveTo(R_in + 15, 3);
+                ctx.lineTo(R_out - 15, 3);
+                ctx.stroke();
+                // 밝은 홈
+                ctx.strokeStyle = '#f0e8d0';
                 ctx.lineWidth = 6;
                 ctx.beginPath();
-                ctx.moveTo(R_in + 10, 0);
-                ctx.lineTo(R_out - 10, 0);
+                ctx.moveTo(R_in + 15, 0);
+                ctx.lineTo(R_out - 15, 0);
                 ctx.stroke();
                 ctx.restore();
             }
 
             const tex = new THREE.CanvasTexture(canvas);
-            tex.anisotropy = 16; // High quality texture filtering
-            tex.colorSpace = THREE.SRGBColorSpace; 
+            tex.anisotropy = 16;
+            tex.colorSpace = THREE.SRGBColorSpace;
             return tex;
         }
 
@@ -226,6 +273,7 @@
 
         // ==========================================
         // 4. THREE.JS SCENE SETUP & LIGHTING
+        //    (측면광 추가로 음각 그림자 강조)
         // ==========================================
         const scene = new THREE.Scene();
         scene.fog = new THREE.FogExp2(0x050505, 0.012);
@@ -238,21 +286,28 @@
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-        // LIGHTING FIX: Strong standard lights to illuminate the stone bodies
-        const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
         scene.add(ambientLight);
 
-        const topLight = new THREE.DirectionalLight(0xffffff, 1.5);
+        const topLight = new THREE.DirectionalLight(0xffffff, 1.0);
         topLight.position.set(0, 30, 10);
         topLight.castShadow = true;
         topLight.shadow.mapSize.width = 2048;
         topLight.shadow.mapSize.height = 2048;
         scene.add(topLight);
 
+        // 측면 방향광 2개 → 음각 그림자 생성
+        const sideLightL = new THREE.DirectionalLight(0xfff2d0, 0.8);
+        sideLightL.position.set(-15, 8, 12);
+        scene.add(sideLightL);
+
+        const sideLightR = new THREE.DirectionalLight(0xd0e0ff, 0.6);
+        sideLightR.position.set(15, 8, -12);
+        scene.add(sideLightR);
+
         // ==========================================
         // 5. GEAR CONSTRUCTION ENGINE
         // ==========================================
-        // Material for the main stone body (sides and bottom)
         const bodyMat = new THREE.MeshStandardMaterial({ 
             color: 0xe0d8c0, 
             roughness: 0.85, 
@@ -271,25 +326,31 @@
 
             const extSettings = { depth: height, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 0.1, bevelThickness: 0.1, curveSegments: 64 };
             const geo = new THREE.ExtrudeGeometry(shape, extSettings);
-            geo.rotateX(Math.PI / 2); // Extrude downwards into -Y
+            geo.rotateX(Math.PI / 2);
             
             const ringMesh = new THREE.Mesh(geo, bodyMat);
             ringMesh.receiveShadow = true;
             ringMesh.castShadow = true;
             group.add(ringMesh);
 
-            // 2. Top Face with Canvas Texture (MeshBasicMaterial for 100% visibility)
+            // 2. Top Face with Canvas Texture — 조명 반응 + 음각 음영
             const topTex = generateGearTexture(innerR, outerR, slots, typeFunc, markingColor);
-            const topMat = new THREE.MeshBasicMaterial({ 
-                color: 0xffffff, // Keep white to show exact texture colors
-                map: topTex, 
-                side: THREE.DoubleSide
+            const topMat = new THREE.MeshStandardMaterial({
+                color: 0xffffff,
+                map: topTex,
+                roughness: 0.7,
+                metalness: 0.05,
+                side: THREE.DoubleSide,
+                polygonOffset: true,          // z-fighting 방지
+                polygonOffsetFactor: -1,
+                polygonOffsetUnits: -1
             });
-            
-            const topGeo = new THREE.RingGeometry(innerR, outerR, 128);
-            topGeo.rotateX(-Math.PI / 2); // Face upwards
+
+            const topGeo = new THREE.RingGeometry(innerR, outerR, 256);
+            topGeo.rotateX(-Math.PI / 2);
             const topMesh = new THREE.Mesh(topGeo, topMat);
-            topMesh.position.y = 0.02; // Raise slightly above ExtrudeGeometry to prevent z-fighting
+            topMesh.position.y = 0.02;
+            topMesh.receiveShadow = true;
             group.add(topMesh);
 
             // 3. Teeth (Mechanical interaction)
@@ -330,24 +391,32 @@
         scene.add(core);
 
         // ==========================================
-        // 6. INDICATOR GATE (Reading Frame)
+        // 6. INDICATOR GATE (Reading Frame) — 확장됨
         // ==========================================
         const gateGroup = new THREE.Group();
-        const metalMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.9, roughness: 0.2 }); // Bright Gold
+        const metalMat    = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.9, roughness: 0.2 });
         const darkMetalMat = new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.8, roughness: 0.6 });
 
-        // Left/Right Rails spanning from inner to outer gears
-        const frameL = new THREE.Mesh(new THREE.BoxGeometry(26, 0.5, 0.8), metalMat);
-        frameL.position.set(15, 0.5, 2.5); frameL.castShadow = true;
-        const frameR = new THREE.Mesh(new THREE.BoxGeometry(26, 0.5, 0.8), metalMat);
-        frameR.position.set(15, 0.5, -2.5); frameR.castShadow = true;
-        
-        // Caps and Divider
-        const capIn = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.5, 5.8), metalMat);
-        capIn.position.set(2, 0.5, 0); capIn.castShadow = true;
-        const capOut = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.5, 5.8), metalMat);
-        capOut.position.set(28, 0.5, 0); capOut.castShadow = true;
-        const divider = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.7, 5.8), darkMetalMat);
+        // ★ 안쪽 1 → 바깥쪽 28.5 로 확장 (전 기어 판독 영역 완전 커버)
+        const GATE_X_IN  = 1.0;
+        const GATE_X_OUT = 28.5;
+        const GATE_WIDTH = GATE_X_OUT - GATE_X_IN;   // 27.5
+        const GATE_MID   = (GATE_X_IN + GATE_X_OUT) / 2;
+
+        // 좌/우 레일 (폭 확장)
+        const frameL = new THREE.Mesh(new THREE.BoxGeometry(GATE_WIDTH, 0.6, 0.9), metalMat);
+        frameL.position.set(GATE_MID, 0.5,  2.8); frameL.castShadow = true;
+        const frameR = new THREE.Mesh(new THREE.BoxGeometry(GATE_WIDTH, 0.6, 0.9), metalMat);
+        frameR.position.set(GATE_MID, 0.5, -2.8); frameR.castShadow = true;
+
+        // 안/밖 캡 (두께 확장)
+        const capIn = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.6, 6.4), metalMat);
+        capIn.position.set(GATE_X_IN, 0.5, 0); capIn.castShadow = true;
+        const capOut = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.6, 6.4), metalMat);
+        capOut.position.set(GATE_X_OUT, 0.5, 0); capOut.castShadow = true;
+
+        // 중앙 구분대 (DATE / TIME 경계)
+        const divider = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.8, 6.4), darkMetalMat);
         divider.position.set(14.5, 0.6, 0); divider.castShadow = true;
 
         // Text Labels for Frames
@@ -368,16 +437,16 @@
         }
 
         const dateLabel = createGateLabel("DATE (RED)");
-        dateLabel.position.set(14.5, 0.96, -3.8);
+        dateLabel.position.set(14.5, 1.01, -4.2);
         const timeLabel = createGateLabel("TIME (BLACK)");
-        timeLabel.position.set(14.5, 0.96, 3.8);
+        timeLabel.position.set(14.5, 1.01,  4.2);
 
         // Position Pointers at ends
-        const ptrGeo = new THREE.ConeGeometry(0.6, 1.2, 4);
+        const ptrGeo = new THREE.ConeGeometry(0.7, 1.4, 4);
         const ptr1 = new THREE.Mesh(ptrGeo, metalMat);
-        ptr1.position.set(28, 0.5, 0); ptr1.rotation.z = Math.PI/2;
+        ptr1.position.set(GATE_X_OUT, 0.5, 0); ptr1.rotation.z = Math.PI / 2;
         const ptr2 = new THREE.Mesh(ptrGeo, metalMat);
-        ptr2.position.set(2, 0.5, 0); ptr2.rotation.z = -Math.PI/2;
+        ptr2.position.set(GATE_X_IN, 0.5, 0); ptr2.rotation.z = -Math.PI / 2;
 
         gateGroup.add(frameL, frameR, capIn, capOut, divider, dateLabel, timeLabel, ptr1, ptr2);
         gateGroup.position.y = 0.2; // Float slightly above gears
@@ -436,7 +505,7 @@
         // ==========================================
         const views = {
             overview: { pos: new THREE.Vector3(-20, 40, 30), lookAt: new THREE.Vector3(0, 0, 0) },
-            detail:   { pos: new THREE.Vector3(15, 18, 12), lookAt: new THREE.Vector3(15, 0, 0) } // Focused on Gate
+            detail:   { pos: new THREE.Vector3(15, 20, 14), lookAt: new THREE.Vector3(15, 0, 0) } // 프레임 확장에 맞춰 뒤로 조정
         };
 
         let isDetailView = false;
