@@ -1,561 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>3D Mayan Calendar & Real-time Clock</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    
-    <style>
-        body { margin: 0; overflow: hidden; background-color: #050505; font-family: 'Inter', sans-serif; }
-        #canvas-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
-        #ui-layer { position: absolute; z-index: 10; pointer-events: none; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
-        .pointer-events-auto { pointer-events: auto; }
-        
-        #maya-ui-clock {
-            background: rgba(15, 12, 10, 0.85);
-            border: 2px solid #a37c35;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 15px rgba(163, 124, 53, 0.2);
-            backdrop-filter: blur(8px);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Maya Chronos</title>
+  <style>
+    :root {
+      --amber: #f59e0b;
+      --amber-dim: rgba(253, 230, 138, 0.7);
+      --gold: #a37c35;
+      --panel: rgba(15, 12, 10, 0.85);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #050505; color: var(--amber-dim);
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif; }
+    #gl { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; }
+    #ui { position: fixed; inset: 0; pointer-events: none; display: flex; flex-direction: column;
+      justify-content: space-between; padding: 24px; }
+    .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+    h1 { margin: 0; font-family: Georgia, "Times New Roman", serif; font-weight: 900; letter-spacing: .12em;
+      color: var(--amber); font-size: clamp(28px, 5vw, 52px); text-shadow: 0 4px 6px rgba(0,0,0,.9); }
+    .sub { margin: 4px 0 14px; text-transform: uppercase; letter-spacing: .2em; font-size: clamp(11px, 1.4vw, 16px); }
+    .readout { display: grid; grid-template-columns: auto auto; gap: 4px 14px; font-size: 13px;
+      background: var(--panel); border: 1px solid rgba(163,124,53,.5); border-radius: 8px; padding: 10px 14px;
+      width: max-content; backdrop-filter: blur(6px); }
+    .readout dt { color: rgba(253,230,138,.55); text-transform: uppercase; letter-spacing: .12em; font-size: 10px; align-self: center; }
+    .readout dd { margin: 0; color: #fde68a; font-family: Georgia, serif; font-size: 16px; }
+    .clock-wrap { display: flex; flex-direction: column; align-items: flex-end; }
+    .badge { background: rgba(0,0,0,.8); border: 1px solid rgba(120,53,15,.5); border-radius: 4px; padding: 3px 10px;
+      margin-bottom: 8px; font-size: 10px; letter-spacing: .2em; font-weight: 700; color: rgba(251,191,36,.8); }
+    #maya-ui-clock { width: 120px; height: 240px; background: var(--panel); border: 2px solid var(--gold);
+      border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.8), inset 0 0 15px rgba(163,124,53,.2); backdrop-filter: blur(8px); }
+    .bottom { display: flex; justify-content: center; padding-bottom: 8px; }
+    #toggle-cam-btn { pointer-events: auto; cursor: pointer; padding: 16px 40px; border-radius: 999px;
+      background: linear-gradient(#292524, #1c1917); border: 2px solid rgba(217,119,6,.6); color: var(--amber);
+      font-weight: 700; letter-spacing: .15em; text-transform: uppercase; font-size: 14px;
+      box-shadow: 0 20px 40px rgba(0,0,0,.6); transition: transform .3s, box-shadow .3s, color .3s; }
+    #toggle-cam-btn:hover { transform: scale(1.05); color: #fcd34d; box-shadow: 0 0 20px rgba(217,119,6,.4); }
+    #error { display: none; position: fixed; inset: auto 16px 100px; padding: 12px 16px; border-radius: 8px;
+      background: #3b0d0d; color: #fecaca; font-size: 14px; }
+    @media (max-width: 600px) {
+      #ui { padding: 14px; }
+      #maya-ui-clock { width: 72px; height: 144px; }
+      #toggle-cam-btn { padding: 12px 22px; font-size: 12px; }
+    }
+  </style>
 </head>
 <body>
+  <canvas id="gl"></canvas>
 
-    <div id="canvas-container"></div>
-
-    <div id="ui-layer" class="p-6">
-        <div class="flex justify-between items-start w-full">
-            <div>
-                <h1 class="text-3xl md:text-5xl font-black tracking-widest text-amber-500 drop-shadow-[0_4px_6px_rgba(0,0,0,0.9)]" style="font-family: serif;">MAYA CHRONOS</h1>
-                <p class="text-sm md:text-lg opacity-90 text-amber-100/70 mt-1 uppercase tracking-widest drop-shadow-md">Tzolk'in • Haab • Time</p>
-            </div>
-            
-            <div class="text-right flex flex-col items-end pointer-events-auto">
-                <div class="bg-black/80 px-3 py-1 rounded border border-amber-900/50 mb-2">
-                    <p class="text-[10px] text-amber-400/80 tracking-[0.2em] font-bold uppercase">Real-Time</p>
-                </div>
-                <canvas id="maya-ui-clock" width="120" height="240"></canvas>
-            </div>
-        </div>
-
-        <div class="w-full flex justify-center pb-8">
-            <button id="toggle-cam-btn" class="pointer-events-auto px-10 py-4 bg-gradient-to-b from-stone-800 to-stone-900 border-2 border-amber-600/60 text-amber-500 font-bold rounded-full hover:scale-105 hover:bg-stone-700 hover:text-amber-300 hover:shadow-[0_0_20px_rgba(217,119,6,0.4)] transition-all duration-300 uppercase tracking-widest text-sm shadow-2xl relative overflow-hidden">
-                <span class="relative z-10">Read The Gate (Zoom In)</span>
-            </button>
-        </div>
+  <div id="ui">
+    <div class="top">
+      <div>
+        <h1>MAYA CHRONOS</h1>
+        <p class="sub">Tzolk'in • Haab' • Time</p>
+        <dl class="readout">
+          <dt>Long Count</dt><dd id="lc">–</dd>
+          <dt>Tzolk'in</dt><dd id="tz">–</dd>
+          <dt>Haab'</dt><dd id="haab">–</dd>
+          <dt>Time</dt><dd id="clock">–</dd>
+        </dl>
+      </div>
+      <div class="clock-wrap">
+        <div class="badge">REAL-TIME</div>
+        <canvas id="maya-ui-clock"></canvas>
+      </div>
     </div>
+    <div class="bottom">
+      <button id="toggle-cam-btn"><span>Read The Gate (Zoom In)</span></button>
+    </div>
+  </div>
+  <div id="error"></div>
 
-    <script>
-        // ==========================================
-        // 1. 위키피디아 마야 이미지 URL (CORS 우회 적용)
-        // ==========================================
-        // Wikimedia의 이미지 프록시 서버를 사용하거나, 이미지 뷰어 주소를 변환하여 CORS 문제 해결
-        const TZOLKIN_URLS = [
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/MAYA-g-log-cal-D01-Imix.png/150px-MAYA-g-log-cal-D01-Imix.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/MAYA-g-log-cal-D02-Ik.png/150px-MAYA-g-log-cal-D02-Ik.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/MAYA-g-log-cal-D03-Akbal.png/150px-MAYA-g-log-cal-D03-Akbal.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/MAYA-g-log-cal-D04-Kan.png/150px-MAYA-g-log-cal-D04-Kan.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/MAYA-g-log-cal-D05-Chikchan.png/150px-MAYA-g-log-cal-D05-Chikchan.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/MAYA-g-log-cal-D06-Kimi.png/150px-MAYA-g-log-cal-D06-Kimi.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/MAYA-g-log-cal-D07-Manik.png/150px-MAYA-g-log-cal-D07-Manik.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/MAYA-g-log-cal-D08-Lamat.png/150px-MAYA-g-log-cal-D08-Lamat.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/MAYA-g-log-cal-D09-Muluk.png/150px-MAYA-g-log-cal-D09-Muluk.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/MAYA-g-log-cal-D10-Ok.png/150px-MAYA-g-log-cal-D10-Ok.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/MAYA-g-log-cal-D11-Chuwen.png/150px-MAYA-g-log-cal-D11-Chuwen.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/MAYA-g-log-cal-D12-Eb.png/150px-MAYA-g-log-cal-D12-Eb.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/MAYA-g-log-cal-D13-Ben.png/150px-MAYA-g-log-cal-D13-Ben.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/MAYA-g-log-cal-D14-Ix.png/150px-MAYA-g-log-cal-D14-Ix.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/MAYA-g-log-cal-D15-Men.png/150px-MAYA-g-log-cal-D15-Men.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/MAYA-g-log-cal-D16-Kib.png/150px-MAYA-g-log-cal-D16-Kib.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/MAYA-g-log-cal-D17-Kaban.png/150px-MAYA-g-log-cal-D17-Kaban.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/MAYA-g-log-cal-D18-Etznab.png/150px-MAYA-g-log-cal-D18-Etznab.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/MAYA-g-log-cal-D19-Kawak.png/150px-MAYA-g-log-cal-D19-Kawak.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/MAYA-g-log-cal-D20-Ajaw.svg/150px-MAYA-g-log-cal-D20-Ajaw.svg.png"
-        ];
-
-        const HAAB_URLS = [
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Maya_months_-_0_-_Pop.svg/150px-Maya_months_-_0_-_Pop.svg.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Maya_months_-_1_-_Wo.svg/150px-Maya_months_-_1_-_Wo.svg.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Maya_months_-_2_-_Sip.svg/150px-Maya_months_-_2_-_Sip.svg.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Maya-months-03-sotz%27.svg/150px-Maya-months-03-sotz%27.svg.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Maya_months_-_4_-_Sek.svg/150px-Maya_months_-_4_-_Sek.svg.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Maya-months-05-xul.svg/150px-Maya-months-05-xul.svg.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Maya_months_-_6_-_Yaxk%27in.svg/150px-Maya_months_-_6_-_Yaxk%27in.svg.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Maya_months_-_7_-_Mol.svg/150px-Maya_months_-_7_-_Mol.svg.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Maya-months-08-ch%27en.svg/150px-Maya-months-08-ch%27en.svg.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/Maya-months-09-yax.svg/150px-Maya-months-09-yax.svg.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Maya-months-10-sak.svg/150px-Maya-months-10-sak.svg.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Maya-months-11-kej.svg/150px-Maya-months-11-kej.svg.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Maya-months-12-mak.svg/150px-Maya-months-12-mak.svg.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Maya-months-13-k%27ank%27in.svg/150px-Maya-months-13-k%27ank%27in.svg.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Maya-months-14-muwan.svg/150px-Maya-months-14-muwan.svg.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Maya-months-15-pax.svg/150px-Maya-months-15-pax.svg.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Maya-months-16-k%27ayab%27.svg/150px-Maya-months-16-k%27ayab%27.svg.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Maya-months-17-kumk%27u.svg/150px-Maya-months-17-kumk%27u.svg.png",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Maya-months-18-wayeb%27.svg/150px-Maya-months-18-wayeb%27.svg.png"
-        ];
-
-        // ==========================================
-        // 2. 2D DRAWING ENGINE (숫자용)
-        // ==========================================
-        function drawMayaNumeral(ctx, num, cx, cy, scale = 1, color = '#000000') {
-            ctx.fillStyle = color;
-            ctx.strokeStyle = color;
-            ctx.lineWidth = 6 * scale;
-
-            function drawTier(n, ty) {
-                if (n === 0) { 
-                    ctx.beginPath();
-                    ctx.ellipse(cx, ty, 20 * scale, 12 * scale, 0, 0, Math.PI * 2);
-                    ctx.stroke();
-                    ctx.beginPath();
-                    ctx.moveTo(cx - 15*scale, ty); ctx.lineTo(cx + 15*scale, ty);
-                    ctx.moveTo(cx - 8*scale, ty - 8*scale); ctx.lineTo(cx - 4*scale, ty + 8*scale);
-                    ctx.moveTo(cx + 8*scale, ty - 8*scale); ctx.lineTo(cx + 4*scale, ty + 8*scale);
-                    ctx.stroke();
-                    return;
-                }
-                const bars = Math.floor(n / 5);
-                const dots = n % 5;
-                const barSpacing = 14 * scale;
-                const base = ty + (bars * barSpacing) / 2 - (bars > 0 ? barSpacing/2 : 0);
-                
-                for (let i = 0; i < bars; i++) {
-                    ctx.beginPath();
-                    ctx.roundRect(cx - 24*scale, base - i * barSpacing, 48*scale, 10*scale, 5*scale);
-                    ctx.fill();
-                }
-                const dotY = base - bars * barSpacing - 14*scale;
-                const dotSpacing = 16 * scale; 
-                const startX = cx - ((dots - 1) * dotSpacing) / 2;
-                for (let i = 0; i < dots; i++) {
-                    ctx.beginPath();
-                    ctx.arc(startX + i * dotSpacing, dotY, 6 * scale, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-            }
-            if (num < 20) drawTier(num, cy);
-            else {
-                drawTier(Math.floor(num / 20), cy - 25*scale);
-                drawTier(num % 20, cy + 25*scale);
-            }
-        }
-
-        // ==========================================
-        // 3. 이미지 로더 (CORS 프록시 우회)
-        // ==========================================
-        const loadedTzolkin = [];
-        const loadedHaab = [];
-        let totalLoaded = 0;
-        const TOTAL_IMAGES = TZOLKIN_URLS.length + HAAB_URLS.length;
-
-        function preloadImages(callback) {
-            // Tzolk'in 로드
-            TZOLKIN_URLS.forEach((url, i) => {
-                const img = new Image();
-                img.crossOrigin = "Anonymous";
-                // CORS 에러 방지를 위해 프록시 서버 사용 (wsrv.nl)
-                img.src = `https://wsrv.nl/?url=${encodeURIComponent(url)}`;
-                img.onload = () => { loadedTzolkin[i] = img; checkDone(); };
-                img.onerror = () => { loadedTzolkin[i] = null; checkDone(); };
-            });
-
-            // Haab 로드
-            HAAB_URLS.forEach((url, i) => {
-                const img = new Image();
-                img.crossOrigin = "Anonymous";
-                img.src = `https://wsrv.nl/?url=${encodeURIComponent(url)}`;
-                img.onload = () => { loadedHaab[i] = img; checkDone(); };
-                img.onerror = () => { loadedHaab[i] = null; checkDone(); };
-            });
-
-            function checkDone() {
-                totalLoaded++;
-                if (totalLoaded >= TOTAL_IMAGES) callback();
-            }
-        }
-
-        // ==========================================
-        // 4. 텍스처 생성기 (이미지 그리기 적용)
-        // ==========================================
-        function generateGearTexture(innerR, outerR, slots, type, markingColor) {
-            const size = 2048;
-            const canvas = document.createElement('canvas');
-            canvas.width = size;
-            canvas.height = size;
-            const ctx = canvas.getContext('2d');
-            const cx = size / 2;
-            const cy = size / 2;
-
-            ctx.fillStyle = '#2a2520';
-            ctx.fillRect(0, 0, size, size);
-
-            const R_out = size / 2;
-            const R_in = R_out * (innerR / outerR);
-            const R_mid = (R_in + R_out) / 2;
-            const ringWidth = R_out - R_in;
-
-            const scaleNum = ringWidth / 110; 
-            const glyphSize = ringWidth * 0.75; // 이미지가 잘리지 않게 여백 고려
-
-            // 기어 링 배경색 (밝은 석재)
-            ctx.beginPath();
-            ctx.arc(cx, cy, R_out, 0, Math.PI * 2);
-            ctx.arc(cx, cy, R_in, 0, Math.PI * 2, true);
-            ctx.fillStyle = '#e0d8c0';
-            ctx.fill();
-
-            for (let i = 0; i < slots; i++) {
-                const angle = (i / slots) * Math.PI * 2;
-                
-                ctx.save();
-                ctx.translate(cx, cy);
-                ctx.rotate(-angle); 
-                ctx.translate(R_mid, 0);
-                ctx.rotate(Math.PI / 2);
-
-                if (type === 'numeral') {
-                    // 그림자
-                    ctx.save();
-                    ctx.translate(3, 3);
-                    ctx.globalAlpha = 0.4;
-                    drawMayaNumeral(ctx, i, 0, 0, scaleNum, '#000000');
-                    ctx.restore();
-                    // 숫자
-                    drawMayaNumeral(ctx, i, 0, 0, scaleNum, markingColor);
-                } else {
-                    // 마야 상형문자 이미지
-                    let img;
-                    if (type === 'tzolkin') {
-                        img = loadedTzolkin[i % 20];
-                    } else if (type === 'haab') {
-                        img = loadedHaab[i % 19];
-                    }
-
-                    if (img) {
-                        // 텍스처가 CORS 등으로 로드되지 않았을 때 폴백
-                        ctx.save();
-                        ctx.translate(4, 4);
-                        ctx.globalAlpha = 0.3;
-                        ctx.drawImage(img, -glyphSize/2, -glyphSize/2, glyphSize, glyphSize);
-                        ctx.restore();
-                        
-                        ctx.drawImage(img, -glyphSize/2, -glyphSize/2, glyphSize, glyphSize);
-                    } else {
-                        // 로드 실패 시 텍스트로 대체
-                        ctx.fillStyle = markingColor;
-                        ctx.font = `bold ${glyphSize/2}px sans-serif`;
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.fillText(type === 'tzolkin' ? `T${i}` : `H${i}`, 0, 0);
-                    }
-                }
-                
-                ctx.restore();
-
-                // 구분선
-                ctx.save();
-                ctx.translate(cx, cy);
-                ctx.rotate(-angle - (Math.PI * 2) / (slots * 2));
-                ctx.strokeStyle = '#a89c78';
-                ctx.lineWidth = 8;
-                ctx.beginPath();
-                ctx.moveTo(R_in + 10, 0);
-                ctx.lineTo(R_out - 10, 0);
-                ctx.stroke();
-                ctx.restore();
-            }
-
-            const tex = new THREE.CanvasTexture(canvas);
-            tex.anisotropy = 16;
-            tex.colorSpace = THREE.SRGBColorSpace; 
-            return tex;
-        }
-
-        // ==========================================
-        // 5. UI MAYAN CLOCK
-        // ==========================================
-        const uiCtx = document.getElementById('maya-ui-clock').getContext('2d');
-        function updateUIClock(h, m, s) {
-            uiCtx.clearRect(0, 0, 120, 240);
-            const gold = '#eab308';
-            drawMayaNumeral(uiCtx, h, 60, 45, 1.1, gold);
-            drawMayaNumeral(uiCtx, m, 60, 120, 1.1, gold);
-            drawMayaNumeral(uiCtx, s, 60, 195, 1.1, gold);
-            uiCtx.strokeStyle = 'rgba(234, 179, 8, 0.3)';
-            uiCtx.lineWidth = 1;
-            uiCtx.beginPath(); uiCtx.moveTo(20, 82); uiCtx.lineTo(100, 82); uiCtx.stroke();
-            uiCtx.beginPath(); uiCtx.moveTo(20, 157); uiCtx.lineTo(100, 157); uiCtx.stroke();
-        }
-
-        // ==========================================
-        // 6. SCENE & LIGHTING
-        // ==========================================
-        const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x050505, 0.01);
-
-        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        renderer.shadowMap.enabled = true;
-        renderer.outputColorSpace = THREE.SRGBColorSpace;
-        document.getElementById('canvas-container').appendChild(renderer.domElement);
-
-        const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
-        scene.add(ambientLight);
-
-        const topLight = new THREE.DirectionalLight(0xffffff, 1.5);
-        topLight.position.set(0, 40, 20);
-        topLight.castShadow = true;
-        topLight.shadow.mapSize.width = 2048;
-        topLight.shadow.mapSize.height = 2048;
-        scene.add(topLight);
-
-        const fillLight = new THREE.DirectionalLight(0xfff2d0, 0.8);
-        fillLight.position.set(-20, 10, -20);
-        scene.add(fillLight);
-
-        // ==========================================
-        // 7. GEAR CONSTRUCTION
-        // ==========================================
-        const bodyMat = new THREE.MeshStandardMaterial({ color: 0xe0d8c0, roughness: 0.85, metalness: 0.1 });
-        const darkBodyMat = new THREE.MeshStandardMaterial({ color: 0x2a2520, roughness: 0.9, metalness: 0.1 });
-
-        function createThickRing(innerR, outerR, height, slots, type, hasTeeth, markingColor) {
-            const group = new THREE.Group();
-
-            const shape = new THREE.Shape();
-            shape.absarc(0, 0, outerR, 0, Math.PI * 2, false);
-            const hole = new THREE.Path();
-            hole.absarc(0, 0, innerR, 0, Math.PI * 2, true);
-            shape.holes.push(hole);
-
-            const extSettings = { depth: height, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 0.1, bevelThickness: 0.1, curveSegments: 64 };
-            const geo = new THREE.ExtrudeGeometry(shape, extSettings);
-            geo.rotateX(Math.PI / 2);
-            
-            const ringMesh = new THREE.Mesh(geo, darkBodyMat);
-            ringMesh.receiveShadow = true;
-            ringMesh.castShadow = true;
-            group.add(ringMesh);
-
-            const topTex = generateGearTexture(innerR, outerR, slots, type, markingColor);
-            const topMat = new THREE.MeshStandardMaterial({ 
-                map: topTex, 
-                roughness: 0.7,
-                metalness: 0.1,
-                side: THREE.DoubleSide
-            });
-            
-            const topGeo = new THREE.RingGeometry(innerR, outerR, 128);
-            topGeo.rotateX(-Math.PI / 2);
-            const topMesh = new THREE.Mesh(topGeo, topMat);
-            topMesh.position.y = 0.02;
-            group.add(topMesh);
-
-            if(hasTeeth) {
-                const toothGeo = new THREE.BoxGeometry(0.8, height * 0.9, (outerR - innerR)*0.3);
-                for(let i=0; i<slots; i++) {
-                    const angle = (i/slots) * Math.PI * 2;
-                    const tooth = new THREE.Mesh(toothGeo, bodyMat);
-                    tooth.position.set(Math.cos(angle) * (outerR + 0.1), -height/2, -Math.sin(angle) * (outerR + 0.1));
-                    tooth.rotation.y = angle;
-                    tooth.castShadow = true;
-                    tooth.receiveShadow = true;
-                    group.add(tooth);
-                }
-            }
-            scene.add(group);
-            return group;
-        }
-
-        const HEIGHT = 1.2;
-        let gearsCreated = false;
-        let gearTzNum, gearTzGlyph, gearHaab, gearHours, gearMinutes, gearSeconds;
-
-        function buildMechanism() {
-            if (gearsCreated) return;
-            gearsCreated = true;
-
-            // Tzolk'in 기어들 (13일 주기 숫자, 20일 주기 상형문자)
-            gearTzNum = createThickRing(3, 6, HEIGHT, 13, 'numeral', false, '#cc0000');
-            gearTzGlyph = createThickRing(6.2, 10, HEIGHT, 20, 'tzolkin', false, '#cc0000');
-            // Haab 기어 (19개월 상형문자)
-            gearHaab = createThickRing(10.2, 14, HEIGHT, 19, 'haab', true, '#cc0000');
-            
-            // 시간 기어들 (24시간, 60분, 60초)
-            gearHours = createThickRing(15, 19, HEIGHT, 24, 'numeral', true, '#000000');
-            gearMinutes = createThickRing(19.2, 23, HEIGHT, 60, 'numeral', true, '#000000');
-            gearSeconds = createThickRing(23.2, 27, HEIGHT, 60, 'numeral', true, '#000000');
-
-            // 중심 축
-            const coreGeo = new THREE.CylinderGeometry(2.8, 2.8, HEIGHT * 1.5, 32);
-            const coreMat = new THREE.MeshStandardMaterial({ color: 0x5a4a35, metalness: 0.6, roughness: 0.5 });
-            const core = new THREE.Mesh(coreGeo, coreMat);
-            core.position.y = -HEIGHT/2;
-            scene.add(core);
-
-            // 프레임
-            const gateGroup = new THREE.Group();
-            const metalMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.9, roughness: 0.2 }); 
-            const darkMetalMat = new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 0.8, roughness: 0.6 });
-
-            const GATE_X_IN  = 1.0;
-            const GATE_X_OUT = 28.5;
-            const GATE_WIDTH = GATE_X_OUT - GATE_X_IN; 
-            const GATE_MID   = (GATE_X_IN + GATE_X_OUT) / 2;
-
-            const frameL = new THREE.Mesh(new THREE.BoxGeometry(GATE_WIDTH, 0.4, 0.9), metalMat);
-            frameL.position.set(GATE_MID, 0.8,  2.8); frameL.castShadow = true;
-            const frameR = new THREE.Mesh(new THREE.BoxGeometry(GATE_WIDTH, 0.4, 0.9), metalMat);
-            frameR.position.set(GATE_MID, 0.8, -2.8); frameR.castShadow = true;
-            
-            const capIn = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.4, 6.4), metalMat);
-            capIn.position.set(GATE_X_IN, 0.8, 0); capIn.castShadow = true;
-            const capOut = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.4, 6.4), metalMat);
-            capOut.position.set(GATE_X_OUT, 0.8, 0); capOut.castShadow = true;
-            
-            const divider = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.5, 6.4), darkMetalMat);
-            divider.position.set(14.5, 0.9, 0); divider.castShadow = true;
-
-            function createGateLabel(text) {
-                const canvas = document.createElement('canvas');
-                canvas.width = 256; canvas.height = 64;
-                const ctx = canvas.getContext('2d');
-                ctx.fillStyle = '#111111'; ctx.fillRect(0,0,256,64);
-                ctx.fillStyle = '#d4af37'; ctx.font = 'bold 44px Inter'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                ctx.fillText(text, 128, 32);
-                const tex = new THREE.CanvasTexture(canvas);
-                const mat = new THREE.MeshBasicMaterial({ map: tex });
-                const plane = new THREE.Mesh(new THREE.PlaneGeometry(5, 1.2), mat);
-                plane.rotation.x = -Math.PI/2;
-                plane.rotation.z = Math.PI/2; 
-                return plane;
-            }
-
-            const dateLabel = createGateLabel("DATE (RED)");
-            dateLabel.position.set(14.5, 1.05, -4.2);
-            const timeLabel = createGateLabel("TIME (BLACK)");
-            timeLabel.position.set(14.5, 1.05, 4.2);
-
-            const ptrGeo = new THREE.ConeGeometry(0.7, 1.4, 4);
-            const ptr1 = new THREE.Mesh(ptrGeo, metalMat);
-            ptr1.position.set(GATE_X_OUT, 0.8, 0); ptr1.rotation.z = Math.PI/2;
-            const ptr2 = new THREE.Mesh(ptrGeo, metalMat);
-            ptr2.position.set(GATE_X_IN, 0.8, 0); ptr2.rotation.z = -Math.PI/2;
-
-            gateGroup.add(frameL, frameR, capIn, capOut, divider, dateLabel, timeLabel, ptr1, ptr2);
-            gateGroup.position.y = 0; 
-            scene.add(gateGroup);
-
-            initAnimation();
-        }
-
-        // ==========================================
-        // 8. ANIMATION
-        // ==========================================
-        const state = { h: -1, m: -1, s: -1, tzNum: -1, tzGlyph: -1, haab: -1 };
-
-        function tickGear(mesh, oldVal, newVal, slots, duration, ease) {
-            if (oldVal === -1) {
-                mesh.rotation.y = (newVal * Math.PI * 2) / slots; 
-                return newVal;
-            }
-            if (oldVal !== newVal) {
-                let diff = newVal - oldVal;
-                if (diff < 0) diff += slots;
-                let nextAngle = mesh.rotation.y + (diff * 2 * Math.PI) / slots;
-                gsap.to(mesh.rotation, {y: nextAngle, duration: duration, ease: ease});
-            }
-            return newVal;
-        }
-
-        function updateMechanics() {
-            const now = new Date();
-            const s = now.getSeconds();
-            const m = now.getMinutes();
-            const h = now.getHours();
-
-            // 마야 달력 날짜 계산 (에포크 기반)
-            const daysSinceEpoch = Math.floor(now.getTime() / 86400000);
-            const tzNumIdx = daysSinceEpoch % 13; 
-            const tzGlyphIdx = daysSinceEpoch % 20;
-            const haabIdx = Math.floor((daysSinceEpoch % 365) / 20) % 19;
-
-            if (state.s !== s) {
-                updateUIClock(h, m, s);
-                state.s = tickGear(gearSeconds, state.s, s, 60, 0.2, "back.out(1.5)");
-            }
-            state.m = tickGear(gearMinutes, state.m, m, 60, 0.6, "power2.inOut");
-            state.h = tickGear(gearHours, state.h, h, 24, 1.0, "power2.inOut");
-            state.tzNum = tickGear(gearTzNum, state.tzNum, tzNumIdx, 13, 1.5, "power3.inOut");
-            state.tzGlyph = tickGear(gearTzGlyph, state.tzGlyph, tzGlyphIdx, 20, 1.5, "power3.inOut");
-            state.haab = tickGear(gearHaab, state.haab, haabIdx, 19, 1.5, "power3.inOut");
-        }
-
-        let animId = null;
-        function initAnimation() {
-            if (animId) return;
-            function animate() {
-                animId = requestAnimationFrame(animate);
-                updateMechanics();
-                renderer.render(scene, camera);
-            }
-            animate();
-        }
-
-        // ==========================================
-        // 9. CAMERA SETUP
-        // ==========================================
-        const views = {
-            overview: { pos: new THREE.Vector3(0, 50, 40), lookAt: new THREE.Vector3(0, 0, 0) },
-            detail:   { pos: new THREE.Vector3(15, 35, 20), lookAt: new THREE.Vector3(15, 0, 0) } 
-        };
-
-        let isDetailView = false;
-        const cameraTarget = views.overview.lookAt.clone();
-        camera.position.copy(views.overview.pos);
-        camera.lookAt(cameraTarget);
-
-        const toggleBtn = document.getElementById('toggle-cam-btn');
-        const btnText = toggleBtn.querySelector('span');
-
-        toggleBtn.addEventListener('click', () => {
-            isDetailView = !isDetailView;
-            const view = isDetailView ? views.detail : views.overview;
-            btnText.innerText = isDetailView ? "View Entire Mechanism (Zoom Out)" : "Read The Gate (Zoom In)";
-
-            gsap.to(camera.position, {
-                x: view.pos.x, y: view.pos.y, z: view.pos.z,
-                duration: 2.0, ease: "power3.inOut"
-            });
-
-            gsap.to(cameraTarget, {
-                x: view.lookAt.x, y: view.lookAt.y, z: view.lookAt.z,
-                duration: 2.0, ease: "power3.inOut",
-                onUpdate: () => camera.lookAt(cameraTarget)
-            });
-        });
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-        // ==========================================
-        // 10. INIT
-        // ==========================================
-        // 이미지 로드가 완료되면 3D 기어 생성 및 애니메이션 시작
-        preloadImages(() => {
-            buildMechanism();
-        });
-
-    </script>
+  <script type="module">
+    import init from './pkg/maya_chronos.js';
+    init().catch((e) => {
+      const el = document.getElementById('error');
+      el.textContent = 'Failed to start: ' + e;
+      el.style.display = 'block';
+      console.error(e);
+    });
+  </script>
 </body>
 </html>
