@@ -51,7 +51,56 @@
 
     <script>
         // ==========================================
-        // 1. 2D DRAWING ENGINE (Mayan Numerals & Glyphs)
+        // 1. 위키피디아 마야 이미지 URL (CORS 우회 적용)
+        // ==========================================
+        // Wikimedia의 이미지 프록시 서버를 사용하거나, 이미지 뷰어 주소를 변환하여 CORS 문제 해결
+        const TZOLKIN_URLS = [
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/MAYA-g-log-cal-D01-Imix.png/150px-MAYA-g-log-cal-D01-Imix.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/MAYA-g-log-cal-D02-Ik.png/150px-MAYA-g-log-cal-D02-Ik.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/MAYA-g-log-cal-D03-Akbal.png/150px-MAYA-g-log-cal-D03-Akbal.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/MAYA-g-log-cal-D04-Kan.png/150px-MAYA-g-log-cal-D04-Kan.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/MAYA-g-log-cal-D05-Chikchan.png/150px-MAYA-g-log-cal-D05-Chikchan.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/MAYA-g-log-cal-D06-Kimi.png/150px-MAYA-g-log-cal-D06-Kimi.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/MAYA-g-log-cal-D07-Manik.png/150px-MAYA-g-log-cal-D07-Manik.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/MAYA-g-log-cal-D08-Lamat.png/150px-MAYA-g-log-cal-D08-Lamat.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/MAYA-g-log-cal-D09-Muluk.png/150px-MAYA-g-log-cal-D09-Muluk.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/MAYA-g-log-cal-D10-Ok.png/150px-MAYA-g-log-cal-D10-Ok.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/MAYA-g-log-cal-D11-Chuwen.png/150px-MAYA-g-log-cal-D11-Chuwen.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/MAYA-g-log-cal-D12-Eb.png/150px-MAYA-g-log-cal-D12-Eb.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/MAYA-g-log-cal-D13-Ben.png/150px-MAYA-g-log-cal-D13-Ben.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/MAYA-g-log-cal-D14-Ix.png/150px-MAYA-g-log-cal-D14-Ix.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/MAYA-g-log-cal-D15-Men.png/150px-MAYA-g-log-cal-D15-Men.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/MAYA-g-log-cal-D16-Kib.png/150px-MAYA-g-log-cal-D16-Kib.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/MAYA-g-log-cal-D17-Kaban.png/150px-MAYA-g-log-cal-D17-Kaban.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/MAYA-g-log-cal-D18-Etznab.png/150px-MAYA-g-log-cal-D18-Etznab.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/MAYA-g-log-cal-D19-Kawak.png/150px-MAYA-g-log-cal-D19-Kawak.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/MAYA-g-log-cal-D20-Ajaw.svg/150px-MAYA-g-log-cal-D20-Ajaw.svg.png"
+        ];
+
+        const HAAB_URLS = [
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Maya_months_-_0_-_Pop.svg/150px-Maya_months_-_0_-_Pop.svg.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Maya_months_-_1_-_Wo.svg/150px-Maya_months_-_1_-_Wo.svg.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Maya_months_-_2_-_Sip.svg/150px-Maya_months_-_2_-_Sip.svg.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Maya-months-03-sotz%27.svg/150px-Maya-months-03-sotz%27.svg.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Maya_months_-_4_-_Sek.svg/150px-Maya_months_-_4_-_Sek.svg.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Maya-months-05-xul.svg/150px-Maya-months-05-xul.svg.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Maya_months_-_6_-_Yaxk%27in.svg/150px-Maya_months_-_6_-_Yaxk%27in.svg.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Maya_months_-_7_-_Mol.svg/150px-Maya_months_-_7_-_Mol.svg.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Maya-months-08-ch%27en.svg/150px-Maya-months-08-ch%27en.svg.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/Maya-months-09-yax.svg/150px-Maya-months-09-yax.svg.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Maya-months-10-sak.svg/150px-Maya-months-10-sak.svg.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Maya-months-11-kej.svg/150px-Maya-months-11-kej.svg.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Maya-months-12-mak.svg/150px-Maya-months-12-mak.svg.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Maya-months-13-k%27ank%27in.svg/150px-Maya-months-13-k%27ank%27in.svg.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Maya-months-14-muwan.svg/150px-Maya-months-14-muwan.svg.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Maya-months-15-pax.svg/150px-Maya-months-15-pax.svg.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Maya-months-16-k%27ayab%27.svg/150px-Maya-months-16-k%27ayab%27.svg.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Maya-months-17-kumk%27u.svg/150px-Maya-months-17-kumk%27u.svg.png",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Maya-months-18-wayeb%27.svg/150px-Maya-months-18-wayeb%27.svg.png"
+        ];
+
+        // ==========================================
+        // 2. 2D DRAWING ENGINE (숫자용)
         // ==========================================
         function drawMayaNumeral(ctx, num, cx, cy, scale = 1, color = '#000000') {
             ctx.fillStyle = color;
@@ -70,7 +119,6 @@
                     ctx.stroke();
                     return;
                 }
-
                 const bars = Math.floor(n / 5);
                 const dots = n % 5;
                 const barSpacing = 14 * scale;
@@ -81,7 +129,6 @@
                     ctx.roundRect(cx - 24*scale, base - i * barSpacing, 48*scale, 10*scale, 5*scale);
                     ctx.fill();
                 }
-                
                 const dotY = base - bars * barSpacing - 14*scale;
                 const dotSpacing = 16 * scale; 
                 const startX = cx - ((dots - 1) * dotSpacing) / 2;
@@ -91,51 +138,51 @@
                     ctx.fill();
                 }
             }
-
-            if (num < 20) {
-                drawTier(num, cy);
-            } else {
+            if (num < 20) drawTier(num, cy);
+            else {
                 drawTier(Math.floor(num / 20), cy - 25*scale);
                 drawTier(num % 20, cy + 25*scale);
             }
         }
 
-        function drawMayaGlyph(ctx, index, cx, cy, scale = 1, color = '#000000') {
-            ctx.save();
-            ctx.translate(cx, cy);
-            ctx.scale(scale, scale);
-            ctx.strokeStyle = color;
-            ctx.fillStyle = color;
-            ctx.lineWidth = 8;
-            ctx.lineJoin = 'round';
+        // ==========================================
+        // 3. 이미지 로더 (CORS 프록시 우회)
+        // ==========================================
+        const loadedTzolkin = [];
+        const loadedHaab = [];
+        let totalLoaded = 0;
+        const TOTAL_IMAGES = TZOLKIN_URLS.length + HAAB_URLS.length;
 
-            ctx.beginPath();
-            ctx.roundRect(-32, -32, 64, 64, 16);
-            ctx.stroke();
+        function preloadImages(callback) {
+            // Tzolk'in 로드
+            TZOLKIN_URLS.forEach((url, i) => {
+                const img = new Image();
+                img.crossOrigin = "Anonymous";
+                // CORS 에러 방지를 위해 프록시 서버 사용 (wsrv.nl)
+                img.src = `https://wsrv.nl/?url=${encodeURIComponent(url)}`;
+                img.onload = () => { loadedTzolkin[i] = img; checkDone(); };
+                img.onerror = () => { loadedTzolkin[i] = null; checkDone(); };
+            });
 
-            const seed = (index * 137) % 29;
-            ctx.lineWidth = 5;
-            
-            if (seed % 3 === 0) { 
-                ctx.beginPath(); ctx.arc(-10, -10, 8, 0, Math.PI*2); ctx.stroke();
-                ctx.beginPath(); ctx.arc(10, -10, 8, 0, Math.PI*2); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(-15, 10); ctx.quadraticCurveTo(0, 25, 15, 10); ctx.stroke();
-            } else if (seed % 3 === 1) { 
-                ctx.beginPath(); ctx.moveTo(-20, -20); ctx.lineTo(-20, 20); ctx.lineTo(0, 20); ctx.lineTo(0, 5); ctx.lineTo(20, 5); ctx.stroke();
-                for(let i=0; i<3; i++) { ctx.beginPath(); ctx.arc(12, -12 + i*10, 4, 0, Math.PI*2); ctx.fill(); }
-            } else { 
-                ctx.beginPath(); ctx.moveTo(-20, 15); ctx.bezierCurveTo(-5, -25, 25, -25, 15, 15); ctx.stroke();
-                ctx.beginPath(); ctx.arc(-8, 5, 5, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.arc(8, 5, 5, 0, Math.PI*2); ctx.fill();
+            // Haab 로드
+            HAAB_URLS.forEach((url, i) => {
+                const img = new Image();
+                img.crossOrigin = "Anonymous";
+                img.src = `https://wsrv.nl/?url=${encodeURIComponent(url)}`;
+                img.onload = () => { loadedHaab[i] = img; checkDone(); };
+                img.onerror = () => { loadedHaab[i] = null; checkDone(); };
+            });
+
+            function checkDone() {
+                totalLoaded++;
+                if (totalLoaded >= TOTAL_IMAGES) callback();
             }
-            
-            ctx.restore();
         }
 
         // ==========================================
-        // 2. TEXTURE GENERATOR (부채꼴 배치로 완벽 수정)
+        // 4. 텍스처 생성기 (이미지 그리기 적용)
         // ==========================================
-        function generateGearTexture(innerR, outerR, slots, typeFunc, markingColor) {
+        function generateGearTexture(innerR, outerR, slots, type, markingColor) {
             const size = 2048;
             const canvas = document.createElement('canvas');
             canvas.width = size;
@@ -144,7 +191,6 @@
             const cx = size / 2;
             const cy = size / 2;
 
-            // 배경을 어두운 석재색으로 채움 (흰색 판 방지)
             ctx.fillStyle = '#2a2520';
             ctx.fillRect(0, 0, size, size);
 
@@ -154,9 +200,9 @@
             const ringWidth = R_out - R_in;
 
             const scaleNum = ringWidth / 110; 
-            const scaleGlyph = ringWidth / 90;
+            const glyphSize = ringWidth * 0.75; // 이미지가 잘리지 않게 여백 고려
 
-            // 기어 링 영역만 밝은 석재색으로 칠함
+            // 기어 링 배경색 (밝은 석재)
             ctx.beginPath();
             ctx.arc(cx, cy, R_out, 0, Math.PI * 2);
             ctx.arc(cx, cy, R_in, 0, Math.PI * 2, true);
@@ -172,19 +218,42 @@
                 ctx.translate(R_mid, 0);
                 ctx.rotate(Math.PI / 2);
 
-                const valInfo = typeFunc(i);
-                
-                // 그림자 효과 (음각 느낌)
-                ctx.save();
-                ctx.translate(3, 3);
-                ctx.globalAlpha = 0.5;
-                if (valInfo.type === 'numeral') drawMayaNumeral(ctx, valInfo.value, 0, 0, scaleNum, '#000000');
-                else drawMayaGlyph(ctx, valInfo.value, 0, 0, scaleGlyph, '#000000');
-                ctx.restore();
+                if (type === 'numeral') {
+                    // 그림자
+                    ctx.save();
+                    ctx.translate(3, 3);
+                    ctx.globalAlpha = 0.4;
+                    drawMayaNumeral(ctx, i, 0, 0, scaleNum, '#000000');
+                    ctx.restore();
+                    // 숫자
+                    drawMayaNumeral(ctx, i, 0, 0, scaleNum, markingColor);
+                } else {
+                    // 마야 상형문자 이미지
+                    let img;
+                    if (type === 'tzolkin') {
+                        img = loadedTzolkin[i % 20];
+                    } else if (type === 'haab') {
+                        img = loadedHaab[i % 19];
+                    }
 
-                // 실제 마킹
-                if (valInfo.type === 'numeral') drawMayaNumeral(ctx, valInfo.value, 0, 0, scaleNum, markingColor);
-                else drawMayaGlyph(ctx, valInfo.value, 0, 0, scaleGlyph, markingColor);
+                    if (img) {
+                        // 텍스처가 CORS 등으로 로드되지 않았을 때 폴백
+                        ctx.save();
+                        ctx.translate(4, 4);
+                        ctx.globalAlpha = 0.3;
+                        ctx.drawImage(img, -glyphSize/2, -glyphSize/2, glyphSize, glyphSize);
+                        ctx.restore();
+                        
+                        ctx.drawImage(img, -glyphSize/2, -glyphSize/2, glyphSize, glyphSize);
+                    } else {
+                        // 로드 실패 시 텍스트로 대체
+                        ctx.fillStyle = markingColor;
+                        ctx.font = `bold ${glyphSize/2}px sans-serif`;
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(type === 'tzolkin' ? `T${i}` : `H${i}`, 0, 0);
+                    }
+                }
                 
                 ctx.restore();
 
@@ -208,7 +277,7 @@
         }
 
         // ==========================================
-        // 3. UI MAYAN CLOCK
+        // 5. UI MAYAN CLOCK
         // ==========================================
         const uiCtx = document.getElementById('maya-ui-clock').getContext('2d');
         function updateUIClock(h, m, s) {
@@ -224,7 +293,7 @@
         }
 
         // ==========================================
-        // 4. SCENE SETUP & LIGHTING
+        // 6. SCENE & LIGHTING
         // ==========================================
         const scene = new THREE.Scene();
         scene.fog = new THREE.FogExp2(0x050505, 0.01);
@@ -252,15 +321,14 @@
         scene.add(fillLight);
 
         // ==========================================
-        // 5. GEAR CONSTRUCTION (구조 변경)
+        // 7. GEAR CONSTRUCTION
         // ==========================================
         const bodyMat = new THREE.MeshStandardMaterial({ color: 0xe0d8c0, roughness: 0.85, metalness: 0.1 });
         const darkBodyMat = new THREE.MeshStandardMaterial({ color: 0x2a2520, roughness: 0.9, metalness: 0.1 });
 
-        function createThickRing(innerR, outerR, height, slots, typeFunc, hasTeeth, markingColor) {
+        function createThickRing(innerR, outerR, height, slots, type, hasTeeth, markingColor) {
             const group = new THREE.Group();
 
-            // 1. 기어 바닥면 (어두운 색으로 음영)
             const shape = new THREE.Shape();
             shape.absarc(0, 0, outerR, 0, Math.PI * 2, false);
             const hole = new THREE.Path();
@@ -276,8 +344,7 @@
             ringMesh.castShadow = true;
             group.add(ringMesh);
 
-            // 2. 윗면 텍스처 (Standard Material 사용)
-            const topTex = generateGearTexture(innerR, outerR, slots, typeFunc, markingColor);
+            const topTex = generateGearTexture(innerR, outerR, slots, type, markingColor);
             const topMat = new THREE.MeshStandardMaterial({ 
                 map: topTex, 
                 roughness: 0.7,
@@ -291,7 +358,6 @@
             topMesh.position.y = 0.02;
             group.add(topMesh);
 
-            // 3. 톱니바퀴 이빨
             if(hasTeeth) {
                 const toothGeo = new THREE.BoxGeometry(0.8, height * 0.9, (outerR - innerR)*0.3);
                 for(let i=0; i<slots; i++) {
@@ -304,84 +370,94 @@
                     group.add(tooth);
                 }
             }
-
             scene.add(group);
             return group;
         }
 
         const HEIGHT = 1.2;
-        const gearTzNum = createThickRing(3, 6, HEIGHT, 13, (i) => ({type: 'numeral', value: i + 1}), false, '#cc0000');
-        const gearTzGlyph = createThickRing(6.2, 10, HEIGHT, 20, (i) => ({type: 'glyph', value: i}), false, '#cc0000');
-        const gearHaab = createThickRing(10.2, 14, HEIGHT, 19, (i) => ({type: 'glyph', value: i + 20}), true, '#cc0000');
-        const gearHours = createThickRing(15, 19, HEIGHT, 24, (i) => ({type: 'numeral', value: i}), true, '#000000');
-        const gearMinutes = createThickRing(19.2, 23, HEIGHT, 60, (i) => ({type: 'numeral', value: i}), true, '#000000');
-        const gearSeconds = createThickRing(23.2, 27, HEIGHT, 60, (i) => ({type: 'numeral', value: i}), true, '#000000');
+        let gearsCreated = false;
+        let gearTzNum, gearTzGlyph, gearHaab, gearHours, gearMinutes, gearSeconds;
 
-        // 중심 축
-        const coreGeo = new THREE.CylinderGeometry(2.8, 2.8, HEIGHT * 1.5, 32);
-        const coreMat = new THREE.MeshStandardMaterial({ color: 0x5a4a35, metalness: 0.6, roughness: 0.5 });
-        const core = new THREE.Mesh(coreGeo, coreMat);
-        core.position.y = -HEIGHT/2;
-        scene.add(core);
+        function buildMechanism() {
+            if (gearsCreated) return;
+            gearsCreated = true;
 
-        // ==========================================
-        // 6. INDICATOR GATE (프레임 - 하얀색 판을 가리지 않게 배치)
-        // ==========================================
-        const gateGroup = new THREE.Group();
-        const metalMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.9, roughness: 0.2 }); 
-        const darkMetalMat = new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 0.8, roughness: 0.6 });
+            // Tzolk'in 기어들 (13일 주기 숫자, 20일 주기 상형문자)
+            gearTzNum = createThickRing(3, 6, HEIGHT, 13, 'numeral', false, '#cc0000');
+            gearTzGlyph = createThickRing(6.2, 10, HEIGHT, 20, 'tzolkin', false, '#cc0000');
+            // Haab 기어 (19개월 상형문자)
+            gearHaab = createThickRing(10.2, 14, HEIGHT, 19, 'haab', true, '#cc0000');
+            
+            // 시간 기어들 (24시간, 60분, 60초)
+            gearHours = createThickRing(15, 19, HEIGHT, 24, 'numeral', true, '#000000');
+            gearMinutes = createThickRing(19.2, 23, HEIGHT, 60, 'numeral', true, '#000000');
+            gearSeconds = createThickRing(23.2, 27, HEIGHT, 60, 'numeral', true, '#000000');
 
-        const GATE_X_IN  = 1.0;
-        const GATE_X_OUT = 28.5;
-        const GATE_WIDTH = GATE_X_OUT - GATE_X_IN; 
-        const GATE_MID   = (GATE_X_IN + GATE_X_OUT) / 2;
+            // 중심 축
+            const coreGeo = new THREE.CylinderGeometry(2.8, 2.8, HEIGHT * 1.5, 32);
+            const coreMat = new THREE.MeshStandardMaterial({ color: 0x5a4a35, metalness: 0.6, roughness: 0.5 });
+            const core = new THREE.Mesh(coreGeo, coreMat);
+            core.position.y = -HEIGHT/2;
+            scene.add(core);
 
-        // 레일을 기어보다 살짝 위로 띄움
-        const frameL = new THREE.Mesh(new THREE.BoxGeometry(GATE_WIDTH, 0.4, 0.9), metalMat);
-        frameL.position.set(GATE_MID, 0.8,  2.8); frameL.castShadow = true;
-        const frameR = new THREE.Mesh(new THREE.BoxGeometry(GATE_WIDTH, 0.4, 0.9), metalMat);
-        frameR.position.set(GATE_MID, 0.8, -2.8); frameR.castShadow = true;
-        
-        const capIn = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.4, 6.4), metalMat);
-        capIn.position.set(GATE_X_IN, 0.8, 0); capIn.castShadow = true;
-        const capOut = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.4, 6.4), metalMat);
-        capOut.position.set(GATE_X_OUT, 0.8, 0); capOut.castShadow = true;
-        
-        const divider = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.5, 6.4), darkMetalMat);
-        divider.position.set(14.5, 0.9, 0); divider.castShadow = true;
+            // 프레임
+            const gateGroup = new THREE.Group();
+            const metalMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.9, roughness: 0.2 }); 
+            const darkMetalMat = new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 0.8, roughness: 0.6 });
 
-        function createGateLabel(text) {
-            const canvas = document.createElement('canvas');
-            canvas.width = 256; canvas.height = 64;
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#111111'; ctx.fillRect(0,0,256,64);
-            ctx.fillStyle = '#d4af37'; ctx.font = 'bold 44px Inter'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            ctx.fillText(text, 128, 32);
-            const tex = new THREE.CanvasTexture(canvas);
-            const mat = new THREE.MeshBasicMaterial({ map: tex });
-            const plane = new THREE.Mesh(new THREE.PlaneGeometry(5, 1.2), mat);
-            plane.rotation.x = -Math.PI/2;
-            plane.rotation.z = Math.PI/2; 
-            return plane;
+            const GATE_X_IN  = 1.0;
+            const GATE_X_OUT = 28.5;
+            const GATE_WIDTH = GATE_X_OUT - GATE_X_IN; 
+            const GATE_MID   = (GATE_X_IN + GATE_X_OUT) / 2;
+
+            const frameL = new THREE.Mesh(new THREE.BoxGeometry(GATE_WIDTH, 0.4, 0.9), metalMat);
+            frameL.position.set(GATE_MID, 0.8,  2.8); frameL.castShadow = true;
+            const frameR = new THREE.Mesh(new THREE.BoxGeometry(GATE_WIDTH, 0.4, 0.9), metalMat);
+            frameR.position.set(GATE_MID, 0.8, -2.8); frameR.castShadow = true;
+            
+            const capIn = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.4, 6.4), metalMat);
+            capIn.position.set(GATE_X_IN, 0.8, 0); capIn.castShadow = true;
+            const capOut = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.4, 6.4), metalMat);
+            capOut.position.set(GATE_X_OUT, 0.8, 0); capOut.castShadow = true;
+            
+            const divider = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.5, 6.4), darkMetalMat);
+            divider.position.set(14.5, 0.9, 0); divider.castShadow = true;
+
+            function createGateLabel(text) {
+                const canvas = document.createElement('canvas');
+                canvas.width = 256; canvas.height = 64;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#111111'; ctx.fillRect(0,0,256,64);
+                ctx.fillStyle = '#d4af37'; ctx.font = 'bold 44px Inter'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(text, 128, 32);
+                const tex = new THREE.CanvasTexture(canvas);
+                const mat = new THREE.MeshBasicMaterial({ map: tex });
+                const plane = new THREE.Mesh(new THREE.PlaneGeometry(5, 1.2), mat);
+                plane.rotation.x = -Math.PI/2;
+                plane.rotation.z = Math.PI/2; 
+                return plane;
+            }
+
+            const dateLabel = createGateLabel("DATE (RED)");
+            dateLabel.position.set(14.5, 1.05, -4.2);
+            const timeLabel = createGateLabel("TIME (BLACK)");
+            timeLabel.position.set(14.5, 1.05, 4.2);
+
+            const ptrGeo = new THREE.ConeGeometry(0.7, 1.4, 4);
+            const ptr1 = new THREE.Mesh(ptrGeo, metalMat);
+            ptr1.position.set(GATE_X_OUT, 0.8, 0); ptr1.rotation.z = Math.PI/2;
+            const ptr2 = new THREE.Mesh(ptrGeo, metalMat);
+            ptr2.position.set(GATE_X_IN, 0.8, 0); ptr2.rotation.z = -Math.PI/2;
+
+            gateGroup.add(frameL, frameR, capIn, capOut, divider, dateLabel, timeLabel, ptr1, ptr2);
+            gateGroup.position.y = 0; 
+            scene.add(gateGroup);
+
+            initAnimation();
         }
 
-        const dateLabel = createGateLabel("DATE (RED)");
-        dateLabel.position.set(14.5, 1.05, -4.2);
-        const timeLabel = createGateLabel("TIME (BLACK)");
-        timeLabel.position.set(14.5, 1.05, 4.2);
-
-        const ptrGeo = new THREE.ConeGeometry(0.7, 1.4, 4);
-        const ptr1 = new THREE.Mesh(ptrGeo, metalMat);
-        ptr1.position.set(GATE_X_OUT, 0.8, 0); ptr1.rotation.z = Math.PI/2;
-        const ptr2 = new THREE.Mesh(ptrGeo, metalMat);
-        ptr2.position.set(GATE_X_IN, 0.8, 0); ptr2.rotation.z = -Math.PI/2;
-
-        gateGroup.add(frameL, frameR, capIn, capOut, divider, dateLabel, timeLabel, ptr1, ptr2);
-        gateGroup.position.y = 0; 
-        scene.add(gateGroup);
-
         // ==========================================
-        // 7. TIME SYNC
+        // 8. ANIMATION
         // ==========================================
         const state = { h: -1, m: -1, s: -1, tzNum: -1, tzGlyph: -1, haab: -1 };
 
@@ -405,6 +481,7 @@
             const m = now.getMinutes();
             const h = now.getHours();
 
+            // 마야 달력 날짜 계산 (에포크 기반)
             const daysSinceEpoch = Math.floor(now.getTime() / 86400000);
             const tzNumIdx = daysSinceEpoch % 13; 
             const tzGlyphIdx = daysSinceEpoch % 20;
@@ -421,8 +498,19 @@
             state.haab = tickGear(gearHaab, state.haab, haabIdx, 19, 1.5, "power3.inOut");
         }
 
+        let animId = null;
+        function initAnimation() {
+            if (animId) return;
+            function animate() {
+                animId = requestAnimationFrame(animate);
+                updateMechanics();
+                renderer.render(scene, camera);
+            }
+            animate();
+        }
+
         // ==========================================
-        // 8. CAMERA (정면 톱니바퀴 뷰)
+        // 9. CAMERA SETUP
         // ==========================================
         const views = {
             overview: { pos: new THREE.Vector3(0, 50, 40), lookAt: new THREE.Vector3(0, 0, 0) },
@@ -454,22 +542,19 @@
             });
         });
 
-        // ==========================================
-        // 9. RENDER LOOP
-        // ==========================================
-        function animate() {
-            requestAnimationFrame(animate);
-            updateMechanics();
-            renderer.render(scene, camera);
-        }
-
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        window.onload = animate;
+        // ==========================================
+        // 10. INIT
+        // ==========================================
+        // 이미지 로드가 완료되면 3D 기어 생성 및 애니메이션 시작
+        preloadImages(() => {
+            buildMechanism();
+        });
 
     </script>
 </body>
