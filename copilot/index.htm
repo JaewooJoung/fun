@@ -59,9 +59,18 @@ button.primary { background: var(--accent); color: var(--accent-ink); border-col
 .copybox { background: var(--code); border: 1px dashed var(--line); border-radius: 7px; padding: 10px; margin-top: 8px;
   cursor: pointer; word-break: break-word; }
 .copybox:hover { border-color: var(--accent); }
-.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-.chip { border: 0; background: var(--chip); color: var(--chip-ink); border-radius: 999px; padding: 3px 10px; font-size: 13px; }
-.chip.off { background: var(--off); color: var(--off-ink); text-decoration: line-through; }
+.guide { font-size: 13px; color: var(--mute); margin: -4px 0 10px; padding: 6px 10px; border-left: 3px solid var(--chip); background: var(--code); border-radius: 0 6px 6px 0; }
+.guide i { font-style: normal; color: var(--ink); }
+.tgroup { font-size: 12px; color: var(--mute); margin: 10px 0 4px; }
+.tool { display: grid; grid-template-columns: 38px 1fr 32px; gap: 10px; align-items: center; padding: 7px 4px; border-top: 1px solid var(--line); }
+.tool .sw { width: 34px; height: 20px; border-radius: 999px; background: var(--off); border: 0; padding: 0; position: relative; cursor: pointer; }
+.tool .sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: var(--off-ink); transition: left .15s; }
+.tool.on .sw { background: var(--accent); }
+.tool.on .sw::after { left: 17px; background: var(--accent-ink); }
+.tool b { font-weight: 600; }
+.tool .d { font-size: 13px; color: var(--mute); }
+.tool .why { font-size: 12px; color: var(--chip-ink); }
+.tool .cp { position: static; }
 .hint { font-size: 12px; color: var(--mute); margin: 6px 0 0; }
 .kebab { font: 12px ui-monospace, Consolas, monospace; color: var(--mute); }
 
@@ -124,27 +133,32 @@ section.example pre { font-family: inherit; font-size: 13.5px; max-height: none;
 
 <section>
   <h2><span class="n">1.</span> Title <small>제목</small></h2>
+  <p class="guide">에이전트 이름입니다. 무엇을 도와주는 비서인지 한눈에 보이게 짧게 쓰세요. 예: <i>회의 준비 비서</i>, <i>주간 보고서 도우미</i></p>
   <div class="field"><input type="text" id="f0" placeholder="예: Meeting Buddy: Prep & Follow-up Assistant"></div>
   <div class="tools"><span class="count" id="c0"></span></div>
 </section>
 
 <section>
   <h2><span class="n">2.</span> Summary <small>요약 / Description</small></h2>
+  <p class="guide"><b>누구를</b>, <b>언제</b>, <b>무엇을</b> 도와주는지 2~3문장으로 쓰세요. Copilot 은 이 글을 보고 에이전트를 부를지 결정하므로, 사용자가 실제로 말할 단어(회의, 메일, 보고서…)가 들어가야 잘 불립니다.</p>
   <div class="field"><textarea id="f1" rows="4" placeholder="에이전트가 무엇을, 언제, 누구를 위해 하는지 적으세요."></textarea></div>
   <div class="tools"><span class="count" id="c1"></span></div>
-  <label>핵심 단어 — 빼고 싶은 단어는 눌러서 끄세요</label>
-  <div class="chips" id="chips"></div>
-  <div class="copybox" id="compact" data-copy="compact" title="클릭하면 복사"></div>
+</section>
+
+<section>
+  <h2>🧰 MS 도구 <small>Copilot 에서 켤 지식·기능</small></h2>
+  <p class="guide">에이전트 만들기 화면에서 켤 수 있는 Microsoft 도구입니다. 이 페이지에 쓴 글에서 필요한 도구를 자동으로 찾아 켜 두었으니, Copilot 화면의 <b>지식(Knowledge)</b>·<b>기능(Capabilities)</b>에서 같은 항목을 켜 주세요. 눌러서 직접 켜고 끌 수도 있습니다.</p>
+  <div id="toolsOn"></div>
+  <details id="toolsMore"><summary id="toolsMoreSum"></summary><div id="toolsOff"></div></details>
   <div class="tools">
-    <button class="primary" data-copy="compact">핵심 단어만 복사</button>
-    <button id="chipsReset">단어 모두 켜기</button>
-    <span class="count" id="ccompact"></span>
+    <button class="primary" data-copy="tools">켤 도구 목록 복사</button>
+    <span class="count" id="ctools"></span>
   </div>
-  <p class="hint">요약은 Copilot 이 "이 에이전트를 언제 부를지" 판단하는 기준입니다. 사용자가 실제로 말할 핵심 단어가 꼭 들어가게 하세요.</p>
 </section>
 
 <section>
   <h2><span class="n">3.</span> Skills <small>스킬 / Actions → skill.md</small></h2>
+  <p class="guide">에이전트가 <b>어떻게 일할지</b> 적는 설명서입니다. ① 할 수 있는 일 ② 답변 규칙(지어내지 않기, 출처 붙이기 등) ③ 언제 쓰는지 순서로 쓰면 됩니다. 처음이라면 예제 본문을 내 업무에 맞게 고쳐 쓰는 게 가장 쉽습니다.</p>
   <label for="f3">스킬 이름 (name)</label>
   <div class="field"><input type="text" id="f3" placeholder="meeting-action-tracker"></div>
   <div class="kebab" id="kebab"></div>
@@ -165,6 +179,7 @@ section.example pre { font-family: inherit; font-size: 13.5px; max-height: none;
 
 <section>
   <h2><span class="n">4.</span> Knowledge <small>지식 / Data Sources → knowhow.txt (마크다운 표)</small></h2>
+  <p class="guide">에이전트가 답할 때 참고할 파일·사이트입니다. 파일 이름과 함께 <b>이 자료로 무엇을 답할 수 있는지</b>를 적어 두면 에이전트가 알맞은 자료를 찾아 씁니다. 파일은 Copilot 의 지식 칸에 올리세요.</p>
   <table class="rows know">
     <colgroup><col class="c1"><col class="c2"><col><col style="width:76px"></colgroup>
     <thead><tr><th>지식 소스</th><th>유형</th><th>설명</th><th class="act"></th></tr></thead>
@@ -183,7 +198,8 @@ section.example pre { font-family: inherit; font-size: 13.5px; max-height: none;
 </section>
 
 <section>
-  <h2><span class="n">5.</span> Suggested prompts <small>추천 프롬프트 — 칸마다 복사해서 Copilot 화면에 붙여 넣으세요</small></h2>
+  <h2><span class="n">5.</span> Suggested prompts <small>추천 프롬프트</small></h2>
+  <p class="guide">사용자가 처음 에이전트를 열었을 때 보이는 버튼입니다. 제목은 짧게, 메시지는 <b>무엇을 어떤 형태로</b> 받고 싶은지까지 구체적으로 쓰세요. 칸마다 복사해서 Copilot 화면에 붙여 넣으면 됩니다.</p>
   <table class="rows prom">
     <colgroup><col class="c1"><col><col style="width:76px"></colgroup>
     <thead><tr><th>Title</th><th>Message</th><th class="act"></th></tr></thead>
@@ -193,7 +209,7 @@ section.example pre { font-family: inherit; font-size: 13.5px; max-height: none;
     <button class="addrow" id="addPrompt">Add a suggested prompt</button>
     <span class="count" id="cprompts"></span>
   </div>
-  <p class="hint">⋮⋮ 를 끌어서 순서를 바꿀 수 있습니다. 제목은 짧게, 메시지는 원하는 결과 형태까지 구체적으로.</p>
+  <p class="hint">⋮⋮ 를 끌어서 순서를 바꿀 수 있습니다.</p>
 </section>
 
 <section class="example">
@@ -207,9 +223,9 @@ section.example pre { font-family: inherit; font-size: 13.5px; max-height: none;
 
 <script>
 'use strict';
-const TITLE = 0, SUMMARY = 1, NATIVE = 2, SKILL_NAME = 3, SKILL_DESC = 4, SKILL_BODY = 5, KNOW = 6, EXCLUDE = 7, PROMPTS = 8;
+const TITLE = 0, SUMMARY = 1, NATIVE = 2, SKILL_NAME = 3, SKILL_DESC = 4, SKILL_BODY = 5, KNOW = 6, TOOLS = 7, PROMPTS = 8;
 const ROW = '\x1e', CELL = '\x1f';
-const KEY = 'agentmaker.v1';
+const KEY = 'agentmaker.v2';
 const $ = id => document.getElementById(id);
 const enc = new TextEncoder(), dec = new TextDecoder();
 const ICON_COPY = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>';
@@ -229,6 +245,7 @@ function save() {
   try { localStorage.setItem(KEY, JSON.stringify(Array.from({length: W.field_count()}, (_, i) => getF(i)))); } catch (e) {}
 }
 function restore() {
+  try { localStorage.removeItem('agentmaker.v1'); } catch (e) {}   // 예전 버전이 저장해 둔 예제는 버린다
   try {
     const a = JSON.parse(localStorage.getItem(KEY) || 'null');
     if (Array.isArray(a)) { a.forEach((v, i) => setF(i, String(v ?? ''))); return true; }
@@ -267,7 +284,7 @@ function addCopyButton(wrap, what) {
 }
 
 const COPY = {
-  compact: () => [build(1), '핵심 단어'],
+  tools: () => [build(1).trim(), '켤 도구 목록'],
   skill: () => [build(2), 'skill.md'],
   know: () => [build(3), 'knowhow.txt'],
   full: () => [build(4), '전체 설정'],
@@ -345,25 +362,11 @@ function fillForm() {
   refresh();
 }
 
-function excluded() { return getF(EXCLUDE).split(CELL).filter(Boolean); }
-
 function refresh() {
   $('c0').textContent = [...getF(TITLE)].length + '자';
   $('c1').textContent = [...getF(SUMMARY)].length + '자';
 
-  const ex = new Set(excluded().map(x => x.toLowerCase()));
-  const chips = $('chips');
-  chips.textContent = '';
-  for (const k of build(0).split(CELL).filter(Boolean)) {
-    const b = document.createElement('button');
-    b.className = 'chip' + (ex.has(k.toLowerCase()) ? ' off' : '');
-    b.textContent = k;
-    b.onclick = () => toggleWord(k);
-    chips.append(b);
-  }
-  const compact = build(1);
-  $('compact').textContent = compact || '요약을 쓰면 핵심 단어가 여기 모입니다.';
-  $('ccompact').textContent = (compact ? compact.split(', ').length : 0) + '단어 · ' + [...compact].length + '자';
+  drawTools();
 
   const name = getF(SKILL_NAME), kb = build(5);
   $('kebab').textContent = kb && kb !== name.trim() ? 'skill.md 에는 name: ' + kb + ' 로 저장됩니다' : '';
@@ -374,11 +377,41 @@ function refresh() {
   save();
 }
 
-function toggleWord(k) {
-  const ex = excluded(), i = ex.findIndex(x => x.toLowerCase() === k.toLowerCase());
-  if (i >= 0) ex.splice(i, 1); else ex.push(k);
-  setF(EXCLUDE, ex.join(CELL));
-  refresh();
+function drawTools() {
+  const rows = build(0).split(ROW).map(r => r.split(CELL));
+  const on = $('toolsOn'), off = $('toolsOff');
+  on.textContent = off.textContent = '';
+  const last = {};
+  let nOn = 0;
+  rows.forEach(([id, group, name, desc, st, why], i) => {
+    const isOn = st === '1' || st === '2';
+    const box = isOn ? on : off;
+    if (last[isOn] !== group) {
+      const g = document.createElement('div'); g.className = 'tgroup'; g.textContent = group; box.append(g);
+      last[isOn] = group;
+    }
+    nOn += isOn;
+    const row = document.createElement('div');
+    row.className = 'tool' + (isOn ? ' on' : '');
+    const sw = document.createElement('button');
+    sw.type = 'button'; sw.className = 'sw'; sw.title = isOn ? '끄기' : '켜기';
+    sw.setAttribute('aria-pressed', isOn);
+    sw.onclick = () => { W.tool_toggle(i); refresh(); };
+    const txt = document.createElement('div');
+    txt.innerHTML = '<b></b> <span class="d"></span><div class="why"></div>';
+    txt.querySelector('b').textContent = name;
+    txt.querySelector('.d').textContent = '— ' + desc;
+    txt.querySelector('.why').textContent =
+      st === '1' ? '찾은 단어: ' + why : st === '2' ? '직접 켬' : st === '3' ? '직접 끔 (찾은 단어: ' + why + ')' : '';
+    const cp = document.createElement('button');
+    cp.type = 'button'; cp.className = 'cp'; cp.title = name + ' 복사'; cp.innerHTML = ICON_COPY;
+    cp.onclick = () => copy(name, name, cp);
+    row.append(sw, txt, cp);
+    box.append(row);
+  });
+  if (!nOn) on.innerHTML = '<p class="hint">아직 켜진 도구가 없습니다. 요약이나 스킬에 메일, Teams, 회의 같은 단어를 쓰면 자동으로 켜집니다.</p>';
+  $('toolsMoreSum').textContent = '다른 도구 ' + (rows.length - nOn) + '개 보기';
+  $('ctools').textContent = nOn + '개 켬';
 }
 
 // ── 파일 ─────────────────────────────────────────────────
@@ -420,7 +453,6 @@ function wire() {
     copy(text, what);
   });
   $('f0').addEventListener('focus', e => e.target.select());
-  $('chipsReset').onclick = () => { setF(EXCLUDE, ''); refresh(); };
   $('addKnow').onclick = () => know.add().querySelector('input').focus();
   $('addPrompt').onclick = () => prompts.add().querySelector('input').focus();
   $('saveSkill').onclick = () => download('skill.md', build(2), 'text/markdown');
@@ -441,7 +473,7 @@ function wire() {
   });
   const fillEx = () => {
     if (Object.keys(TEXT).some(i => getF(+i).trim()) && !confirm('지금 내용을 예제로 바꿀까요?\n(먼저 TOML 저장을 해 두면 나중에 다시 불러올 수 있습니다)')) return;
-    W.load_example(); setF(EXCLUDE, ''); fillForm(); toast('예제로 채움');
+    W.load_example(); fillForm(); toast('예제로 채움');
   };
   $('fillExample').onclick = fillEx;
   $('fillExample2').onclick = fillEx;
