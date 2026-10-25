@@ -8,39 +8,48 @@
 :root {
   --bg: #f6f7f9; --card: #ffffff; --ink: #1c2330; --mute: #667085; --line: #dfe3ea;
   --accent: #2f6bd8; --accent-ink: #ffffff; --chip: #eaf1fd; --chip-ink: #1f4fa8;
-  --off: #f0f1f3; --off-ink: #9aa1ad; --code: #f3f5f8; --ok: #1f8a4c;
+  --off: #f0f1f3; --off-ink: #9aa1ad; --code: #f3f5f8; --ok: #1f8a4c; --drop: #2f6bd8;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #12151b; --card: #1a1f27; --ink: #e6e9ef; --mute: #98a2b3; --line: #2c3340;
     --accent: #6c9cf0; --accent-ink: #0d1420; --chip: #1f2c45; --chip-ink: #a9c4f5;
-    --off: #20252e; --off-ink: #5d6573; --code: #151a21; --ok: #4fc283;
+    --off: #20252e; --off-ink: #5d6573; --code: #151a21; --ok: #4fc283; --drop: #6c9cf0;
   }
 }
 :root[data-theme="dark"] {
   --bg: #12151b; --card: #1a1f27; --ink: #e6e9ef; --mute: #98a2b3; --line: #2c3340;
   --accent: #6c9cf0; --accent-ink: #0d1420; --chip: #1f2c45; --chip-ink: #a9c4f5;
-  --off: #20252e; --off-ink: #5d6573; --code: #151a21; --ok: #4fc283;
+  --off: #20252e; --off-ink: #5d6573; --code: #151a21; --ok: #4fc283; --drop: #6c9cf0;
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--ink);
   font: 15px/1.55 system-ui, -apple-system, "Segoe UI", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; }
 header { position: sticky; top: 0; z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); }
-.bar { max-width: 920px; margin: 0 auto; padding: 12px 16px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.bar { max-width: 960px; margin: 0 auto; padding: 12px 16px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .bar h1 { font-size: 17px; margin: 0 auto 0 0; }
-main { max-width: 920px; margin: 0 auto; padding: 16px; display: grid; gap: 16px; }
-section { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+main { max-width: 960px; margin: 0 auto; padding: 16px; display: grid; gap: 16px; }
+section { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; min-width: 0; }
 section h2 { font-size: 15px; margin: 0 0 10px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 section h2 .n { color: var(--accent); }
 section h2 small { color: var(--mute); font-weight: 400; font-size: 13px; }
 label { display: block; font-size: 13px; color: var(--mute); margin: 10px 0 4px; }
 input[type=text], textarea { width: 100%; font: inherit; color: var(--ink); background: var(--card);
-  border: 1px solid var(--line); border-radius: 7px; padding: 8px 10px; }
+  border: 1px solid var(--line); border-radius: 7px; padding: 8px 40px 8px 10px; }
 input[type=text]:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
-textarea { resize: vertical; min-height: 80px; }
+textarea { resize: vertical; min-height: 80px; display: block; }
 textarea.body { min-height: 260px; font: 13px/1.5 ui-monospace, "Cascadia Mono", Consolas, monospace; }
-.row { display: flex; gap: 8px; align-items: stretch; }
-.row > input { flex: 1; min-width: 0; }
+
+/* 칸마다 붙는 복사 버튼 */
+.field { position: relative; }
+.cp { position: absolute; top: 5px; right: 5px; width: 30px; height: 28px; padding: 0; display: grid; place-items: center;
+  border: 0; background: transparent; color: var(--mute); border-radius: 6px; cursor: pointer; }
+.cp:hover { background: var(--code); color: var(--accent); }
+.cp.done { color: var(--ok); }
+.cp svg { width: 16px; height: 16px; }
+.field > input + .cp { top: 50%; transform: translateY(-50%); }
+td .cp { right: 4px; height: 26px; }
+
 .tools { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; align-items: center; }
 .count { font-size: 12px; color: var(--mute); margin-left: auto; }
 button, .btn { font: inherit; font-size: 14px; border: 1px solid var(--line); background: var(--card); color: var(--ink);
@@ -53,15 +62,27 @@ button.primary { background: var(--accent); color: var(--accent-ink); border-col
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .chip { border: 0; background: var(--chip); color: var(--chip-ink); border-radius: 999px; padding: 3px 10px; font-size: 13px; }
 .chip.off { background: var(--off); color: var(--off-ink); text-decoration: line-through; }
-.hint { font-size: 12px; color: var(--mute); margin: 4px 0 0; }
+.hint { font-size: 12px; color: var(--mute); margin: 6px 0 0; }
 .kebab { font: 12px ui-monospace, Consolas, monospace; color: var(--mute); }
-table { width: 100%; border-collapse: collapse; }
-th { text-align: left; font-size: 12px; color: var(--mute); font-weight: 500; padding: 4px; }
-td { padding: 3px 4px; vertical-align: top; }
-td input[type=text] { padding: 6px 8px; }
-td.del { width: 36px; }
-td.del button { padding: 5px 9px; }
-.knowtable td:nth-child(1) { width: 32%; } .knowtable td:nth-child(2) { width: 16%; }
+
+/* 행 편집 표 (지식, 추천 프롬프트) */
+table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+th { text-align: left; font-size: 13px; color: var(--ink); font-weight: 600; padding: 4px; }
+td { padding: 4px; vertical-align: top; }
+td input[type=text] { padding: 7px 36px 7px 10px; border-radius: 999px; }
+th.act, td.act { width: 76px; }
+td.act { white-space: nowrap; }
+td.act button { border: 0; background: transparent; padding: 5px 7px; color: var(--mute); }
+td.act button:hover { color: var(--ink); }
+.grip { cursor: grab; letter-spacing: -2px; }
+tr.dragging { opacity: .4; }
+tr.drop-before td { box-shadow: inset 0 2px 0 var(--drop); }
+tr.drop-after td { box-shadow: inset 0 -2px 0 var(--drop); }
+.know col.c1 { width: 30%; } .know col.c2 { width: 17%; }
+.prom col.c1 { width: 28%; }
+.addrow { border: 0; background: transparent; padding: 6px 4px; color: var(--ink); font-weight: 600; }
+.addrow::before { content: "⊕"; font-weight: 400; margin-right: 6px; font-size: 17px; vertical-align: -1px; }
+
 details { margin-top: 10px; }
 summary { cursor: pointer; color: var(--mute); font-size: 13px; }
 pre { background: var(--code); border: 1px solid var(--line); border-radius: 7px; padding: 10px; margin: 8px 0 0;
@@ -69,18 +90,18 @@ pre { background: var(--code); border: 1px solid var(--line); border-radius: 7px
 section.example { background: transparent; border-style: dashed; }
 section.example pre { font-family: inherit; font-size: 13.5px; max-height: none; }
 .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--ink); color: var(--bg);
-  padding: 8px 16px; border-radius: 8px; font-size: 14px; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  padding: 8px 16px; border-radius: 8px; font-size: 14px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 9; }
 .toast.show { opacity: 1; }
-.fileload { position: relative; overflow: hidden; }
+.fileload { position: relative; overflow: hidden; display: inline-block; }
 .fileload input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 #nowasm { display: none; }
 #nowasm.show { display: block; }
 @media (max-width: 640px) {
-  .knowtable thead { display: none; }
-  .knowtable tr { display: grid; grid-template-columns: 1fr 1fr 36px; gap: 4px; padding: 6px 0; border-bottom: 1px solid var(--line); }
-  .knowtable td { width: auto !important; padding: 0; }
-  .knowtable td:nth-child(3) { grid-column: 1 / 3; grid-row: 2; }
-  .knowtable td.del { grid-column: 3; grid-row: 1; }
+  .rows thead, .rows colgroup { display: none; }
+  .rows tr { display: grid; grid-template-columns: 1fr 76px; gap: 4px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+  .rows td { padding: 0; }
+  .rows td.act { grid-column: 2; grid-row: 1; }
+  .rows td:not(.act) { grid-column: 1; }
 }
 </style>
 </head>
@@ -88,6 +109,8 @@ section.example pre { font-family: inherit; font-size: 13.5px; max-height: none;
 <header><div class="bar">
   <h1>🤖 Copilot Agent Editor</h1>
   <button class="primary" data-copy="full">전체 설정 복사</button>
+  <button id="saveToml">TOML 저장</button>
+  <span class="btn fileload">TOML 불러오기<input type="file" id="loadToml" accept=".toml,text/plain"></span>
   <button id="fillExample">예제로 채우기</button>
   <button id="clearAll">비우기</button>
 </div></header>
@@ -100,21 +123,15 @@ section.example pre { font-family: inherit; font-size: 13.5px; max-height: none;
 </section>
 
 <section>
-  <h2><span class="n">1.</span> Title <small>제목 — 클릭하면 복사</small></h2>
-  <div class="row">
-    <input type="text" id="f0" placeholder="예: Plan My Day: Supplier & Project Assistant">
-    <button data-copy="0">복사</button>
-  </div>
+  <h2><span class="n">1.</span> Title <small>제목</small></h2>
+  <div class="field"><input type="text" id="f0" placeholder="예: Meeting Buddy: Prep & Follow-up Assistant"></div>
   <div class="tools"><span class="count" id="c0"></span></div>
 </section>
 
 <section>
   <h2><span class="n">2.</span> Summary <small>요약 / Description</small></h2>
-  <textarea id="f1" rows="4" placeholder="에이전트가 무엇을, 언제, 누구를 위해 하는지 적으세요."></textarea>
-  <div class="tools">
-    <button data-copy="1">원문 복사</button>
-    <span class="count" id="c1"></span>
-  </div>
+  <div class="field"><textarea id="f1" rows="4" placeholder="에이전트가 무엇을, 언제, 누구를 위해 하는지 적으세요."></textarea></div>
+  <div class="tools"><span class="count" id="c1"></span></div>
   <label>핵심 단어 — 빼고 싶은 단어는 눌러서 끄세요</label>
   <div class="chips" id="chips"></div>
   <div class="copybox" id="compact" data-copy="compact" title="클릭하면 복사"></div>
@@ -123,47 +140,64 @@ section.example pre { font-family: inherit; font-size: 13.5px; max-height: none;
     <button id="chipsReset">단어 모두 켜기</button>
     <span class="count" id="ccompact"></span>
   </div>
-  <p class="hint">요약은 Copilot 이 "이 에이전트를 언제 부를지" 판단하는 기준입니다. APQP, PPAP 같은 핵심 키워드가 꼭 들어가게 하세요.</p>
+  <p class="hint">요약은 Copilot 이 "이 에이전트를 언제 부를지" 판단하는 기준입니다. 사용자가 실제로 말할 핵심 단어가 꼭 들어가게 하세요.</p>
 </section>
 
 <section>
   <h2><span class="n">3.</span> Skills <small>스킬 / Actions → skill.md</small></h2>
   <label for="f3">스킬 이름 (name)</label>
-  <input type="text" id="f3" placeholder="supplier-status-lookup">
+  <div class="field"><input type="text" id="f3" placeholder="meeting-action-tracker"></div>
   <div class="kebab" id="kebab"></div>
   <label for="f4">설명 (description)</label>
-  <input type="text" id="f4" placeholder="Analyzes and retrieves ...">
+  <div class="field"><input type="text" id="f4" placeholder="Prepares briefs for upcoming meetings and ..."></div>
   <label for="f5">본문 (Markdown)</label>
-  <textarea class="body" id="f5"></textarea>
+  <div class="field"><textarea class="body" id="f5"></textarea></div>
   <div class="tools">
     <button class="primary" id="saveSkill">skill.md 내보내기</button>
-    <button data-copy="skill">skill.md 복사</button>
+    <button data-copy="skill">skill.md 전체 복사</button>
     <span class="btn fileload">skill.md 불러오기<input type="file" id="loadSkill" accept=".md,.txt,text/markdown,text/plain"></span>
   </div>
   <details><summary>skill.md 미리 보기</summary><pre id="pskill"></pre></details>
 
   <label for="f2">M365 Native Skills (skill.md 에는 들어가지 않고 전체 설정에만 들어갑니다)</label>
-  <textarea id="f2" rows="3"></textarea>
-  <div class="tools"><button data-copy="2">복사</button></div>
+  <div class="field"><textarea id="f2" rows="3"></textarea></div>
 </section>
 
 <section>
   <h2><span class="n">4.</span> Knowledge <small>지식 / Data Sources → knowhow.txt (마크다운 표)</small></h2>
-  <table class="knowtable">
-    <thead><tr><th>지식 소스</th><th>유형</th><th>설명</th><th></th></tr></thead>
+  <table class="rows know">
+    <colgroup><col class="c1"><col class="c2"><col><col style="width:76px"></colgroup>
+    <thead><tr><th>지식 소스</th><th>유형</th><th>설명</th><th class="act"></th></tr></thead>
     <tbody id="know"></tbody>
   </table>
   <div class="tools">
-    <button id="addRow">+ 행 추가</button>
+    <button class="addrow" id="addKnow">지식 소스 추가</button>
+    <span class="count" id="cknow"></span>
+  </div>
+  <div class="tools">
     <button class="primary" id="saveKnow">knowhow.txt 내보내기</button>
-    <button data-copy="know">표 복사</button>
+    <button data-copy="know">표 전체 복사</button>
     <span class="btn fileload">knowhow.txt 불러오기<input type="file" id="loadKnow" accept=".txt,.md,text/plain,text/markdown"></span>
   </div>
   <details><summary>knowhow.txt 미리 보기</summary><pre id="pknow"></pre></details>
 </section>
 
+<section>
+  <h2><span class="n">5.</span> Suggested prompts <small>추천 프롬프트 — 칸마다 복사해서 Copilot 화면에 붙여 넣으세요</small></h2>
+  <table class="rows prom">
+    <colgroup><col class="c1"><col><col style="width:76px"></colgroup>
+    <thead><tr><th>Title</th><th>Message</th><th class="act"></th></tr></thead>
+    <tbody id="prompts"></tbody>
+  </table>
+  <div class="tools">
+    <button class="addrow" id="addPrompt">Add a suggested prompt</button>
+    <span class="count" id="cprompts"></span>
+  </div>
+  <p class="hint">⋮⋮ 를 끌어서 순서를 바꿀 수 있습니다. 제목은 짧게, 메시지는 원하는 결과 형태까지 구체적으로.</p>
+</section>
+
 <section class="example">
-  <h2>예제 <small>지금까지 만든 agent 중 가장 잘 동작하는 설정</small></h2>
+  <h2>예제 <small>회의 준비·후속 조치 비서 — 누구나 바로 쓸 수 있는 설정</small></h2>
   <pre id="example"></pre>
   <div class="tools"><button id="fillExample2">이 예제로 위를 채우기</button></div>
 </section>
@@ -173,11 +207,14 @@ section.example pre { font-family: inherit; font-size: 13.5px; max-height: none;
 
 <script>
 'use strict';
-const TITLE = 0, SUMMARY = 1, NATIVE = 2, SKILL_NAME = 3, SKILL_DESC = 4, SKILL_BODY = 5, KNOW = 6, EXCLUDE = 7;
+const TITLE = 0, SUMMARY = 1, NATIVE = 2, SKILL_NAME = 3, SKILL_DESC = 4, SKILL_BODY = 5, KNOW = 6, EXCLUDE = 7, PROMPTS = 8;
 const ROW = '\x1e', CELL = '\x1f';
 const KEY = 'agentmaker.v1';
 const $ = id => document.getElementById(id);
 const enc = new TextEncoder(), dec = new TextDecoder();
+const ICON_COPY = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>';
+const ICON_OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>';
+const ICON_DEL = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>';
 let W = null;
 
 // ── wasm 다리 ─────────────────────────────────────────────
@@ -199,57 +236,125 @@ function restore() {
   return false;
 }
 
+// ── 복사 ──────────────────────────────────────────────────
+let toastT;
+function toast(msg) {
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 1400);
+}
+
+async function copy(text, what, btn) {
+  if (!text) { toast('비어 있습니다'); return; }
+  try { await navigator.clipboard.writeText(text); }
+  catch (e) {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.append(ta); ta.select(); document.execCommand('copy'); ta.remove();
+  }
+  toast(what + ' 복사됨');
+  if (btn && btn.classList.contains('cp')) {
+    btn.innerHTML = ICON_OK; btn.classList.add('done');
+    setTimeout(() => { btn.innerHTML = ICON_COPY; btn.classList.remove('done'); }, 1200);
+  }
+}
+
+/** 입력칸 오른쪽 위에 복사 버튼을 붙인다. */
+function addCopyButton(wrap, what) {
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'cp'; b.title = what + ' 복사'; b.innerHTML = ICON_COPY;
+  b.onclick = () => copy(wrap.querySelector('input,textarea').value.trim(), what, b);
+  wrap.append(b);
+}
+
+const COPY = {
+  compact: () => [build(1), '핵심 단어'],
+  skill: () => [build(2), 'skill.md'],
+  know: () => [build(3), 'knowhow.txt'],
+  full: () => [build(4), '전체 설정'],
+};
+
+// ── 행 편집 표 (지식, 추천 프롬프트) ──────────────────────
+class RowTable {
+  constructor(tbody, field, cols, onChange) {
+    this.tb = $(tbody); this.field = field; this.cols = cols; this.onChange = onChange;
+    this.tb.addEventListener('input', () => this.sync());
+    this.tb.addEventListener('dragover', e => this.dragOver(e));
+    this.tb.addEventListener('drop', e => { e.preventDefault(); this.finishDrag(); });
+  }
+  draw() {
+    const rows = getF(this.field).split(ROW).filter(r => r.replace(/\x1f/g, '').trim()).map(r => r.split(CELL));
+    this.tb.textContent = '';
+    for (const r of rows) this.add(r);
+    if (!rows.length) this.add();
+  }
+  add(r = []) {
+    const tr = document.createElement('tr');
+    this.cols.forEach((c, i) => {
+      const td = document.createElement('td'), wrap = document.createElement('div'), inp = document.createElement('input');
+      wrap.className = 'field';
+      inp.type = 'text'; inp.value = r[i] || ''; inp.placeholder = c.ph; inp.setAttribute('aria-label', c.name);
+      wrap.append(inp); addCopyButton(wrap, c.name); td.append(wrap); tr.append(td);
+    });
+    const act = document.createElement('td');
+    act.className = 'act';
+    const del = document.createElement('button');
+    del.type = 'button'; del.title = '행 삭제'; del.innerHTML = ICON_DEL;
+    del.onclick = () => { tr.remove(); if (!this.tb.children.length) this.add(); this.sync(); };
+    const grip = document.createElement('button');
+    grip.type = 'button'; grip.className = 'grip'; grip.title = '끌어서 순서 바꾸기'; grip.textContent = '⋮⋮';
+    grip.onmousedown = grip.ontouchstart = () => { tr.draggable = true; };
+    act.append(del, grip); tr.append(act);
+    tr.addEventListener('dragstart', e => { this.drag = tr; tr.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', ''); });
+    tr.addEventListener('dragend', () => this.finishDrag());
+    this.tb.append(tr);
+    return tr;
+  }
+  dragOver(e) {
+    if (!this.drag) return;
+    e.preventDefault();
+    const tr = e.target.closest('tr');
+    this.tb.querySelectorAll('.drop-before,.drop-after').forEach(x => x.classList.remove('drop-before', 'drop-after'));
+    if (!tr || tr === this.drag) { this.target = null; return; }
+    const box = tr.getBoundingClientRect(), after = e.clientY > box.top + box.height / 2;
+    tr.classList.add(after ? 'drop-after' : 'drop-before');
+    this.target = [tr, after];
+  }
+  finishDrag() {
+    if (!this.drag) return;
+    if (this.target) { const [tr, after] = this.target; if (after) tr.after(this.drag); else tr.before(this.drag); }
+    this.tb.querySelectorAll('tr').forEach(x => { x.classList.remove('drop-before', 'drop-after', 'dragging'); x.draggable = false; });
+    this.drag = this.target = null;
+    this.sync();
+  }
+  sync() {
+    const rows = [...this.tb.querySelectorAll('tr')].map(tr =>
+      [...tr.querySelectorAll('input')].map(i => i.value.replace(/[\x1e\x1f]/g, ' ')).join(CELL));
+    setF(this.field, rows.join(ROW));
+    this.onChange();
+  }
+  count() { return [...this.tb.querySelectorAll('tr')].filter(tr => [...tr.querySelectorAll('input')].some(i => i.value.trim())).length; }
+}
+
 // ── 화면 ←→ 필드 ─────────────────────────────────────────
-const TEXT_IDS = [TITLE, SUMMARY, NATIVE, SKILL_NAME, SKILL_DESC, SKILL_BODY];
+const TEXT = { [TITLE]: '제목', [SUMMARY]: '요약', [NATIVE]: 'Native Skills', [SKILL_NAME]: '스킬 이름', [SKILL_DESC]: '스킬 설명', [SKILL_BODY]: '스킬 본문' };
+let know, prompts;
 
 function fillForm() {
-  for (const i of TEXT_IDS) $('f' + i).value = getF(i);
-  drawKnow();
-  refresh();
-}
-
-function drawKnow() {
-  const rows = getF(KNOW).split(ROW).filter(r => r.replace(/\x1f/g, '').trim()).map(r => r.split(CELL));
-  if (!rows.length) rows.push(['', '', '']);
-  const tb = $('know');
-  tb.textContent = '';
-  for (const r of rows) addRowEl(r);
-}
-
-function addRowEl(r = ['', '', '']) {
-  const tr = document.createElement('tr');
-  const ph = ['APQP results.xlsx', 'Excel', '이 파일로 무엇을 답할 수 있는지'];
-  for (let c = 0; c < 3; c++) {
-    const td = document.createElement('td'), inp = document.createElement('input');
-    inp.type = 'text'; inp.value = r[c] || ''; inp.placeholder = ph[c];
-    td.append(inp); tr.append(td);
-  }
-  const td = document.createElement('td'), b = document.createElement('button');
-  td.className = 'del'; b.textContent = '✕'; b.title = '행 삭제';
-  b.onclick = () => { tr.remove(); syncKnow(); };
-  td.append(b); tr.append(td);
-  $('know').append(tr);
-  return tr;
-}
-
-function syncKnow() {
-  const rows = [...$('know').querySelectorAll('tr')].map(tr => [...tr.querySelectorAll('input')].map(i => i.value.replace(/[\x1e\x1f]/g, ' ')).join(CELL));
-  setF(KNOW, rows.join(ROW));
+  for (const i in TEXT) $('f' + i).value = getF(+i);
+  know.draw(); prompts.draw();
   refresh();
 }
 
 function excluded() { return getF(EXCLUDE).split(CELL).filter(Boolean); }
 
 function refresh() {
-  const t = getF(TITLE), s = getF(SUMMARY);
-  $('c0').textContent = [...t].length + '자';
-  $('c1').textContent = [...s].length + '자';
+  $('c0').textContent = [...getF(TITLE)].length + '자';
+  $('c1').textContent = [...getF(SUMMARY)].length + '자';
 
   const ex = new Set(excluded().map(x => x.toLowerCase()));
-  const kws = build(0).split(CELL).filter(Boolean);
   const chips = $('chips');
   chips.textContent = '';
-  for (const k of kws) {
+  for (const k of build(0).split(CELL).filter(Boolean)) {
     const b = document.createElement('button');
     b.className = 'chip' + (ex.has(k.toLowerCase()) ? ' off' : '');
     b.textContent = k;
@@ -264,6 +369,8 @@ function refresh() {
   $('kebab').textContent = kb && kb !== name.trim() ? 'skill.md 에는 name: ' + kb + ' 로 저장됩니다' : '';
   $('pskill').textContent = build(2);
   $('pknow').textContent = build(3);
+  $('cknow').textContent = know.count() + '개';
+  $('cprompts').textContent = prompts.count() + '개';
   save();
 }
 
@@ -274,33 +381,7 @@ function toggleWord(k) {
   refresh();
 }
 
-// ── 복사·내보내기 ─────────────────────────────────────────
-let toastT;
-function toast(msg) {
-  const t = $('toast'); t.textContent = msg; t.classList.add('show');
-  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 1400);
-}
-
-async function copy(text, what) {
-  try { await navigator.clipboard.writeText(text); }
-  catch (e) {
-    const ta = document.createElement('textarea');
-    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
-    document.body.append(ta); ta.select(); document.execCommand('copy'); ta.remove();
-  }
-  toast(what + ' 복사됨');
-}
-
-const COPY = {
-  '0': () => [getF(TITLE).trim(), '제목'],
-  '1': () => [getF(SUMMARY).trim(), '요약'],
-  '2': () => [getF(NATIVE).trim(), 'Native Skills'],
-  compact: () => [build(1), '핵심 단어'],
-  skill: () => [build(2), 'skill.md'],
-  know: () => [build(3), 'knowhow.txt'],
-  full: () => [build(4), '전체 설정'],
-};
-
+// ── 파일 ─────────────────────────────────────────────────
 function download(name, text, type) {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([text], {type: type + ';charset=utf-8'}));
@@ -317,19 +398,34 @@ function readFile(input, then) {
 
 // ── 연결 ─────────────────────────────────────────────────
 function wire() {
-  for (const i of TEXT_IDS) $('f' + i).addEventListener('input', e => { setF(i, e.target.value); refresh(); });
-  $('know').addEventListener('input', syncKnow);
+  for (const i in TEXT) {
+    const el = $('f' + i);
+    addCopyButton(el.parentNode, TEXT[i]);
+    el.addEventListener('input', () => { setF(+i, el.value); refresh(); });
+  }
+  know = new RowTable('know', KNOW, [
+    { name: '지식 소스', ph: '회의록 템플릿.docx' },
+    { name: '유형', ph: 'Word / Excel / SharePoint 링크' },
+    { name: '설명', ph: '이 자료로 무엇을 답할 수 있는지' },
+  ], refresh);
+  prompts = new RowTable('prompts', PROMPTS, [
+    { name: '프롬프트 제목', ph: '다음 회의 준비' },
+    { name: '프롬프트 메시지', ph: '내 다음 회의의 목적, 안건, 참석자를 요약해 줘' },
+  ], refresh);
+
   document.addEventListener('click', e => {
     const el = e.target.closest('[data-copy]');
     if (!el) return;
     const [text, what] = COPY[el.dataset.copy]();
-    if (text) copy(text, what); else toast('비어 있습니다');
+    copy(text, what);
   });
   $('f0').addEventListener('focus', e => e.target.select());
   $('chipsReset').onclick = () => { setF(EXCLUDE, ''); refresh(); };
-  $('addRow').onclick = () => { addRowEl().querySelector('input').focus(); };
+  $('addKnow').onclick = () => know.add().querySelector('input').focus();
+  $('addPrompt').onclick = () => prompts.add().querySelector('input').focus();
   $('saveSkill').onclick = () => download('skill.md', build(2), 'text/markdown');
   $('saveKnow').onclick = () => download('knowhow.txt', build(3), 'text/plain');
+  $('saveToml').onclick = () => download((build(7) || 'agent') + '.toml', build(6), 'application/toml');
   $('loadSkill').onchange = e => readFile(e.target, t => {
     put(t);
     if (W.parse_skill_md()) { fillForm(); toast('skill.md 불러옴'); } else toast('skill.md 를 읽지 못했습니다');
@@ -339,8 +435,12 @@ function wire() {
     const n = W.parse_knowhow();
     if (n) { fillForm(); toast(n + '행 불러옴'); } else toast('마크다운 표를 찾지 못했습니다');
   });
+  $('loadToml').onchange = e => readFile(e.target, t => {
+    put(t);
+    if (W.parse_toml()) { fillForm(); toast('TOML 불러옴'); } else alert(out());
+  });
   const fillEx = () => {
-    if (TEXT_IDS.some(i => getF(i).trim()) && !confirm('지금 내용을 예제로 바꿀까요?')) return;
+    if (Object.keys(TEXT).some(i => getF(+i).trim()) && !confirm('지금 내용을 예제로 바꿀까요?\n(먼저 TOML 저장을 해 두면 나중에 다시 불러올 수 있습니다)')) return;
     W.load_example(); setF(EXCLUDE, ''); fillForm(); toast('예제로 채움');
   };
   $('fillExample').onclick = fillEx;
