@@ -1,306 +1,321 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Work Timer</title>
-    <style>
-        body {
-            background: #0a192f;
-            color: #e6f1ff;
-            font-family: 'Arial', sans-serif;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-        
-        .container {
-            text-align: center;
-            background: #112240;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            max-width: 500px;
-            width: 100%;
-        }
-        
-        h1 {
-            color: #64ffda;
-            margin-bottom: 10px;
-            font-size: 28px;
-        }
-        
-        .timer {
-            font-size: 72px;
-            font-weight: bold;
-            color: #64ffda;
-            margin: 20px 0;
-            text-shadow: 0 0 10px rgba(100, 255, 218, 0.3);
-            transition: color 0.3s ease;
-        }
-        
-        .timer.overtime {
-            color: #ffd700;
-            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
-        }
-        
-        .timer.blink {
-            animation: blink 1s infinite;
-        }
-        
-        @keyframes blink {
-            0%, 50% { opacity: 1; }
-            51%, 100% { opacity: 0.3; }
-        }
-        
-        .labels {
-            display: flex;
-            justify-content: space-between;
-            margin: 0 15px 30px 15px;
-            color: #8892b0;
-        }
-        
-        .progress-container {
-            width: 100%;
-            height: 8px;
-            background: rgba(100, 255, 218, 0.1);
-            border-radius: 4px;
-            margin: 20px 0;
-            overflow: hidden;
-        }
-        
-        .progress-bar {
-            height: 100%;
-            background: #64ffda;
-            border-radius: 4px;
-            transition: background 0.3s ease;
-        }
-        
-        .progress-bar.overtime {
-            background: #ffd700;
-        }
-        
-        .reset-button {
-            background: #64ffda;
-            color: #0a192f;
-            border: none;
-            padding: 12px 30px;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-top: 20px;
-            transition: all 0.3s ease;
-        }
-        
-        .reset-button:hover {
-            background: #52d3a9;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(100, 255, 218, 0.3);
-        }
-        
-        .reset-button:active {
-            transform: translateY(0);
-        }
-        
-        .info {
-            background: rgba(100, 255, 218, 0.1);
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 20px;
-            font-size: 14px;
-            color: #ccd6f6;
-        }
-        
-        .info p {
-            margin: 5px 0;
-        }
-        
-        .highlight {
-            color: #64ffda;
-            font-weight: bold;
-        }
-        
-        .highlight.overtime {
-            color: #ffd700;
-        }
-        
-        .status {
-            font-size: 18px;
-            margin-top: 15px;
-            padding: 10px;
-            border-radius: 8px;
-        }
-        
-        .status.working {
-            background: rgba(100, 255, 218, 0.1);
-            color: #64ffda;
-        }
-        
-        .status.overtime {
-            background: rgba(255, 215, 0, 0.2);
-            color: #ffd700;
-            font-weight: bold;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>파일 목록</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #1f2328;
+    --muted: #59636e;
+    --border: #d1d9e0;
+    --hover: #f6f8fa;
+    --accent: #0969da;
+    --accent-bg: #ddf4ff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117;
+      --fg: #e6edf3;
+      --muted: #9198a1;
+      --border: #30363d;
+      --hover: #161b22;
+      --accent: #4493f8;
+      --accent-bg: #121d2f;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR",
+                 Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    line-height: 1.5;
+  }
+  .wrap {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 32px 20px 64px;
+  }
+  h1 {
+    font-size: 1.5rem;
+    margin: 0 0 4px;
+  }
+  .sub {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-bottom: 24px;
+  }
+  .toolbar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  #search {
+    flex: 1;
+    min-width: 200px;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--fg);
+    font-size: 0.95rem;
+  }
+  #search:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-bg);
+  }
+  .breadcrumb {
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+    color: var(--muted);
+    word-break: break-all;
+  }
+  .breadcrumb a {
+    color: var(--accent);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .breadcrumb a:hover { text-decoration: underline; }
+  ul.list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  ul.list li {
+    border-top: 1px solid var(--border);
+  }
+  ul.list li:first-child { border-top: none; }
+  ul.list a, ul.list .folder {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    text-decoration: none;
+    color: var(--fg);
+    cursor: pointer;
+  }
+  ul.list a:hover, ul.list .folder:hover { background: var(--hover); }
+  .icon { width: 18px; text-align: center; flex: 0 0 auto; }
+  .name { flex: 1; word-break: break-all; }
+  .meta { color: var(--muted); font-size: 0.8rem; flex: 0 0 auto; }
+  .state {
+    padding: 40px 16px;
+    text-align: center;
+    color: var(--muted);
+  }
+  .error { color: #cf222e; }
+  footer {
+    margin-top: 24px;
+    font-size: 0.8rem;
+    color: var(--muted);
+    text-align: center;
+  }
+  footer a { color: var(--accent); }
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>Work Timer</h1>
-        
-        <div class="timer" id="timer">
-            <span id="hours">00</span>:<span id="minutes">00</span>:<span id="seconds">00</span>
-        </div>
-        
-        <div class="labels">
-            <span>HOURS</span>
-            <span>MINUTES</span>
-            <span>SECONDS</span>
-        </div>
-        
-        <div class="progress-container">
-            <div class="progress-bar" id="progress-bar"></div>
-        </div>
-        
-        <button class="reset-button" id="start-btn">START WORK</button>
-        
-        <div class="status working" id="status">Not started</div>
-        
-        <div class="info">
-            <p>Started: <span class="highlight" id="start-time">-</span></p>
-            <p>End target: <span class="highlight" id="end-time">-</span></p>
-            <p>Current: <span class="highlight" id="current-time">-</span></p>
-        </div>
-    </div>
+<div class="wrap">
+  <h1>📁 파일 목록</h1>
+  <div class="sub">이 폴더의 파일을 자동으로 불러옵니다.</div>
 
-    <script>
-        const WORK_DURATION = 9 * 60 * 60 * 1000; // 9 hours in milliseconds
-        const STORAGE_KEY = 'workStartTime';
-        
-        const hoursElement = document.getElementById('hours');
-        const minutesElement = document.getElementById('minutes');
-        const secondsElement = document.getElementById('seconds');
-        const timerElement = document.getElementById('timer');
-        const progressBar = document.getElementById('progress-bar');
-        const startBtn = document.getElementById('start-btn');
-        const statusElement = document.getElementById('status');
-        const startTimeElement = document.getElementById('start-time');
-        const endTimeElement = document.getElementById('end-time');
-        const currentTimeElement = document.getElementById('current-time');
-        
-        let startTime = null;
-        
-        function formatTime(date) {
-            return date.toLocaleTimeString('sv-SE', { 
-                hour: '2-digit', 
-                minute: '2-digit',
-                timeZone: 'Europe/Stockholm'
-            });
-        }
-        
-        function loadStartTime() {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) {
-                startTime = new Date(parseInt(saved));
-            }
-        }
-        
-        function saveStartTime() {
-            if (startTime) {
-                localStorage.setItem(STORAGE_KEY, startTime.getTime().toString());
-            }
-        }
-        
-        function clearStartTime() {
-            localStorage.removeItem(STORAGE_KEY);
-            startTime = null;
-        }
-        
-        function updateTimer() {
-            const now = new Date();
-            currentTimeElement.textContent = formatTime(now);
-            
-            if (!startTime) {
-                hoursElement.textContent = '00';
-                minutesElement.textContent = '00';
-                secondsElement.textContent = '00';
-                progressBar.style.width = '0%';
-                statusElement.textContent = 'Not started';
-                statusElement.className = 'status working';
-                startTimeElement.textContent = '-';
-                endTimeElement.textContent = '-';
-                return;
-            }
-            
-            const elapsed = now.getTime() - startTime.getTime();
-            const isOvertime = elapsed >= WORK_DURATION;
-            
-            // Calculate display time
-            const displayTime = isOvertime ? elapsed - WORK_DURATION : WORK_DURATION - elapsed;
-            const hours = Math.floor(displayTime / (1000 * 60 * 60));
-            const minutes = Math.floor((displayTime % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((displayTime % (1000 * 60)) / 1000);
-            
-            hoursElement.textContent = hours.toString().padStart(2, '0');
-            minutesElement.textContent = minutes.toString().padStart(2, '0');
-            secondsElement.textContent = seconds.toString().padStart(2, '0');
-            
-            // Update progress
-            const progressPercentage = Math.min((elapsed / WORK_DURATION) * 100, 100);
-            progressBar.style.width = `${progressPercentage}%`;
-            
-            // Update styling based on overtime
-            if (isOvertime) {
-                timerElement.classList.add('overtime', 'blink');
-                progressBar.classList.add('overtime');
-                statusElement.textContent = `+${hours}h ${minutes}m OVERTIME`;
-                statusElement.className = 'status overtime';
-                startBtn.textContent = 'RESET';
-            } else {
-                timerElement.classList.remove('overtime', 'blink');
-                progressBar.classList.remove('overtime');
-                statusElement.textContent = 'Working...';
-                statusElement.className = 'status working';
-                startBtn.textContent = 'RESET';
-            }
-            
-            // Update info
-            startTimeElement.textContent = formatTime(startTime);
-            const endTarget = new Date(startTime.getTime() + WORK_DURATION);
-            endTimeElement.textContent = formatTime(endTarget);
-            
-            // Update highlight colors
-            document.querySelectorAll('.highlight').forEach(el => {
-                if (isOvertime) {
-                    el.classList.add('overtime');
-                } else {
-                    el.classList.remove('overtime');
-                }
-            });
-        }
-        
-        startBtn.addEventListener('click', function() {
-            if (startTime) {
-                // Reset
-                clearStartTime();
-                startBtn.textContent = 'START WORK';
-            } else {
-                // Start
-                startTime = new Date();
-                saveStartTime();
-            }
-            updateTimer();
+  <div class="toolbar">
+    <input id="search" type="text" placeholder="파일 이름 검색…" autocomplete="off">
+  </div>
+
+  <div class="breadcrumb" id="breadcrumb"></div>
+  <ul class="list" id="list"></ul>
+  <div class="state" id="state">불러오는 중…</div>
+
+  <footer>
+    <span id="count"></span>
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ===== 설정 =====
+  // 저장소 소유자와 이름. 필요하면 여기만 바꾸세요.
+  var OWNER  = "jaewoojoung";
+  var REPO   = "markdown";
+  var BRANCH = "main"; // 기본 브랜치 (master를 쓰면 "master"로 변경)
+
+  // 목록에서 숨길 파일들
+  var HIDE = ["index.html", ".nojekyll"];
+
+  var listEl   = document.getElementById("list");
+  var stateEl  = document.getElementById("state");
+  var crumbEl  = document.getElementById("breadcrumb");
+  var countEl  = document.getElementById("count");
+  var searchEl = document.getElementById("search");
+
+  var currentItems = [];
+
+  // 현재 경로는 URL 해시(#path)로 관리 → 새로고침/뒤로가기 가능
+  function currentPath() {
+    var h = decodeURIComponent(location.hash.replace(/^#\/?/, ""));
+    return h.replace(/^\/+|\/+$/g, "");
+  }
+
+  function apiUrl(path) {
+    var p = path ? "/" + encodeURI(path) : "";
+    return "https://api.github.com/repos/" + OWNER + "/" + REPO +
+           "/contents" + p + "?ref=" + BRANCH;
+  }
+
+  function iconFor(item) {
+    if (item.type === "dir") return "📂";
+    var ext = (item.name.split(".").pop() || "").toLowerCase();
+    var map = {
+      md: "📝", markdown: "📝", txt: "📄",
+      html: "🌐", htm: "🌐",
+      pdf: "📕",
+      png: "🖼️", jpg: "🖼️", jpeg: "🖼️", gif: "🖼️", svg: "🖼️", webp: "🖼️",
+      js: "📜", css: "🎨", json: "🔧", csv: "📊", xlsx: "📊",
+      zip: "🗜️"
+    };
+    return map[ext] || "📄";
+  }
+
+  function humanSize(bytes) {
+    if (!bytes && bytes !== 0) return "";
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+    return (bytes / 1024 / 1024).toFixed(1) + " MB";
+  }
+
+  function renderBreadcrumb(path) {
+    var parts = path ? path.split("/") : [];
+    var html = '<a data-path="">🏠 홈</a>';
+    var acc = "";
+    parts.forEach(function (part) {
+      acc = acc ? acc + "/" + part : part;
+      html += ' / <a data-path="' + acc.replace(/"/g, "&quot;") + '">' +
+              escapeHtml(part) + "</a>";
+    });
+    crumbEl.innerHTML = html;
+    Array.prototype.forEach.call(crumbEl.querySelectorAll("a"), function (a) {
+      a.addEventListener("click", function () {
+        location.hash = "#/" + this.getAttribute("data-path");
+      });
+    });
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;",
+               '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  function render(filter) {
+    filter = (filter || "").toLowerCase();
+    listEl.innerHTML = "";
+
+    var shown = currentItems.filter(function (item) {
+      if (HIDE.indexOf(item.name) !== -1) return false;
+      return item.name.toLowerCase().indexOf(filter) !== -1;
+    });
+
+    // 폴더 먼저, 그 다음 파일 — 각각 이름순
+    shown.sort(function (a, b) {
+      if (a.type !== b.type) return a.type === "dir" ? -1 : 1;
+      return a.name.localeCompare(b.name, "ko");
+    });
+
+    if (shown.length === 0) {
+      stateEl.textContent = filter ? "검색 결과가 없습니다." : "이 폴더는 비어 있습니다.";
+      stateEl.className = "state";
+      countEl.textContent = "";
+      return;
+    }
+    stateEl.textContent = "";
+
+    shown.forEach(function (item) {
+      var li = document.createElement("li");
+      var icon = iconFor(item);
+
+      if (item.type === "dir") {
+        li.innerHTML =
+          '<span class="folder"><span class="icon">' + icon + '</span>' +
+          '<span class="name">' + escapeHtml(item.name) + '</span>' +
+          '<span class="meta">폴더</span></span>';
+        li.querySelector(".folder").addEventListener("click", function () {
+          location.hash = "#/" + item.path;
         });
-        
-        // Load saved start time
-        loadStartTime();
-        
-        // Update immediately and then every second
-        updateTimer();
-        setInterval(updateTimer, 1000);
-    </script>
+      } else {
+        // GitHub Pages에서 직접 열리는 링크 (html_url 대신 실제 페이지 경로)
+        var href = item.path.split("/").map(encodeURIComponent).join("/");
+        li.innerHTML =
+          '<a href="' + href + '">' +
+          '<span class="icon">' + icon + '</span>' +
+          '<span class="name">' + escapeHtml(item.name) + '</span>' +
+          '<span class="meta">' + humanSize(item.size) + '</span></a>';
+      }
+      listEl.appendChild(li);
+    });
+
+    var files = shown.filter(function (i) { return i.type === "file"; }).length;
+    var dirs  = shown.length - files;
+    countEl.textContent = "폴더 " + dirs + "개 · 파일 " + files + "개";
+  }
+
+  function load() {
+    var path = currentPath();
+    stateEl.textContent = "불러오는 중…";
+    stateEl.className = "state";
+    listEl.innerHTML = "";
+    countEl.textContent = "";
+    renderBreadcrumb(path);
+
+    fetch(apiUrl(path), { headers: { "Accept": "application/vnd.github+json" } })
+      .then(function (res) {
+        if (!res.ok) {
+          if (res.status === 403) {
+            throw new Error("GitHub API 요청 한도(비로그인 시간당 60회)를 초과했습니다. 잠시 후 다시 시도하세요.");
+          }
+          if (res.status === 404) {
+            throw new Error("경로 또는 저장소를 찾을 수 없습니다. OWNER/REPO/BRANCH 설정을 확인하세요.");
+          }
+          throw new Error("요청 실패: HTTP " + res.status);
+        }
+        return res.json();
+      })
+      .then(function (data) {
+        if (!Array.isArray(data)) {
+          throw new Error("폴더가 아닙니다.");
+        }
+        currentItems = data;
+        render(searchEl.value);
+      })
+      .catch(function (err) {
+        currentItems = [];
+        stateEl.textContent = "⚠️ " + err.message;
+        stateEl.className = "state error";
+      });
+  }
+
+  searchEl.addEventListener("input", function () {
+    render(this.value);
+  });
+
+  window.addEventListener("hashchange", function () {
+    searchEl.value = "";
+    load();
+  });
+
+  load();
+})();
+</script>
 </body>
 </html>
