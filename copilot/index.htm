@@ -61,16 +61,13 @@ button.primary { background: var(--accent); color: var(--accent-ink); border-col
 .copybox:hover { border-color: var(--accent); }
 .guide { font-size: 13px; color: var(--mute); margin: -4px 0 10px; padding: 6px 10px; border-left: 3px solid var(--chip); background: var(--code); border-radius: 0 6px 6px 0; }
 .guide i { font-style: normal; color: var(--ink); }
-.tgroup { font-size: 12px; color: var(--mute); margin: 10px 0 4px; }
-.tool { display: grid; grid-template-columns: 38px 1fr 32px; gap: 10px; align-items: center; padding: 7px 4px; border-top: 1px solid var(--line); }
-.tool .sw { width: 34px; height: 20px; border-radius: 999px; background: var(--off); border: 0; padding: 0; position: relative; cursor: pointer; }
-.tool .sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: var(--off-ink); transition: left .15s; }
-.tool.on .sw { background: var(--accent); }
-.tool.on .sw::after { left: 17px; background: var(--accent-ink); }
-.tool b { font-weight: 600; }
-.tool .d { font-size: 13px; color: var(--mute); }
-.tool .why { font-size: 12px; color: var(--chip-ink); }
-.tool .cp { position: static; }
+.toollist { margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0 16px; }
+.toollist div { padding: 8px 2px; border-top: 1px solid var(--line); }
+.toollist dt { font-weight: 600; }
+.toollist .en { font-weight: 400; font-size: 12px; color: var(--mute); }
+.tgroup { font-size: 13px; font-weight: 600; color: var(--accent); margin: 14px 0 4px; }
+.badge { display: inline-block; font-size: 11px; font-weight: 500; line-height: 1.5; padding: 0 6px; border-radius: 999px; background: var(--chip); color: var(--chip-ink); vertical-align: 1px; }
+.toollist dd { margin: 0; font-size: 13px; color: var(--mute); }
 .hint { font-size: 12px; color: var(--mute); margin: 6px 0 0; }
 .kebab { font: 12px ui-monospace, Consolas, monospace; color: var(--mute); }
 
@@ -146,14 +143,41 @@ section.example pre { font-family: inherit; font-size: 13.5px; max-height: none;
 </section>
 
 <section>
-  <h2>🧰 MS 도구 <small>Copilot 에서 켤 지식·기능</small></h2>
-  <p class="guide">에이전트 만들기 화면에서 켤 수 있는 Microsoft 도구입니다. 이 페이지에 쓴 글에서 필요한 도구를 자동으로 찾아 켜 두었으니, Copilot 화면의 <b>지식(Knowledge)</b>·<b>기능(Capabilities)</b>에서 같은 항목을 켜 주세요. 눌러서 직접 켜고 끌 수도 있습니다.</p>
-  <div id="toolsOn"></div>
-  <details id="toolsMore"><summary id="toolsMoreSum"></summary><div id="toolsOff"></div></details>
-  <div class="tools">
-    <button class="primary" data-copy="tools">켤 도구 목록 복사</button>
-    <span class="count" id="ctools"></span>
-  </div>
+  <h2>🧰 MS 도구 <small>Copilot 에이전트가 쓸 수 있는 도구</small></h2>
+  <p class="guide">에이전트 만들기 화면에서 고를 수 있는 Microsoft 도구입니다. 내 에이전트에 필요한 것만 켜 주세요. <span class="badge">Studio</span> 표시는 Copilot Studio 에서 쓰는 도구입니다.</p>
+  <h3 class="tgroup">지식 — 에이전트가 읽고 답하는 자료 (Knowledge)</h3>
+  <dl class="toollist">
+    <div><dt>메일 <span class="en">Mail (Outlook)</span></dt><dd>내 메일함의 메일을 찾아 읽고 요약</dd></div>
+    <div><dt>Teams 채팅 <span class="en">Teams chats</span></dt><dd>Teams 채팅·채널 메시지와 나를 멘션한 글</dd></div>
+    <div><dt>회의 <span class="en">Meetings</span></dt><dd>일정, 회의 초대장, Teams 회의 녹취록·요약</dd></div>
+    <div><dt>사람 <span class="en">People</span></dt><dd>조직도와 사람 정보 (담당자, 팀원, 상사)</dd></div>
+    <div><dt>SharePoint <span class="en">SharePoint</span></dt><dd>회사 SharePoint 사이트·폴더·파일</dd></div>
+    <div><dt>OneDrive <span class="en">OneDrive</span></dt><dd>내 OneDrive 에 있는 파일</dd></div>
+    <div><dt>파일 올리기 <span class="en">Uploaded files</span></dt><dd>Word·Excel·PDF·PPT 파일을 에이전트에 직접 올려 두기</dd></div>
+    <div><dt>내부 웹 검색 <span class="en">Internal web search</span></dt><dd>회사 인트라넷·사내 사이트에서만 찾기</dd></div>
+    <div><dt>외부 웹 검색 <span class="en">External web search</span></dt><dd>인터넷 전체(Bing)에서 공개 자료·뉴스 찾기</dd></div>
+    <div><dt>특정 웹사이트 <span class="en">Specific websites</span></dt><dd>지정한 주소(URL)의 공개 사이트만 찾기</dd></div>
+    <div><dt>Copilot 커넥터 <span class="en">Copilot connectors</span></dt><dd>Jira·ServiceNow·Confluence 같은 외부 시스템 데이터 (예전 Graph connectors)</dd></div>
+    <div><dt>Dataverse <span class="en">Dataverse</span> <span class="badge">Studio</span></dt><dd>Power Platform 의 업무 데이터 표</dd></div>
+    <div><dt>Azure AI Search <span class="en">Azure AI Search</span> <span class="badge">Studio</span></dt><dd>회사가 Azure 에 만들어 둔 검색 색인</dd></div>
+  </dl>
+  <h3 class="tgroup">기능 — 에이전트가 직접 하는 일 (Capabilities)</h3>
+  <dl class="toollist">
+    <div><dt>코드 실행 <span class="en">Code interpreter</span></dt><dd>Python 으로 엑셀 데이터 분석, 계산, 차트 만들기</dd></div>
+    <div><dt>이미지 만들기 <span class="en">Image generator</span></dt><dd>설명을 바탕으로 그림·이미지 만들기</dd></div>
+  </dl>
+  <h3 class="tgroup">동작 — 다른 시스템을 움직이기 (Actions)</h3>
+  <dl class="toollist">
+    <div><dt>Power Automate 흐름 <span class="en">Power Automate flow</span> <span class="badge">Studio</span></dt><dd>메일·Teams 보내기, 승인 요청, 파일 저장 같은 자동 실행</dd></div>
+    <div><dt>Power Platform 커넥터 <span class="en">Power Platform connectors</span> <span class="badge">Studio</span></dt><dd>Outlook·Planner·Excel 등 기본 제공 커넥터로 조회·쓰기</dd></div>
+    <div><dt>사용자 지정 커넥터 <span class="en">Custom connector</span> <span class="badge">Studio</span></dt><dd>기본 커넥터에 없는 사내 시스템을 직접 연결</dd></div>
+    <div><dt>API 플러그인 <span class="en">API plugin</span> <span class="badge">Studio</span></dt><dd>사내 REST API 를 OpenAPI 문서로 연결해 호출</dd></div>
+    <div><dt>MCP 서버 <span class="en">MCP server</span> <span class="badge">Studio</span></dt><dd>MCP 서버가 제공하는 도구를 에이전트에 연결</dd></div>
+    <div><dt>프롬프트 도구 <span class="en">Prompt</span> <span class="badge">Studio</span></dt><dd>정해 둔 AI 프롬프트(요약·분류·추출)를 도구처럼 불러 쓰기</dd></div>
+    <div><dt>다른 에이전트 연결 <span class="en">Connected agents</span> <span class="badge">Studio</span></dt><dd>다른 에이전트에게 일을 넘겨 함께 처리</dd></div>
+    <div><dt>컴퓨터 사용 <span class="en">Computer use</span> <span class="badge">Studio</span></dt><dd>API 가 없는 웹·데스크톱 화면을 대신 클릭·입력 (미리 보기)</dd></div>
+  </dl>
+  <p class="hint">메뉴 이름과 쓸 수 있는 도구는 회사 설정·라이선스에 따라 다를 수 있습니다.</p>
 </section>
 
 <section>
@@ -223,7 +247,7 @@ section.example pre { font-family: inherit; font-size: 13.5px; max-height: none;
 
 <script>
 'use strict';
-const TITLE = 0, SUMMARY = 1, NATIVE = 2, SKILL_NAME = 3, SKILL_DESC = 4, SKILL_BODY = 5, KNOW = 6, TOOLS = 7, PROMPTS = 8;
+const TITLE = 0, SUMMARY = 1, NATIVE = 2, SKILL_NAME = 3, SKILL_DESC = 4, SKILL_BODY = 5, KNOW = 6, PROMPTS = 8;
 const ROW = '\x1e', CELL = '\x1f';
 const KEY = 'agentmaker.v2';
 const $ = id => document.getElementById(id);
@@ -284,7 +308,6 @@ function addCopyButton(wrap, what) {
 }
 
 const COPY = {
-  tools: () => [build(1).trim(), '켤 도구 목록'],
   skill: () => [build(2), 'skill.md'],
   know: () => [build(3), 'knowhow.txt'],
   full: () => [build(4), '전체 설정'],
@@ -366,8 +389,6 @@ function refresh() {
   $('c0').textContent = [...getF(TITLE)].length + '자';
   $('c1').textContent = [...getF(SUMMARY)].length + '자';
 
-  drawTools();
-
   const name = getF(SKILL_NAME), kb = build(5);
   $('kebab').textContent = kb && kb !== name.trim() ? 'skill.md 에는 name: ' + kb + ' 로 저장됩니다' : '';
   $('pskill').textContent = build(2);
@@ -375,43 +396,6 @@ function refresh() {
   $('cknow').textContent = know.count() + '개';
   $('cprompts').textContent = prompts.count() + '개';
   save();
-}
-
-function drawTools() {
-  const rows = build(0).split(ROW).map(r => r.split(CELL));
-  const on = $('toolsOn'), off = $('toolsOff');
-  on.textContent = off.textContent = '';
-  const last = {};
-  let nOn = 0;
-  rows.forEach(([id, group, name, desc, st, why], i) => {
-    const isOn = st === '1' || st === '2';
-    const box = isOn ? on : off;
-    if (last[isOn] !== group) {
-      const g = document.createElement('div'); g.className = 'tgroup'; g.textContent = group; box.append(g);
-      last[isOn] = group;
-    }
-    nOn += isOn;
-    const row = document.createElement('div');
-    row.className = 'tool' + (isOn ? ' on' : '');
-    const sw = document.createElement('button');
-    sw.type = 'button'; sw.className = 'sw'; sw.title = isOn ? '끄기' : '켜기';
-    sw.setAttribute('aria-pressed', isOn);
-    sw.onclick = () => { W.tool_toggle(i); refresh(); };
-    const txt = document.createElement('div');
-    txt.innerHTML = '<b></b> <span class="d"></span><div class="why"></div>';
-    txt.querySelector('b').textContent = name;
-    txt.querySelector('.d').textContent = '— ' + desc;
-    txt.querySelector('.why').textContent =
-      st === '1' ? '찾은 단어: ' + why : st === '2' ? '직접 켬' : st === '3' ? '직접 끔 (찾은 단어: ' + why + ')' : '';
-    const cp = document.createElement('button');
-    cp.type = 'button'; cp.className = 'cp'; cp.title = name + ' 복사'; cp.innerHTML = ICON_COPY;
-    cp.onclick = () => copy(name, name, cp);
-    row.append(sw, txt, cp);
-    box.append(row);
-  });
-  if (!nOn) on.innerHTML = '<p class="hint">아직 켜진 도구가 없습니다. 요약이나 스킬에 메일, Teams, 회의 같은 단어를 쓰면 자동으로 켜집니다.</p>';
-  $('toolsMoreSum').textContent = '다른 도구 ' + (rows.length - nOn) + '개 보기';
-  $('ctools').textContent = nOn + '개 켬';
 }
 
 // ── 파일 ─────────────────────────────────────────────────
