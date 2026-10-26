@@ -51,6 +51,18 @@ a { color: var(--color-accent); text-underline-offset: 3px; }
 .tag-accent  { background: var(--color-accent-800); color: var(--color-accent-100); }
 .tag-neutral { background: var(--color-neutral-800); color: var(--color-neutral-100); }
 .tag-outline { border: 1px solid var(--color-accent); color: var(--color-accent); }
+/* 전기요금 그래프 (elpris.wasm) — 스크립트가 붙으면 .on, 안 붙으면 CSS 막대 그대로 */
+.ep-cv, .ep-info, .ep-lg { display: none; }
+.ep.on .ep-cv { display: block; width: 100%; touch-action: pan-y; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.ep.on .ep-info {
+  display: block; min-height: 34px; padding: 7px 11px; border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-text) 5%, transparent);
+  font-size: 12.5px; line-height: 20px; color: color-mix(in srgb, var(--color-text) 72%, transparent);
+  font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ep.on .ep-info b { color: var(--color-text); font-weight: 600; }
+.ep.on .ep-fb, html.ep-on .ep-tk { display: none !important; }
+html.ep-on .ep-lg { display: inline; }
 </style>
 </head>
 <body>
@@ -74,25 +86,30 @@ a { color: var(--color-accent); text-underline-offset: 3px; }
   <div style="height:1px;background:linear-gradient(to right,transparent,var(--color-divider) 48px,var(--color-divider) calc(100% - 48px),transparent)"></div>
 </header>
 
-<section style="background:linear-gradient(160deg,#1e2033 0%,var(--color-surface) 70%);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);padding:clamp(18px,2.6vw,28px);display:flex;flex-direction:column;gap:22px">
+<section style="background:linear-gradient(160deg,#1e2033 0%,var(--color-surface) 70%);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);padding:clamp(16px,2.6vw,28px);display:flex;flex-direction:column;gap:22px">
 <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap">
   <div style="display:flex;flex-direction:column;gap:4px">
     <span style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent)">전기요금 · SE3</span>
     <h2 style="margin:0;font-size:24px">저렴한 구간</h2>
     <p style="margin:0;font-size:12.5px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">7–21시 사이, 하루 평균가보다 싼 시간대만 표시합니다</p>
   </div>
-  <div style="display:flex;align-items:center;gap:14px;font-size:11px;color:color-mix(in srgb, var(--color-text) 60%, transparent);flex-wrap:wrap">
+  <div style="display:flex;align-items:center;gap:8px 14px;font-size:11px;color:color-mix(in srgb, var(--color-text) 60%, transparent);flex-wrap:wrap">
     <span style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;border-radius:3px;background:linear-gradient(to top,#796cbf,#b5abfc)"></span>저렴</span>
-    <span style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;border-radius:3px;background:#32353f"></span>그 외</span>
+    <span style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;border-radius:3px;background:#3a3d49"></span>그 외</span>
     <span style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:0;border-top:1px dashed color-mix(in srgb, var(--color-text) 55%, transparent)"></span>평균</span>
+    <span class="ep-lg" style="color:#8fd9b0">최저</span>
+    <span class="ep-lg" style="color:#f29a9a">최고</span>
   </div>
 </div>
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:26px">
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:30px 26px">
 <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
 <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
 <span style="font-family:var(--font-heading);font-weight:500;font-size:17px">오늘</span>
 <span style="font-size:11.5px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">2026-10-26 · 평균 0.12 SEK/kWh</span></div>
-<div style="position:relative;height:150px;padding-bottom:1px">
+<div class="ep" data-v="0.0063,0.0033,0.0065,0.0069,0.012,0.0031,-0.0039,0.0137,0.0398,0.0719,0.0714,0.0765,0.0801,0.0681,0.0867,0.0984,0.1259,0.2124,0.3547,0.4642,0.3936,0.2256,0.1924,0.1603" data-c="0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0" data-avg="0.1154">
+<div class="ep-info">막대를 누르면 시간별 가격이 나옵니다</div>
+<canvas class="ep-cv"></canvas>
+<div class="ep-fb" style="position:relative;height:150px;padding-bottom:1px">
 <div style="position:absolute;left:0;right:0;top:75.14%;border-top:1px dashed color-mix(in srgb, var(--color-text) 55%, transparent)"></div>
 <div style="position:absolute;inset:0;display:flex;align-items:flex-end;gap:2px">
 <div title="00:00 · 0.01 SEK" style="flex:1;min-width:0;display:flex;align-items:flex-end;height:100%">
@@ -108,7 +125,7 @@ a { color: var(--color-accent); text-underline-offset: 3px; }
 <div title="05:00 · 0.0 SEK" style="flex:1;min-width:0;display:flex;align-items:flex-end;height:100%">
 <div style="width:100%;height:0.67%;min-height:2px;border-radius:2px 2px 0 0;background:#32353f"></div></div>
 <div title="06:00 · -0.0 SEK" style="flex:1;min-width:0;display:flex;align-items:flex-end;height:100%">
-<div style="width:100%;height:-0.84%;min-height:2px;border-radius:2px 2px 0 0;background:#32353f"></div></div>
+<div style="width:100%;height:0.0%;min-height:2px;border-radius:2px 2px 0 0;background:#32353f"></div></div>
 <div title="07:00 · 0.01 SEK" style="flex:1;min-width:0;display:flex;align-items:flex-end;height:100%">
 <div style="width:100%;height:2.95%;min-height:2px;border-radius:2px 2px 0 0;background:linear-gradient(to top,#796cbf,#b5abfc)"></div></div>
 <div title="08:00 · 0.04 SEK" style="flex:1;min-width:0;display:flex;align-items:flex-end;height:100%">
@@ -143,11 +160,11 @@ a { color: var(--color-accent); text-underline-offset: 3px; }
 <div style="width:100%;height:41.46%;min-height:2px;border-radius:2px 2px 0 0;background:#32353f"></div></div>
 <div title="23:00 · 0.16 SEK" style="flex:1;min-width:0;display:flex;align-items:flex-end;height:100%">
 <div style="width:100%;height:34.54%;min-height:2px;border-radius:2px 2px 0 0;background:#32353f"></div></div>
-</div></div>
+</div></div></div>
 <div style="position:relative;height:24px;border-radius:5px;background:#22242f;overflow:hidden">
 <div style="position:absolute;top:0;bottom:0;left:29.167%;width:40.625%;background:linear-gradient(to right,#5d5294,#968ae0);box-shadow:0 0 14px rgba(145,132,217,0.45)"></div>
 </div>
-<div style="display:flex;justify-content:space-between;font-size:10.5px;letter-spacing:0.04em;color:color-mix(in srgb, var(--color-text) 60%, transparent)">
+<div class="ep-tk" style="display:flex;justify-content:space-between;font-size:10.5px;letter-spacing:0.04em;color:color-mix(in srgb, var(--color-text) 60%, transparent)">
 <span>00</span><span>03</span><span>06</span><span>09</span><span>12</span><span>15</span><span>18</span><span>21</span></div>
 <div style="display:flex;flex-direction:column;gap:6px;margin-top:2px">
 <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--radius-md);background:color-mix(in srgb, var(--color-accent) 12%, transparent);border:1px solid color-mix(in srgb, var(--color-accent) 34%, transparent);flex-wrap:wrap">
@@ -159,7 +176,10 @@ a { color: var(--color-accent); text-underline-offset: 3px; }
 <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
 <span style="font-family:var(--font-heading);font-weight:500;font-size:17px">내일</span>
 <span style="font-size:11.5px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">2026-10-27 · 평균 0.13 SEK/kWh</span></div>
-<div style="position:relative;height:150px;padding-bottom:1px">
+<div class="ep" data-v="0.1715,0.0534,0.0774,0.1593,0.1253,0.0605,0.0671,0.0768,0.0719,0.128,0.1725,0.2806,0.2573,0.304,0.3605,0.4485,0.2866,0.0774,0.0287,0.0052,-0.0001,-0.008,-0.0027,0.0072" data-c="0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,1,1,1,1,0,0,0" data-avg="0.1337">
+<div class="ep-info">막대를 누르면 시간별 가격이 나옵니다</div>
+<canvas class="ep-cv"></canvas>
+<div class="ep-fb" style="position:relative;height:150px;padding-bottom:1px">
 <div style="position:absolute;left:0;right:0;top:70.19%;border-top:1px dashed color-mix(in srgb, var(--color-text) 55%, transparent)"></div>
 <div style="position:absolute;inset:0;display:flex;align-items:flex-end;gap:2px">
 <div title="00:00 · 0.17 SEK" style="flex:1;min-width:0;display:flex;align-items:flex-end;height:100%">
@@ -203,19 +223,19 @@ a { color: var(--color-accent); text-underline-offset: 3px; }
 <div title="19:00 · 0.01 SEK" style="flex:1;min-width:0;display:flex;align-items:flex-end;height:100%">
 <div style="width:100%;height:1.17%;min-height:2px;border-radius:2px 2px 0 0;background:linear-gradient(to top,#796cbf,#b5abfc)"></div></div>
 <div title="20:00 · -0.0 SEK" style="flex:1;min-width:0;display:flex;align-items:flex-end;height:100%">
-<div style="width:100%;height:-0.03%;min-height:2px;border-radius:2px 2px 0 0;background:linear-gradient(to top,#796cbf,#b5abfc)"></div></div>
+<div style="width:100%;height:0.0%;min-height:2px;border-radius:2px 2px 0 0;background:linear-gradient(to top,#796cbf,#b5abfc)"></div></div>
 <div title="21:00 · -0.01 SEK" style="flex:1;min-width:0;display:flex;align-items:flex-end;height:100%">
-<div style="width:100%;height:-1.79%;min-height:2px;border-radius:2px 2px 0 0;background:#32353f"></div></div>
+<div style="width:100%;height:0.0%;min-height:2px;border-radius:2px 2px 0 0;background:#32353f"></div></div>
 <div title="22:00 · -0.0 SEK" style="flex:1;min-width:0;display:flex;align-items:flex-end;height:100%">
-<div style="width:100%;height:-0.6%;min-height:2px;border-radius:2px 2px 0 0;background:#32353f"></div></div>
+<div style="width:100%;height:0.0%;min-height:2px;border-radius:2px 2px 0 0;background:#32353f"></div></div>
 <div title="23:00 · 0.01 SEK" style="flex:1;min-width:0;display:flex;align-items:flex-end;height:100%">
 <div style="width:100%;height:1.61%;min-height:2px;border-radius:2px 2px 0 0;background:#32353f"></div></div>
-</div></div>
+</div></div></div>
 <div style="position:relative;height:24px;border-radius:5px;background:#22242f;overflow:hidden">
 <div style="position:absolute;top:0;bottom:0;left:29.167%;width:13.542%;background:linear-gradient(to right,#5d5294,#968ae0);box-shadow:0 0 14px rgba(145,132,217,0.45)"></div>
 <div style="position:absolute;top:0;bottom:0;left:70.833%;width:16.667%;background:linear-gradient(to right,#5d5294,#968ae0);box-shadow:0 0 14px rgba(145,132,217,0.45)"></div>
 </div>
-<div style="display:flex;justify-content:space-between;font-size:10.5px;letter-spacing:0.04em;color:color-mix(in srgb, var(--color-text) 60%, transparent)">
+<div class="ep-tk" style="display:flex;justify-content:space-between;font-size:10.5px;letter-spacing:0.04em;color:color-mix(in srgb, var(--color-text) 60%, transparent)">
 <span>00</span><span>03</span><span>06</span><span>09</span><span>12</span><span>15</span><span>18</span><span>21</span></div>
 <div style="display:flex;flex-direction:column;gap:6px;margin-top:2px">
 <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--radius-md);background:color-mix(in srgb, var(--color-accent) 12%, transparent);border:1px solid color-mix(in srgb, var(--color-accent) 34%, transparent);flex-wrap:wrap">
@@ -228,26 +248,26 @@ a { color: var(--color-accent); text-underline-offset: 3px; }
 <span style="margin-left:auto;font-size:11.5px;color:var(--color-accent-300)">4.0시간 · 평균 0.03 SEK</span></div>
 </div></div>
 </div></section>
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:22px;align-items:start">
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:22px;align-items:start">
 <section style="background:var(--color-surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);padding:22px;display:flex;flex-direction:column;gap:16px">
 <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap">
   <span style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent)">날씨 · 예테보리</span>
-  <span style="font-size:10.5px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">15:00 Europe/Stockholm</span>
+  <span style="font-size:10.5px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">20:30 Europe/Stockholm</span>
 </div>
 <div style="display:flex;align-items:flex-end;gap:14px">
-  <span style="font-family:var(--font-heading);font-weight:500;font-size:54px;line-height:0.9;letter-spacing:-0.03em">11.9°</span>
+  <span style="font-family:var(--font-heading);font-weight:500;font-size:54px;line-height:0.9;letter-spacing:-0.03em">10.6°</span>
   <div style="display:flex;flex-direction:column;gap:2px;padding-bottom:5px">
     <span style="font-size:15px">구름 조금</span>
-    <span style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">체감 6.1 °C</span>
+    <span style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">체감 6.7 °C</span>
   </div>
 </div>
 <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
 <div style="padding:10px 12px;border-radius:var(--radius-md);background:color-mix(in srgb, var(--color-text) 5%, transparent)">
 <div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 60%, transparent)">습도</div>
-<div style="font-size:18px;font-family:var(--font-heading);font-weight:500">80.0 %</div></div>
+<div style="font-size:18px;font-family:var(--font-heading);font-weight:500">81.0 %</div></div>
 <div style="padding:10px 12px;border-radius:var(--radius-md);background:color-mix(in srgb, var(--color-text) 5%, transparent)">
 <div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 60%, transparent)">풍속</div>
-<div style="font-size:18px;font-family:var(--font-heading);font-weight:500">37.4 km/h</div></div>
+<div style="font-size:18px;font-family:var(--font-heading);font-weight:500">22.0 km/h</div></div>
 <div style="padding:10px 12px;border-radius:var(--radius-md);background:color-mix(in srgb, var(--color-text) 5%, transparent)">
 <div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 60%, transparent)">오늘 최저 / 최고</div>
 <div style="font-size:18px;font-family:var(--font-heading);font-weight:500">9.8 ~ 12.1 °C</div></div>
@@ -296,7 +316,7 @@ a { color: var(--color-accent); text-underline-offset: 3px; }
 <span style="margin-left:auto;font-size:12.5px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">2026-11-11 (수)</span></div>
 </div>
 <div style="height:1px;background:linear-gradient(to right,transparent,var(--color-divider) 48px,var(--color-divider) calc(100% - 48px),transparent)"></div>
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:22px 32px;align-items:start">
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(330px,100%),1fr));gap:22px 32px;align-items:start">
 <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
 <span style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-accent-300)">생일</span>
 <div style="display:flex;flex-direction:column;gap:1px">
@@ -379,7 +399,7 @@ a { color: var(--color-accent); text-underline-offset: 3px; }
 <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap">
   <span style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent)">위키백과 · 오늘의 역사</span>
 <span style="font-size:10.5px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">10월 26일 · 총 15건</span></div>
-<ol style="margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:0 32px">
+<ol style="margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(340px,100%),1fr));gap:0 32px">
 <li style="display:flex;gap:14px;padding:10px 0;border-bottom:1px solid var(--color-divider);">
 <span style="flex:none;width:48px;font-family:var(--font-heading);font-weight:500;font-size:13.5px;color:var(--color-accent-300)">1597년</span>
 <span style="font-size:13.5px;text-wrap:pretty">정유재란 당시 이순신 장군이 울돌목 일대에서 일본군을 격퇴시킴. (명량대첩)</span></li>
@@ -426,7 +446,7 @@ a { color: var(--color-accent); text-underline-offset: 3px; }
 <span style="flex:none;width:48px;font-family:var(--font-heading);font-weight:500;font-size:13.5px;color:var(--color-accent-300)">2016년</span>
 <span style="font-size:13.5px;text-wrap:pretty">박근혜 대통령 퇴진 운동이 시작되다.</span></li>
 </ol></section>
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:22px;align-items:start">
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:22px;align-items:start">
 <section style="background:var(--color-surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);padding:22px;display:flex;flex-direction:column;gap:16px">
 <span style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent)">공휴일 · Sverige</span>
 <div style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:var(--radius-md);background:color-mix(in srgb, var(--color-text) 5%, transparent);;flex-wrap:wrap">
@@ -492,10 +512,152 @@ a { color: var(--color-accent); text-underline-offset: 3px; }
 </div>
 <footer style="display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;padding-top:8px;font-size:11.5px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">
   <span>데이터: elprisetjustnu.se · Open-Meteo · ko.wikipedia.org · date.nager.at · personal_dates.toml</span>
-  <span style="margin-left:auto">2026-10-26 15:00 기준</span>
+  <span style="margin-left:auto">2026-10-26 20:39 기준</span>
 </footer>
 
 </div>
 </div>
+<script>(() => {
+  const els = [...document.querySelectorAll(".ep")];
+  if (!els.length || typeof WebAssembly !== "object" || !window.ResizeObserver) return;
+  const FAM = 'Inter, system-ui, "Noto Sans KR", sans-serif';
+  const LBL = 10, TCK = 10;
+  const C = {
+    bar: "#3a3d49", barSel: "#555a6b", cheapLo: "#796cbf", cheapHi: "#b5abfc", cheapSel: "#d2cefd",
+    lbl: "rgba(233,233,237,.62)", lblCheap: "#d2cefd", lblMin: "#8fd9b0", lblMax: "#f29a9a",
+    avg: "rgba(233,233,237,.5)", zero: "rgba(233,233,237,.35)", tick: "rgba(233,233,237,.55)",
+    sel: "rgba(233,233,237,.07)"
+  };
+  async function load() {
+    try {
+      if (WebAssembly.instantiateStreaming)
+        return (await WebAssembly.instantiateStreaming(fetch("elpris.wasm"), {})).instance.exports;
+    } catch (e) { /* application/wasm 이 아니면 아래로 */ }
+    const r = await fetch("elpris.wasm");
+    if (!r.ok) throw new Error("elpris.wasm " + r.status);
+    return (await WebAssembly.instantiate(await r.arrayBuffer(), {})).instance.exports;
+  }
+  const p2 = h => String(h).padStart(2, "0");
+
+  function chart(g, el) {
+    const vals = el.dataset.v.split(",").map(s => s === "" ? NaN : +s);
+    const cheap = el.dataset.c.split(",").map(Number);
+    const avg = +el.dataset.avg, n = vals.length;
+    const pv = g.alloc(n * 8), pf = g.alloc(n);
+    const cv = el.querySelector("canvas"), info = el.querySelector(".ep-info");
+    const ctx = cv.getContext("2d");
+    let cmd = new Float32Array(0), mode = 0, W = 0, H = 0, sel = -1;
+    const unit = () => mode === 1 || mode === 3 ? "숫자는 öre/kWh (100 öre = 1 SEK)" : "숫자는 SEK/kWh";
+    const text = v => { const o = Math.round(v * 100) + 0; return mode === 1 || mode === 3 ? String(o) : (o / 100).toFixed(2); };
+
+    function layout() {
+      W = cv.clientWidth;
+      if (!W) return false;
+      H = W < 420 ? 210 : 200;
+      cv.style.height = H + "px";
+      const dpr = Math.min(window.devicePixelRatio || 1, 3);
+      cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.font = `600 ${LBL}px ${FAM}`;
+      const dw = ctx.measureText("0").width;
+      new Float64Array(g.memory.buffer, pv, n).set(vals);
+      new Uint8Array(g.memory.buffer, pf, n).set(cheap);
+      const len = g.layout(pv, pf, n, avg, W, H, dw, LBL, TCK);
+      cmd = Float32Array.from(new Float32Array(g.memory.buffer, g.cmd_ptr(), len)); // grow 대비 복사
+      return true;
+    }
+
+    function paint() {
+      ctx.clearRect(0, 0, W, H);
+      const slot = W / n, bars = [], labels = [], ticks = [];
+      let avgY = null, zeroY = null;
+      for (let k = 0; k < cmd.length;) {
+        switch (cmd[k]) {
+          case 1: mode = cmd[k + 1]; k += 2; break;
+          case 2: bars.push(cmd.subarray(k + 1, k + 7)); k += 7; break;
+          case 3: labels.push(cmd.subarray(k + 1, k + 5)); k += 5; break;
+          case 4: avgY = cmd[k + 1]; k += 2; break;
+          case 5: zeroY = cmd[k + 1]; k += 2; break;
+          case 6: ticks.push(cmd.subarray(k + 1, k + 3)); k += 3; break;
+          default: k = cmd.length;
+        }
+      }
+      if (sel >= 0) { ctx.fillStyle = C.sel; ctx.fillRect(sel * slot, 0, slot, H - TCK - 5); }
+      const flagOf = [];
+      for (const [i, x, y, w, h, f] of bars) {
+        flagOf[i] = f;
+        const cheapBar = f & 1, on = i === sel;
+        if (cheapBar) {
+          const gr = ctx.createLinearGradient(0, y + h, 0, y);
+          gr.addColorStop(0, on ? C.cheapHi : C.cheapLo); gr.addColorStop(1, on ? C.cheapSel : C.cheapHi);
+          ctx.fillStyle = gr;
+        } else ctx.fillStyle = on ? C.barSel : C.bar;
+        const r = Math.min(2.5, w / 2, h);
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(x, y, w, h, vals[i] >= 0 ? [r, r, 0, 0] : [0, 0, r, r]);
+        else ctx.rect(x, y, w, h);
+        ctx.fill();
+      }
+      if (zeroY !== null) {
+        ctx.strokeStyle = C.zero; ctx.lineWidth = 1; ctx.setLineDash([]);
+        ctx.beginPath(); ctx.moveTo(0, Math.round(zeroY) + .5); ctx.lineTo(W, Math.round(zeroY) + .5); ctx.stroke();
+      }
+      if (avgY !== null) {
+        ctx.strokeStyle = C.avg; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+        ctx.beginPath(); ctx.moveTo(0, Math.round(avgY) + .5); ctx.lineTo(W, Math.round(avgY) + .5); ctx.stroke();
+        ctx.setLineDash([]);
+      }
+      const rot = mode >= 2;
+      for (const [i, cx, y, side] of labels) {
+        const f = flagOf[i] || 0, strong = (f & 6) || i === sel;
+        ctx.font = `${strong ? 700 : 600} ${LBL}px ${FAM}`;
+        ctx.fillStyle = i === sel ? "#fff" : f & 2 ? C.lblMin : f & 4 ? C.lblMax : f & 1 ? C.lblCheap : C.lbl;
+        const t = text(vals[i]);
+        if (rot) {
+          ctx.save(); ctx.translate(cx, y); ctx.rotate(-Math.PI / 2);
+          ctx.textAlign = side > 0 ? "left" : "right"; ctx.textBaseline = "middle";
+          ctx.fillText(t, 0, 0.5); ctx.restore();
+        } else {
+          ctx.textAlign = "center"; ctx.textBaseline = side > 0 ? "bottom" : "top";
+          ctx.fillText(t, cx, y);
+        }
+      }
+      ctx.font = `${TCK}px ${FAM}`; ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+      for (const [hh, cx] of ticks) { ctx.fillStyle = hh === sel ? "#fff" : C.tick; ctx.fillText(p2(hh), cx, H - 1); }
+    }
+
+    function showInfo() {
+      if (sel < 0 || !isFinite(vals[sel])) { info.textContent = "막대를 누르면 시간별 가격 · " + unit(); return; }
+      const v = vals[sel], d = avg ? Math.round((v / avg - 1) * 100) : 0;
+      const cmp = d === 0 ? "평균과 같음" : `평균보다 ${Math.abs(d)}% ${d < 0 ? "쌈" : "비쌈"}`;
+      info.innerHTML = `<b>${p2(sel)}:00–${p2((sel + 1) % 24)}:00</b> · <b>${v.toFixed(2)}</b> SEK/kWh · ${cmp}`;
+    }
+
+    function draw() { if (layout()) { paint(); showInfo(); } }
+    function pick(e) {
+      const r = cv.getBoundingClientRect();
+      const i = Math.floor((e.clientX - r.left) / (r.width / n));
+      const next = i >= 0 && i < n && isFinite(vals[i]) ? i : -1;
+      if (next !== sel) { sel = next; paint(); showInfo(); }
+    }
+    cv.addEventListener("pointerdown", pick);
+    cv.addEventListener("pointermove", e => { if (e.pointerType === "mouse" || e.buttons) pick(e); });
+    cv.addEventListener("pointerleave", e => { if (e.pointerType === "mouse") { sel = -1; paint(); showInfo(); } });
+    el.classList.add("on");
+    let lastW = -1;
+    // 캔버스 높이를 바꾸는 draw 는 다음 프레임에 (ResizeObserver 루프 경고 방지)
+    new ResizeObserver(() => {
+      if (cv.clientWidth !== lastW) { lastW = cv.clientWidth; requestAnimationFrame(draw); }
+    }).observe(cv);
+    draw();
+  }
+
+  load().then(async g => {
+    try { await document.fonts.ready; } catch (e) {}
+    document.documentElement.classList.add("ep-on");
+    els.forEach(el => { try { chart(g, el); } catch (e) { el.classList.remove("on"); console.error(e); } });
+  }).catch(e => console.warn("elpris.wasm 없음 — CSS 막대 사용", e));
+})();
+</script>
 </body>
 </html>
