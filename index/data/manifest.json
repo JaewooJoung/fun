@@ -1,7 +1,7 @@
 {
   "api": "https://statistikdatabasen.scb.se/api/v2",
   "failed": 0,
-  "generated": "2026-10-26T08:30:04",
+  "generated": "2026-10-27T08:30:04",
   "ok": 98,
   "source": "Statistics Sweden (SCB) PxWebApi v2",
   "tabs": [
