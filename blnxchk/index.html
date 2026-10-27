@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blunux 버전 체커</title>
+<meta name="description" content="Blunux(Arch Linux) 에 설치된 패키지 버전을 최신 릴리스와 브라우저 안에서 비교합니다.">
+<style>
+  :root {
+    --bg: #eef3fa;
+    --card: #ffffff;
+    --ink: #000000;
+    --muted: #5a6474;
+    --line: #d8e0ec;
+    --blue: #1f5fbf;
+    --blue-soft: #e3edfb;
+    --green: #128a3a;
+    --red: #d0251c;
+    --warn-bg: #fff3f2;
+    --mono: ui-monospace, "JetBrains Mono", "D2Coding", Menlo, Consolas, monospace;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 15px/1.55 system-ui, -apple-system, "Segoe UI", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  }
+  main { max-width: 860px; margin: 0 auto; padding: 28px 16px 48px; }
+
+  header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 18px; }
+  h1 { margin: 0; font-size: 26px; letter-spacing: -0.02em; }
+  h1 b { color: var(--blue); }
+  .sub { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 16px; border-radius: 10px; border: 0;
+    background: var(--blue); color: #fff; font: inherit; font-weight: 600;
+    text-decoration: none; cursor: pointer;
+  }
+  .btn:hover { filter: brightness(1.08); }
+  .btn svg { width: 18px; height: 18px; }
+
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; margin-bottom: 16px; }
+  .steps { margin: 0; padding-left: 20px; }
+  .steps li { margin: 4px 0; }
+  code { font-family: var(--mono); font-size: 13px; background: var(--blue-soft); padding: 1px 6px; border-radius: 5px; }
+
+  .baseline { font-size: 13px; color: var(--muted); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex: none; }
+  .baseline.ready .dot { background: var(--green); }
+  .baseline.fail .dot { background: var(--red); }
+  .baseline.fail { color: var(--red); }
+
+  #drop {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+    min-height: 190px; padding: 24px; text-align: center;
+    border: 2px dashed #9fb6d8; border-radius: 16px; background: var(--card);
+    cursor: pointer; transition: background .15s, border-color .15s;
+    margin-bottom: 16px;
+  }
+  #drop:hover, #drop:focus-visible { border-color: var(--blue); outline: none; }
+  #drop.over { background: var(--blue-soft); border-color: var(--blue); border-style: solid; }
+  #drop svg { width: 40px; height: 40px; color: var(--blue); }
+  #drop strong { font-size: 17px; }
+  #drop span { color: var(--muted); font-size: 13px; }
+
+  #error { display: none; background: var(--warn-bg); border: 1px solid #f2b8b4; border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; }
+  #error.show { display: block; }
+  #error .code { font-family: var(--mono); font-size: 12px; color: var(--red); font-weight: 700; }
+  #error p { margin: 4px 0 0; }
+
+  #result { display: none; }
+  #result.show { display: block; }
+  .summary { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; align-items: center; }
+  .chip { font-size: 13px; padding: 4px 10px; border-radius: 99px; background: var(--bg); border: 1px solid var(--line); }
+  .chip b { font-variant-numeric: tabular-nums; }
+  .chip.same b { color: var(--green); }
+  .chip.newer b { color: var(--red); }
+  .timing { margin-left: auto; font-size: 12px; color: var(--muted); }
+
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 9px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+  th { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+  td { font-family: var(--mono); font-size: 13.5px; overflow-wrap: anywhere; }
+  td.ver { text-align: right; white-space: nowrap; }
+  th:last-child { text-align: right; }
+  tr:last-child td { border-bottom: 0; }
+  .s-same   { color: var(--green); font-weight: 700; }
+  .s-newer  { color: var(--red); font-weight: 700; }
+  .s-older, .s-missing, .s-unknown, .s-absent { color: var(--ink); }
+  .tag { display: block; font-family: system-ui, sans-serif; font-size: 11px; color: var(--muted); font-weight: 400; }
+  .src { font-family: system-ui, sans-serif; font-size: 11px; color: var(--muted); margin-left: 6px; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; margin-top: 12px; color: var(--muted); }
+  .legend i { font-style: normal; font-weight: 700; }
+  footer { font-size: 12.5px; color: var(--muted); text-align: center; margin-top: 22px; }
+
+  @media (max-width: 560px) {
+    h1 { font-size: 22px; }
+    td.ver { white-space: normal; }
+    .timing { margin-left: 0; width: 100%; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1><b>Blunux</b> 버전 체커</h1>
+      <p class="sub">내 시스템의 패키지가 최신인지 — 파일은 브라우저 밖으로 나가지 않습니다.</p>
+    </div>
+    <a class="btn" href="inspect_packages.jl" download="inspect_packages.jl">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 19h16"/></svg>
+      inspect_packages.jl 받기
+    </a>
+  </header>
+
+  <section class="card">
+    <ol class="steps">
+      <li>위 버튼으로 <code>inspect_packages.jl</code> 을 받습니다 (Julia 표준 라이브러리만 사용).</li>
+      <li>Blunux 터미널에서 <code>julia inspect_packages.jl</code> 을 실행하면 <code>sys_packages.toml</code> 이 생깁니다.</li>
+      <li>그 파일을 아래 상자에 끌어다 놓으세요.</li>
+    </ol>
+  </section>
+
+  <div id="baseline" class="baseline"><span class="dot"></span><span id="baseline-text">엔진과 최신 버전 기준표를 불러오는 중…</span></div>
+
+  <div id="drop" tabindex="0" role="button" aria-label="sys_packages.toml 파일 선택 또는 끌어다 놓기" style="margin-top:10px">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 18v-6m0 0l-3 3m3-3l3 3"/></svg>
+    <strong>sys_packages.toml 을 여기에 놓으세요</strong>
+    <span>또는 눌러서 파일 고르기</span>
+  </div>
+  <input id="file" type="file" accept=".toml,text/plain" hidden>
+
+  <div id="error" role="alert">
+    <div class="code" id="error-code"></div>
+    <p id="error-msg"></p>
+    <p id="error-hint"></p>
+  </div>
+
+  <section id="result" class="card" aria-live="polite">
+    <div class="summary" id="summary"></div>
+    <table>
+      <thead><tr><th>패키지 (설치 버전)</th><th>최신 버전</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div class="legend">
+      <span><i class="s-same">초록</i> 최신과 같음</span>
+      <span><i class="s-newer">빨강</i> 최신보다 높음 (rc·beta·git 빌드)</span>
+      <span><i class="s-older">검정</i> 낮음 · 설치 안 됨 · 정보 없음</span>
+    </div>
+  </section>
+
+  <footer>TOML 해석과 버전 비교는 WebAssembly 엔진(blnxchk.wasm)이 pacman 과 같은 규칙으로 이 기기 안에서 합니다.</footer>
+</main>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+let engine = null;       // WASM exports
+let baselineOk = false;
+
+// 바이트를 WASM 메모리에 복사해 fn(ptr, len) 을 부르고, 출력 버퍼의 JSON 을 돌려준다.
+function call(fn, bytes) {
+  const p = engine.alloc(bytes.length);
+  if (bytes.length) new Uint8Array(engine.memory.buffer, p, bytes.length).set(bytes);
+  const code = engine[fn](p, bytes.length);
+  engine.dealloc(p, bytes.length);
+  const out = new Uint8Array(engine.memory.buffer, engine.out_ptr(), engine.out_len());
+  return { code, res: JSON.parse(new TextDecoder().decode(out)) };
+}
+
+function setBaseline(state, text) {
+  $("baseline").className = "baseline " + state;
+  $("baseline-text").textContent = text;
+}
+
+async function boot() {
+  try {
+    const wasmBytes = await (await fetch("blnxchk.wasm")).arrayBuffer();
+    engine = (await WebAssembly.instantiate(wasmBytes, {})).instance.exports;
+  } catch (e) {
+    setBaseline("fail", "WebAssembly 엔진을 불러오지 못했습니다. 최신 Chrome·Firefox·Edge 에서 열어 주세요.");
+    return;
+  }
+  try {
+    const r = await fetch("latest.toml", { cache: "no-cache" });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const { code, res } = call("load_baseline", new Uint8Array(await r.arrayBuffer()));
+    if (code < 0) throw new Error(res.error + ": " + res.msg);
+    baselineOk = true;
+    const when = res.generated ? new Date(res.generated) : null;
+    const age = when ? Math.round((Date.now() - when) / 36e5) : null;
+    setBaseline("ready", `최신 기준표 ${res.count}개 패키지 · Arch 저장소 기준 ` +
+      (when ? `${when.toLocaleString("ko-KR")} (${age < 1 ? "1시간 이내" : age + "시간 전"})` : ""));
+  } catch (e) {
+    setBaseline("fail", "최신 버전 기준표를 받지 못했습니다 (" + e.message + "). 파일은 읽을 수 있지만 모두 검정으로 표시됩니다.");
+  }
+}
+
+const HINTS = {
+  E_EMPTY: "빈 파일입니다. inspect_packages.jl 을 다시 실행해 sys_packages.toml 을 새로 만드세요.",
+  E_BINARY: "이미지나 압축 파일처럼 보입니다. sys_packages.toml (텍스트) 파일을 놓아 주세요.",
+  E_UTF8: "UTF-8 텍스트가 아닙니다. 편집기에서 다른 인코딩으로 저장했다면 스크립트로 다시 만드세요.",
+  E_SYNTAX: "TOML 형식이 손상되었습니다. 손으로 고쳤다면 해당 줄을 확인하거나, 스크립트로 다시 만드세요.",
+  E_TYPE: "버전은 \"6.17.1-1\" 처럼 따옴표 안에 있어야 합니다.",
+  E_DUPLICATE: "같은 패키지가 두 번 들어 있습니다. 한 줄을 지우고 다시 놓아 주세요.",
+  E_NO_PACKAGES: "다른 TOML 파일 같습니다. inspect_packages.jl 이 만든 sys_packages.toml 을 놓아 주세요.",
+  E_TOO_LARGE: "파일이 너무 큽니다 (최대 1 MiB). sys_packages.toml 이 맞는지 확인하세요.",
+  E_FORMAT: "패키지 이름이나 버전 모양이 이상합니다. 스크립트로 다시 만들어 주세요.",
+};
+
+function showError(res) {
+  $("result").classList.remove("show");
+  $("error-code").textContent = `${res.error} (${res.code})` + (res.line ? ` · ${res.line}번째 줄` : "");
+  $("error-msg").textContent = res.msg;
+  $("error-hint").textContent = (HINTS[res.error] || "") + " 파일을 고친 뒤 다시 끌어다 놓아 주세요.";
+  $("error").classList.add("show");
+}
+
+const LABEL = { same: "최신", newer: "최신보다 높음", older: "업데이트 있음", missing: "설치 안 됨", unknown: "기준 정보 없음", absent: "파일에 없음" };
+
+function render(res, ms, fileName) {
+  $("error").classList.remove("show");
+  const c = res.counts;
+  const chips = [["same", "최신"], ["newer", "높음"], ["older", "업데이트 있음"], ["missing", "설치 안 됨"], ["unknown", "정보 없음"], ["absent", "파일에 없음"]]
+    .filter(([k]) => c[k] > 0 || k === "same" || k === "older")
+    .map(([k, t]) => `<span class="chip ${k}">${t} <b>${c[k]}</b></span>`).join("");
+  $("summary").innerHTML = chips + `<span class="timing"></span>`;
+  $("summary").querySelector(".timing").textContent = `${fileName} · 처리 ${ms.toFixed(1)} ms`;
+
+  const tbody = $("rows");
+  tbody.textContent = "";
+  for (const r of res.rows) {
+    const tr = document.createElement("tr");
+    const left = document.createElement("td");
+    left.textContent = r.display;                 // "이름 (설치 버전)" 원문 그대로
+    const right = document.createElement("td");
+    right.className = "ver s-" + r.status;
+    right.textContent = r.latest || "—";
+    if (r.src === "aur") {
+      const s = document.createElement("span"); s.className = "src"; s.textContent = "AUR"; right.appendChild(s);
+    }
+    const tag = document.createElement("span");
+    tag.className = "tag"; tag.textContent = LABEL[r.status] || r.status;
+    right.appendChild(tag);
+    tr.append(left, right);
+    tbody.appendChild(tr);
+  }
+  $("result").classList.add("show");
+}
+
+async function handle(file) {
+  if (!engine) return;
+  const t0 = performance.now();
+  // 브라우저는 해석하지 않는다 — 바이트 그대로 WASM 으로 넘긴다.
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const { code, res } = call("check", bytes);
+  if (code < 0) return showError(res);
+  render(res, performance.now() - t0, file.name);
+}
+
+const drop = $("drop");
+["dragenter", "dragover"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", (e) => { const f = e.dataTransfer.files[0]; if (f) handle(f); });
+drop.addEventListener("click", () => $("file").click());
+drop.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("file").click(); } });
+$("file").addEventListener("change", (e) => { const f = e.target.files[0]; if (f) handle(f); e.target.value = ""; });
+// 상자 밖에 떨어뜨려도 브라우저가 파일을 열어 버리지 않게
+window.addEventListener("dragover", (e) => e.preventDefault());
+window.addEventListener("drop", (e) => e.preventDefault());
+
+boot();
+</script>
+</body>
+</html>
