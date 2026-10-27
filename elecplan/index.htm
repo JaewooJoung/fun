@@ -1,0 +1,1003 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>[hidden]{display:none!important} body{margin:0}</style>
+</head>
+<body>
+<title>ElecPlan</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@500&family=Noto+Sans+KR:wght@400;600;700&display=swap">
+<style>
+/* Layout: technology palette on the left, House A / House B side by side, live analysis underneath. */
+:root {
+  --bg: #FAFAFA;          /* warm white */
+  --panel: #F0F2F5;       /* light grey */
+  --surface: #FFFFFF;
+  --ink: #16243A;
+  --muted: #5B6779;
+  --line: #DCE1E8;
+  --navy: #1B365D;        /* trust, House A */
+  --sky: #3C83C4;         /* House B */
+  --green: #2E8B57;       /* pros */
+  --amber: #FF8C00;       /* cons */
+  --amber-ink: #A85A00;
+  --red: #C8372D;
+  --green-soft: #E3F1E8;
+  --amber-soft: #FFF1DE;
+  --red-soft: #FBE5E3;
+  --navy-soft: #E4EAF2;
+  --shadow: 0 1px 2px rgb(22 36 58 / .06), 0 6px 20px rgb(22 36 58 / .06);
+  --f-display: "Familjen Grotesk", "Noto Sans KR", system-ui, sans-serif;
+  --f-body: "Figtree", "Noto Sans KR", system-ui, sans-serif;
+  --f-num: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
+  --r: 10px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0E141C; --panel: #151D28; --surface: #1A2431; --ink: #E6ECF4; --muted: #95A2B5; --line: #2A3646;
+  --navy: #8DB2E6; --sky: #5FC1E8; --green: #4CC38A; --amber: #FFA940; --amber-ink: #FFB65C; --red: #FF7468;
+  --green-soft: #173327; --amber-soft: #3A2A14; --red-soft: #3D1F1D; --navy-soft: #1E2C40;
+  --shadow: 0 1px 2px rgb(0 0 0 / .3), 0 8px 24px rgb(0 0 0 / .25);
+  color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --bg: #0E141C; --panel: #151D28; --surface: #1A2431; --ink: #E6ECF4; --muted: #95A2B5; --line: #2A3646;
+  --navy: #8DB2E6; --sky: #5FC1E8; --green: #4CC38A; --amber: #FFA940; --amber-ink: #FFB65C; --red: #FF7468;
+  --green-soft: #173327; --amber-soft: #3A2A14; --red-soft: #3D1F1D; --navy-soft: #1E2C40;
+  --shadow: 0 1px 2px rgb(0 0 0 / .3), 0 8px 24px rgb(0 0 0 / .25);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--f-body); -webkit-font-smoothing: antialiased; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--sky); outline-offset: 2px; }
+h1, h2, h3 { font-family: var(--f-display); margin: 0; text-wrap: balance; letter-spacing: -.01em; }
+.num { font-family: var(--f-num); font-variant-numeric: tabular-nums; }
+.eyebrow { font-size: 11.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+
+/* ---------- header ---------- */
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.top-in, .wrap { max-width: 1440px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.top-in { display: flex; align-items: center; gap: 16px; padding-block: 12px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 12px; margin-right: auto; min-width: 0; }
+.mark { width: 34px; height: 34px; border-radius: 9px; background: var(--navy); display: grid; place-items: center; flex: none; }
+.mark svg { width: 20px; height: 20px; }
+.brand h1 { font-size: 21px; line-height: 1.1; }
+.brand p { margin: 0; font-size: 12.5px; color: var(--muted); }
+.lang { display: inline-flex; background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 3px; gap: 2px; }
+.lang button { border: 0; background: none; padding: 5px 12px; border-radius: 999px; font-size: 13px; font-weight: 500; color: var(--muted); display: inline-flex; gap: 6px; align-items: center; }
+.lang button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+.lang .flag { font-size: 14px; line-height: 1; }
+
+/* ---------- main grid ---------- */
+.wrap { padding-block: 24px 48px; display: grid; grid-template-columns: 272px minmax(0, 1fr); gap: 24px; align-items: start; }
+.palette { position: sticky; top: 84px; display: flex; flex-direction: column; gap: 12px; }
+.palette-intro { font-size: 13px; color: var(--muted); margin: 2px 0 0; }
+.cards { display: flex; flex-direction: column; gap: 8px; list-style: none; padding: 0; margin: 0; }
+.workspace { display: flex; flex-direction: column; gap: 28px; min-width: 0; }
+
+/* ---------- tech cards ---------- */
+.tech { position: relative; display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 10px 10px 10px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); cursor: grab; user-select: none; touch-action: none; transition: border-color .15s, transform .15s, opacity .15s; }
+.tech:hover { border-color: color-mix(in srgb, var(--navy) 40%, var(--line)); }
+.tech:active { cursor: grabbing; }
+.tech.off { opacity: .45; filter: grayscale(1); cursor: not-allowed; }
+.ic { width: 36px; height: 36px; border-radius: 8px; display: grid; place-items: center; background: var(--navy-soft); color: var(--navy); flex: none; }
+.ic svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.tech-t { font-weight: 600; font-size: 14px; line-height: 1.25; }
+.tech-d { font-size: 12px; color: var(--muted); line-height: 1.3; }
+.adds { display: flex; gap: 4px; }
+.adds button { width: 26px; height: 26px; border-radius: 7px; border: 1px solid var(--line); background: var(--panel); font: 600 12px/1 var(--f-display); color: var(--navy); }
+.adds button:hover:not(:disabled) { background: var(--navy); color: var(--bg); border-color: var(--navy); }
+.adds button:disabled { opacity: .35; cursor: not-allowed; }
+.tip { position: absolute; left: 12px; right: 12px; top: calc(100% + 6px); z-index: 15; background: var(--ink); color: var(--bg); font-size: 12.5px; line-height: 1.4; padding: 8px 10px; border-radius: 8px; pointer-events: none; opacity: 0; transform: translateY(-4px); transition: opacity .15s, transform .15s; }
+.tech:hover .tip, .tech:focus-within .tip { opacity: 1; transform: none; }
+.tip:empty { display: none; }
+.rules { font-size: 12px; color: var(--muted); background: var(--panel); border-radius: var(--r); padding: 10px 12px; display: grid; gap: 4px; }
+.rules b { color: var(--ink); font-weight: 600; }
+
+/* drag ghost */
+.ghost { position: fixed; z-index: 100; pointer-events: none; width: 250px; box-shadow: 0 18px 40px rgb(0 0 0 / .22); transform: rotate(-2deg); cursor: grabbing; transition: none; }
+.ghost.back { transition: left .35s cubic-bezier(.3,1.4,.5,1), top .35s cubic-bezier(.3,1.4,.5,1), opacity .35s; opacity: .2; }
+.ghost.denied { border-color: var(--red); background: var(--red-soft); }
+body.dragging { cursor: grabbing; user-select: none; }
+
+/* ---------- houses ---------- */
+.houses { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.house { --hc: var(--navy); background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 16px; transition: border-color .2s, box-shadow .2s, background .2s; outline: 2px dashed transparent; outline-offset: 4px; }
+.house[data-h="1"] { --hc: var(--sky); }
+.house-h { display: flex; align-items: center; gap: 12px; }
+.hmark { width: 40px; height: 40px; flex: none; border-radius: 10px; background: color-mix(in srgb, var(--hc) 14%, transparent); color: var(--hc); display: grid; place-items: center; }
+.hmark svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linejoin: round; stroke-linecap: round; }
+.house-h h2 { font-size: 19px; }
+.tagline { border: 0; background: none; padding: 0; width: 100%; font-size: 13px; color: var(--muted); border-bottom: 1px dashed transparent; }
+.tagline:hover, .tagline:focus { border-bottom-color: var(--line); outline: none; }
+.basics { display: grid; gap: 10px; background: var(--panel); border-radius: var(--r); padding: 12px 14px; }
+.field { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 13.5px; }
+.money { display: inline-flex; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 0 10px 0 4px; }
+.money:focus-within { border-color: var(--sky); }
+.money input { border: 0; background: none; width: 84px; text-align: right; padding: 6px 6px; font-family: var(--f-num); font-size: 14px; outline: none; }
+.money span { font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+.check { display: flex; align-items: flex-start; gap: 9px; font-size: 13.5px; cursor: pointer; }
+.check input { width: 17px; height: 17px; margin: 1px 0 0; accent-color: var(--navy); flex: none; }
+.check small { display: block; color: var(--muted); font-size: 12px; }
+
+.zone { display: flex; flex-direction: column; gap: 10px; min-height: 120px; }
+.zone-h { display: flex; justify-content: space-between; align-items: baseline; }
+.items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.empty { border: 1.5px dashed var(--line); border-radius: var(--r); padding: 22px 14px; text-align: center; color: var(--muted); font-size: 13px; }
+body.dragging .house.can { outline-color: color-mix(in srgb, var(--hc) 60%, transparent); box-shadow: 0 0 0 6px color-mix(in srgb, var(--hc) 10%, transparent), 0 0 32px color-mix(in srgb, var(--hc) 22%, transparent); }
+body.dragging .house.can.over { background: color-mix(in srgb, var(--hc) 5%, var(--surface)); outline-color: var(--hc); }
+body.dragging .house.no { outline-color: color-mix(in srgb, var(--red) 55%, transparent); }
+body.dragging .house.no.over { background: var(--red-soft); }
+.deny { display: none; font-size: 12.5px; color: var(--red); font-weight: 600; }
+body.dragging .house.no .deny { display: block; }
+
+.item { border: 1px solid var(--line); border-radius: var(--r); padding: 12px; display: grid; gap: 10px; background: var(--surface); animation: pop .28s ease-out; }
+@keyframes pop { from { transform: scale(.97); opacity: 0; } }
+.item-top { display: flex; align-items: center; gap: 10px; }
+.item-top .ic { width: 32px; height: 32px; }
+.item-name { flex: 1; min-width: 0; font-weight: 600; font-size: 14px; display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
+.badge { font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 2px 7px; border-radius: 999px; background: var(--amber-soft); color: var(--amber-ink); }
+.ghost-btn { border: 1px solid var(--line); background: var(--panel); border-radius: 7px; font-size: 12.5px; padding: 4px 9px; white-space: nowrap; }
+.ghost-btn:hover { border-color: var(--navy); color: var(--navy); }
+.ghost-btn[aria-pressed="true"] { background: var(--navy); border-color: var(--navy); color: var(--bg); }
+.x { border: 0; background: none; width: 28px; height: 28px; border-radius: 7px; color: var(--muted); font-size: 18px; line-height: 1; }
+.x:hover { background: var(--red-soft); color: var(--red); }
+.seg { display: grid; grid-template-columns: 1fr 1fr; background: var(--panel); border-radius: 8px; padding: 3px; gap: 3px; }
+.seg button { border: 0; background: none; padding: 6px 8px; border-radius: 6px; font-size: 13px; font-weight: 500; color: var(--muted); display: flex; align-items: center; justify-content: center; gap: 7px; }
+.seg button::before { content: ""; width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid currentColor; flex: none; }
+.seg button[aria-checked="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+.seg button[aria-checked="true"]::before { background: var(--hc); border-color: var(--hc); }
+.vals { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13px; align-items: flex-end; }
+.val { display: grid; gap: 2px; }
+.val label, .val .k { font-size: 11.5px; color: var(--muted); }
+.val .v { font-family: var(--f-num); font-size: 15px; }
+.val .money input { width: 92px; }
+.val .money.short input { width: 44px; }
+.list { font-size: 12px; color: var(--muted); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.link { border: 0; background: none; padding: 0; color: var(--sky); font-size: 12px; text-decoration: underline; text-underline-offset: 2px; }
+
+/* ---------- dashboard ---------- */
+.dash { display: grid; gap: 20px; }
+.dash-h { display: flex; justify-content: space-between; align-items: end; gap: 12px; flex-wrap: wrap; }
+.dash-h h2 { font-size: 22px; }
+.verdict { font-size: 14px; color: var(--muted); max-width: 60ch; margin: 4px 0 0; }
+.verdict b { color: var(--ink); }
+.engine { font-size: 11.5px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+.engine i { width: 7px; height: 7px; border-radius: 50%; background: var(--green); display: inline-block; }
+.results { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.res { --hc: var(--navy); background: var(--surface); border: 1px solid var(--line); border-top: 3px solid var(--hc); border-radius: 14px; padding: 18px; display: grid; gap: 16px; align-content: start; }
+.res[data-h="1"] { --hc: var(--sky); }
+.res-h { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.res-h h3 { font-size: 16px; }
+.res-h span { font-size: 12.5px; color: var(--muted); text-align: right; }
+.kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--line); border-radius: var(--r); overflow: hidden; }
+.kpi { background: var(--panel); padding: 12px; display: grid; gap: 4px; align-content: start; min-width: 0; }
+.kpi .k { font-size: 12px; color: var(--muted); }
+.kpi .big { font-family: var(--f-num); font-size: clamp(17px, 2vw, 22px); line-height: 1.15; white-space: nowrap; overflow: hidden; }
+.kpi .sub { font-size: 12px; color: var(--muted); }
+.kpi .sub.good { color: var(--green); font-weight: 600; }
+.kpi .sub.bad { color: var(--red); font-weight: 600; }
+.small-print { font-size: 12.5px; color: var(--muted); margin: -6px 0 0; }
+.pc { display: grid; gap: 12px; }
+.pc h4 { margin: 0 0 6px; font: 600 13px var(--f-display); display: flex; align-items: center; gap: 7px; }
+.pc ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.pc li { font-size: 13.5px; line-height: 1.45; padding: 7px 10px 7px 30px; border-radius: 8px; position: relative; }
+.pros li { background: var(--green-soft); }
+.cons li { background: var(--amber-soft); }
+.pc li::before { position: absolute; left: 10px; top: 7px; font-weight: 700; font-family: var(--f-num); }
+.pros li::before { content: "✓"; color: var(--green); }
+.cons li::before { content: "!"; color: var(--amber-ink); left: 13px; }
+.pros h4 { color: var(--green); }
+.cons h4 { color: var(--amber-ink); }
+.none { color: var(--muted); font-size: 13px; }
+
+.chart-card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: grid; gap: 10px; position: relative; }
+.chart-h { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.chart-h h3 { font-size: 16px; }
+.legend { display: flex; gap: 16px; font-size: 12.5px; color: var(--muted); flex-wrap: wrap; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 18px; height: 3px; border-radius: 2px; display: inline-block; }
+.chart { width: 100%; height: 300px; display: block; touch-action: pan-y; }
+.chart text { font-family: var(--f-body); font-size: 11.5px; fill: var(--muted); }
+.ctip { position: absolute; pointer-events: none; background: var(--ink); color: var(--bg); padding: 8px 10px; border-radius: 8px; font-size: 12.5px; line-height: 1.5; white-space: nowrap; opacity: 0; transition: opacity .12s; }
+.ctip.on { opacity: 1; }
+.ctip b { font-family: var(--f-num); font-weight: 500; }
+
+/* rolling digits */
+.roll { display: inline-flex; overflow: hidden; height: 1.15em; line-height: 1.15em; vertical-align: bottom; }
+.roll > span { display: inline-block; height: 1.15em; }
+.dg { overflow: hidden; }
+.dg .st { display: flex; flex-direction: column; transition: transform .6s cubic-bezier(.2,.8,.2,1); }
+.dg .st b { height: 1.15em; font-weight: inherit; }
+
+.toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 13.5px; box-shadow: 0 10px 30px rgb(0 0 0 / .25); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 120; max-width: calc(100vw - 32px); }
+.toast.on { opacity: 1; transform: translate(-50%, 0); }
+.toast.warn { background: var(--red); color: #fff; }
+
+/* ---------- responsive ---------- */
+@media (max-width: 1100px) {
+  .wrap { grid-template-columns: minmax(0, 1fr); }
+  .palette { position: static; }
+  .cards { flex-direction: row; overflow-x: auto; padding-bottom: 6px; scroll-snap-type: x proximity; }
+  .tech { flex: 0 0 236px; scroll-snap-align: start; touch-action: pan-x; }
+  .tip { display: none; }
+  .rules { display: none; }
+}
+@media (max-width: 760px) {
+  .houses, .results { grid-template-columns: minmax(0, 1fr); }
+  .kpis { grid-template-columns: minmax(0, 1fr); }
+  .kpi { grid-template-columns: 1fr auto; align-items: baseline; }
+  .kpi .sub { grid-column: 1 / -1; }
+  .brand p { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+</style>
+
+<div class="top"><div class="top-in">
+  <div class="brand">
+    <div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11 12 4l8 7"/><path d="M6 10v10h12V10"/><path d="M13 11l-3 4h4l-3 4"/></svg></div>
+    <div><h1>ElecPlan</h1><p data-i="tagline"></p></div>
+  </div>
+  <div class="lang" role="group" aria-label="Language">
+    <button type="button" data-lang="sv"><span class="flag">🇸🇪</span>Svenska</button>
+    <button type="button" data-lang="ko"><span class="flag">🇰🇷</span>한국어</button>
+    <button type="button" data-lang="en"><span class="flag">🇬🇧</span>English</button>
+  </div>
+</div></div>
+
+<div class="wrap">
+  <aside class="palette" aria-labelledby="pal-h">
+    <div>
+      <div class="eyebrow" id="pal-h" data-i="palette"></div>
+      <p class="palette-intro" data-i="paletteHint"></p>
+    </div>
+    <ul class="cards" id="cards"></ul>
+    <div class="rules">
+      <div><b data-i="rulesH"></b></div>
+      <div data-i="rule1"></div>
+      <div data-i="rule2"></div>
+    </div>
+  </aside>
+
+  <main class="workspace">
+    <section aria-labelledby="ws-h">
+      <div class="eyebrow" id="ws-h" data-i="workspace" style="margin-bottom:10px"></div>
+      <div class="houses" id="houses"></div>
+    </section>
+
+    <section class="dash" aria-labelledby="dash-h">
+      <div class="dash-h">
+        <div>
+          <h2 id="dash-h" data-i="dashboard"></h2>
+          <p class="verdict" id="verdict"></p>
+        </div>
+        <span class="engine" id="engine"><i></i><span></span></span>
+      </div>
+      <div class="results" id="results"></div>
+      <div class="chart-card">
+        <div class="chart-h">
+          <h3 data-i="chartH"></h3>
+          <div class="legend">
+            <span><i style="background:var(--navy)"></i>House A</span>
+            <span><i style="background:var(--sky)"></i>House B</span>
+            <span data-i="chartLegend0"></span>
+          </div>
+        </div>
+        <svg class="chart" id="chart" role="img"></svg>
+        <div class="ctip" id="ctip"></div>
+      </div>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const CALC_WASM_B64 = "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ACAFOQPwASAARAAAAAAAiLNARAAAAAAAAAAAIAYbOQO4AkHIjMCAACAAQfABakGAEfwKAAAgAEHwEmokgICAgAALXwIBfwF+I4CAgIAAQSBrIgIkgICAgAAgAkEHNgIMIAIgADYCCCACQYGAgIAArUIghiIDIAJBCGqthDcDGCACIAMgAkEMaq2ENwMQQYCAwIAAIAJBEGogARCPgICAAAALCABByIjAgAALNgEBfEQAAAAAAAAAACECAkAgAEEGSw0AIAFBAksNACAAQRhsIAFBA3RqKwOggsCAACECCyACCwgAQciMwIAACwQAQQcLbAECfwJAAkAgAEF8aigCACICQXhxIgNBBEEIIAJBA3EiAhsgAWpJDQACQCACRQ0AIAMgAUEnaksNAgsgABCJgICAAA8LQcSGwIAAQfSGwIAAEIqAgIAAAAtBhIfAgABBtIfAgAAQioCAgAAAC+YGAQR/IABBeGoiASAAQXxqKAIAIgJBeHEiAGohAwJAAkAgAkEBcQ0AIAJBAnFFDQEgASgCACICIABqIQACQCABIAJrIgFBACgChKHAgABHDQAgAygCBEEDcUEDRw0BQQAgADYC/KDAgAAgAyADKAIEQX5xNgIEIAEgAEEBcjYCBCADIAA2AgAPCyABIAIQqYCAgAALAkACQAJAAkACQAJAAkACQCADKAIEIgJBAnENACADQQAoAoihwIAARg0CIANBACgChKHAgABGDQMgAyACQXhxIgIQqYCAgAAgASACIABqIgBBAXI2AgQgASAAaiAANgIAIAFBACgChKHAgABHDQFBACAANgL8oMCAAA8LIAMgAkF+cTYCBCABIABBAXI2AgQgASAAaiAANgIACyAAQYACSQ0EIAEgABCvgICAAEEAQQAoApyhwIAAQX9qIgE2ApyhwIAAIAENBkEAKALknsCAACIADQJB/x8hAQwDC0EAIAE2AoihwIAAQQBBACgCgKHAgAAgAGoiADYCgKHAgAAgASAAQQFyNgIEAkAgAUEAKAKEocCAAEcNAEEAQQA2AvygwIAAQQBBADYChKHAgAALIABBACgClKHAgAAiAk0NBUEAKAKIocCAACIARQ0FQQAoAoChwIAAIgRBKUkNBEHcnsCAACEBA0ACQCABKAIAIgMgAEsNACAAIAMgASgCBGpJDQYLIAEoAgghAQwACwtBACAB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IAQgB0E/cUGAf3I6AAEgBCABQRJ2QXByOgAADAELIAQgAToAAAsgACADIAJqNgIIQQALFAAgAEHUhcCAACABIAIQkoCAgAALkgMBBH8gACgCDCECAkACQAJAAkAgAUGAAkkNACAAKAIYIQMCQAJAAkAgAiAARw0AIABBFEEQIAAoAhQiAhtqKAIAIgENAUEAIQIMAgsgACgCCCIBIAI2AgwgAiABNgIIDAELIABBFGogAEEQaiACGyEEA0AgBCEFIAEiAkEUaiACQRBqIAIoAhQiARshBCACQRRBECABG2ooAgAiAQ0ACyAFQQA2AgALIANFDQICQAJAIAAgACgCHEECdEHcncCAAGoiASgCAEYNACADKAIQIABGDQEgAyACNgIUIAINAwwECyABIAI2AgAgAkUNBAwCCyADIAI2AhAgAg0BDAILAkAgAiAAKAIIIgRGDQAgBCACNgIMIAIgBDYCCA8LQQBBACgC9KDAgABBfiABQQN2d3E2AvSgwIAADwsgAiADNgIYAkAgACgCECIBRQ0AIAIgATYCECABIAI2AhgLIAAoAhQiAUUNACACIAE2AhQgASACNgIYDwsPC0EAQQAoAvigwIAAQX4gACgCHHdxNgL4oMCAAAu0BAECfyAAIAFqIQICQAJAAkAgACgCBCIDQQFxDQAgA0ECcUUNASAAKAIAIgMgAWohAQJAIAAgA2siAEEAKAKEocCAAEcNACACKAIEQQNxQQNHDQFBACABNgL8oMCAACACIAIoAgRBfnE2AgQgACABQQFyNgIEIAIgATYCAA8LIAAgAxCpgICAAAsCQAJAAkAgAigCBCIDQQJxDQAgAkEAKAKIocCAAEYNAiACQQAoAoShwIAARg0EIAIgA0F4cSIDEKmAgIAAIAAgAyABaiIBQQFyNgIEIAAgAWogATYCACAAQQAoAoShwIAARw0BQQAgATYC/KDAgAAPCyACIANBfnE2AgQgACABQQFyNgIEIAAgAWogATYCAAsCQCABQYACSQ0AIAAgARCvgICAAA8LAkACQEEAKAL0oMCAACICQQEgAUEDdnQiA3ENAEEAIAIgA3I2AvSgwIAAIAFB+AFxQeyewIAAaiIBIQIMAQsgAUH4AXEiAUHsnsCAAGohAiABQfSewIAAaigCACEBCyACIAA2AgggASAANgIMIAAgAjYCDCAAIAE2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";
+
+/* ---------------- static data ---------------- */
+const ICONS = [
+  '<rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="12" cy="12" r="4.6"/><path d="M12 7.4c1.6 1.4 1.6 3.2 0 4.6s-1.6 3.2 0 4.6M7.4 12c1.4-1.6 3.2-1.6 4.6 0s3.2 1.6 4.6 0"/>',
+  '<path d="M3.5 19 6 8h12l2.5 11Z"/><path d="M4.7 13.5h14.6M9.7 8l-1 11M14.3 8l1 11"/><path d="M12 2v2.5M7 4l1.2 1.3M17 4l-1.2 1.3"/>',
+  '<rect x="7" y="5" width="10" height="16" rx="2"/><path d="M10 3h4"/><path d="m12.6 9-2.4 3.7h3.6L11.4 17"/>',
+  '<path d="M4 19V9M9 19V5M14 19v-7M19 19V8"/><circle cx="4" cy="9" r="1.6"/><circle cx="9" cy="5" r="1.6"/><circle cx="14" cy="12" r="1.6"/><circle cx="19" cy="8" r="1.6"/>',
+  '<path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M8.5 13.5c1.2-1 2.3 1 3.5 0s2.3 1 3.5 0M8.5 17c1.2-1 2.3 1 3.5 0s2.3 1 3.5 0"/>',
+  '<circle cx="12" cy="5" r="2.2"/><circle cx="5" cy="18" r="2.2"/><circle cx="19" cy="18" r="2.2"/><path d="M12 7.2V12m0 0-5.2 4.5M12 12l5.2 4.5"/><circle cx="12" cy="12" r="1"/>',
+  '<path d="M2.5 8.5c3.2-2.4 6.3 2.4 9.5 0s6.3 2.4 9.5 0M2.5 13c3.2-2.4 6.3 2.4 9.5 0s6.3 2.4 9.5 0"/><path d="M8 17.5h8M12 15.5v6"/>'
+];
+const HOUSE_ICON = [
+  '<path d="M3.5 11.5 12 4.5l8.5 7"/><path d="M5.5 10v10h13V10"/><path d="M10 20v-5h4v5"/>',
+  '<path d="M3 12 9 6.5l6 5.5"/><path d="M5 11v9h8v-9"/><path d="M12 8.5 15.5 5l5.5 5v10h-8"/><path d="M8 20v-4h2v4"/>'
+];
+const LOCALE = { sv: 'sv-SE', ko: 'ko-KR', en: 'en-GB' };
+
+const T = {
+sv: {
+  tagline: 'Svensk smart energiplanerare', palette: 'Energiteknik',
+  paletteHint: 'Dra ett kort till ett hus, eller tryck A / B. Kort som inte passar blir gråa.',
+  rulesH: 'Regler', rule1: 'Värmepump och fjärrvärme går inte att kombinera.', rule2: 'VPP kräver solceller och batterilager.',
+  workspace: 'Jämförelse · två hus', dashboard: 'Återbetalning och jämförelse',
+  chartH: 'Ackumulerat kassaflöde jämfört med idag', chartLegend0: '— 0 kr = break-even',
+  bill: 'Nuvarande el- och värmekostnad', perMonth: 'kr/mån', kr: 'kr',
+  pump: 'Befintlig vattenpump ska bytas', pumpNote: 'Rivning 5 000 kr · 10 % inbytesrabatt på nytt värmesystem',
+  installed: 'Installerad teknik', drop: 'Dra teknik hit', count: n => `${n} st`,
+  oneTime: 'Engångsbetalning', subscription: 'Abonnemang',
+  install: 'Installation', monthly: 'Per månad', term: 'Avtalstid', years: 'år',
+  edit: '✎ Ändra offert', done: 'Klar', custom: 'Egen offert', list: 'Listpris', reset: 'Återställ listpris', remove: 'Ta bort',
+  initial: 'Startinvestering', newBill: 'Ny månadskostnad', turnover: 'Återbetalning (turnover)',
+  saved: v => `${v} mindre än idag`, costMore: v => `${v} mer än idag`,
+  subsLine: (s, a) => `Varav abonnemang ${s} kr/mån. När avtalen löpt ut: ${a} kr/mån.`,
+  feeLine: v => `Inkl. rivning av gammal pump ${v} kr.`,
+  net10: 'Netto efter 10 år',
+  ty: (y, m) => `${y} år ${m} mån`, tNow: 'Direkt', tNever: 'Över 30 år', tNone: '—',
+  noTech: 'Lägg till teknik för att se en kalkyl.',
+  pros: 'Fördelar', cons: 'Att tänka på', nothing: 'Inget att visa än.',
+  example: 'Exempel', yr: 'år',
+  verdict: (w, d, y) => `Efter ${y} år har <b>${w}</b> gett <b>${d}</b> mer än det andra alternativet.`,
+  verdictEven: 'Båda husen ligger lika efter 10 år.',
+  engineOk: 'calc.wasm aktiv', engineFail: 'calc.wasm kunde inte laddas',
+  r1: h => `Redan installerad i ${h}.`, r2: h => `${h}: värmepump och fjärrvärme kan inte kombineras.`, r3: h => `${h}: solceller och batterilager måste installeras först.`,
+  dropped: 'VPP togs bort – det kräver solceller och batterilager.',
+  added: (t, h) => `${t} lades till i ${h}.`,
+  taglines: ['Låg startkostnad · abonnemang', 'Självförsörjande paket · engångsköp'],
+  crossAB: 'A = B', be: 'Break-even',
+  tech: [
+    ['Värmepump', 'Ersätter gammal panna eller pump'],
+    ['Solceller', 'Egen elproduktion på taket'],
+    ['Batterilager (ESS)', 'Lagrar överskott till dyra timmar'],
+    ['Smart elstyrning', 'Följer spotpriset timme för timme'],
+    ['Fjärrvärme', 'Anslutning till fjärrvärmenätet'],
+    ['Virtuellt kraftverk (VPP)', 'Sälj överskott, stötta elnätet'],
+    ['Mikronät', 'Reservkraft från lokalt nät']
+  ],
+  P: [
+    'Nästan ingen startkostnad – hushållsbudgeten förbättras redan första månaden.',
+    'Sommarens överskottsel säljs på marknaden och ger extra intäkter via VPP.',
+    'När avtalen har löpt ut sjunker el- och värmekostnaden till en bråkdel av dagens.',
+    'Värmepumpen ger ca 3 kWh värme per kWh el och sänker uppvärmningskostnaden kraftigt.',
+    'Fjärrvärme kräver ingen egen panna och ingen service i huset.',
+    'Styrningen flyttar förbrukningen till timmar med lägst spotpris.',
+    'Reservkraft via mikronätet håller huset igång vid strömavbrott.',
+    'Låg startinvestering som är lätt att finansiera.',
+    'Byte av gammal pump ger 10 % inbytesrabatt på det nya värmesystemet.',
+    'Solel lagras i batteriet och används på kvällen när elen är som dyrast.'
+  ],
+  C: [
+    'Abonnemangsavgiften löper hela avtalstiden, så den totala kostnaden kan bli högre på sikt.',
+    'Utan batteri kan solelen inte sparas – på kvällen och natten köps dyr el från nätet.',
+    'Stor kontantinsats vid installationen.',
+    'Produktionen beror på takyta och solinstrålning, och vintern ger lite i Sverige.',
+    'Utan egen produktion är hushållet utsatt för svängningar i elpriset.',
+    'Fjärrvärmepriset sätts av det lokala bolaget och går inte att upphandla.',
+    'Lång återbetalningstid – mer än 10 år.',
+    'VPP-intäkten följer marknaden och är inte garanterad.',
+    'Batteriets kapacitet minskar med åren; räkna med byte efter 10–15 år.',
+    'Gamla pumpen ska bytas, men inget nytt värmesystem är valt.'
+  ]
+},
+ko: {
+  tagline: '스웨덴 스마트 에너지 플래너', palette: '에너지 기술 팔레트',
+  paletteHint: '카드를 집으로 끌어다 놓거나 A / B 버튼을 누르세요. 호환되지 않는 기술은 회색으로 표시됩니다.',
+  rulesH: '규칙', rule1: '히트펌프와 지역 냉난방은 함께 쓸 수 없습니다.', rule2: 'VPP는 태양광과 ESS가 먼저 있어야 합니다.',
+  workspace: '시뮬레이션 비교 · 두 주택', dashboard: '투자 회수(Turnover) 및 비교',
+  chartH: '현재 대비 누적 현금 흐름', chartLegend0: '— 0 kr = 손익분기',
+  bill: '현재 월 전기·난방비', perMonth: 'kr/월', kr: 'kr',
+  pump: '기존 워터펌프 있음 (교체 필요)', pumpNote: '철거비 5,000 kr · 새 난방 시스템 10% 보상 할인',
+  installed: '장착된 기술', drop: '여기로 기술을 끌어 놓으세요', count: n => `${n}개`,
+  oneTime: '일시불', subscription: '구독형',
+  install: '설치비', monthly: '월 납부액', term: '약정 기간', years: '년',
+  edit: '✎ 견적 수정', done: '완료', custom: 'Custom Quote', list: '정가', reset: '정가로 되돌리기', remove: '삭제',
+  initial: '초기 투자금', newBill: '예상 월 지출', turnover: '손익분기 (Turnover)',
+  saved: v => `기존 대비 ${v} 절감`, costMore: v => `기존 대비 ${v} 증가`,
+  subsLine: (s, a) => `구독료 ${s} kr/월 포함. 약정 종료 후: ${a} kr/월.`,
+  feeLine: v => `기존 펌프 철거비 ${v} kr 포함.`,
+  net10: '10년 후 순이익',
+  ty: (y, m) => `${y}년 ${m}개월`, tNow: '즉시', tNever: '30년 이상', tNone: '—',
+  noTech: '기술을 추가하면 계산 결과가 표시됩니다.',
+  pros: '장점 (Pros)', cons: '주의 (Cons)', nothing: '아직 표시할 내용이 없습니다.',
+  example: '예시', yr: '년',
+  verdict: (w, d, y) => `${y}년 후 <b>${w}</b>가 다른 안보다 <b>${d}</b> 더 이득입니다.`,
+  verdictEven: '10년 후 두 주택의 결과가 같습니다.',
+  engineOk: 'calc.wasm 작동 중', engineFail: 'calc.wasm을 불러오지 못했습니다',
+  r1: h => `${h}에 이미 설치되어 있습니다.`, r2: h => `${h}: 히트펌프와 지역 냉난방은 함께 쓸 수 없습니다.`, r3: h => `${h}: 태양광 패널과 ESS가 먼저 설치되어야 합니다.`,
+  dropped: 'VPP가 제거되었습니다. 태양광 패널과 ESS가 필요합니다.',
+  added: (t, h) => `${h}에 ${t}을(를) 추가했습니다.`,
+  taglines: ['최소 비용 · 구독형', '자립형 풀패키지 · 일시불'],
+  crossAB: 'A = B', be: '손익분기',
+  tech: [
+    ['고효율 히트펌프', '노후 보일러·펌프 교체용'],
+    ['태양광 패널', '자가 전력 생산'],
+    ['ESS 배터리', '잉여 전력 저장, 피크타임 사용'],
+    ['스마트 그리드 제어기', '실시간 요금 연동 전력 최적화'],
+    ['지역 냉난방 네트워크', '국가 난방망 연동'],
+    ['가상 발전소 (VPP)', '잉여 전력 판매·전력망 안정화 수익'],
+    ['마이크로그리드', '대규모 전력망 백업 연동']
+  ],
+  P: [
+    '초기 설치 목돈 부담이 거의 없어 즉각적인 가계부 개선 효과가 있습니다.',
+    '여름철 잉여 전력을 시장에 판매하여 추가 현금 수익(VPP)을 창출할 수 있습니다.',
+    '약정 기간이 끝나면 전기·난방비가 현재의 일부 수준으로 크게 줄어듭니다.',
+    '히트펌프는 전기 1 kWh로 약 3 kWh의 열을 만들어 난방비를 크게 줄입니다.',
+    '지역난방은 집 안에 별도 보일러나 유지보수가 필요 없습니다.',
+    '스마트 제어기가 전력 사용을 현물 가격이 가장 낮은 시간대로 옮깁니다.',
+    '마이크로그리드 백업으로 정전 시에도 집이 계속 작동합니다.',
+    '초기 투자금이 낮아 자금 마련 부담이 적습니다.',
+    '노후 펌프 교체 시 새 난방 시스템에 10% 보상 할인이 적용됩니다.',
+    '태양광 전기를 배터리에 저장해 전기가 가장 비싼 저녁 시간에 사용합니다.'
+  ],
+  C: [
+    '약정 기간 동안 구독료가 계속 발생하여 장기적 누적 지출은 더 클 수 있습니다.',
+    '생산된 전기를 저장할 수 없어, 해가 없는 야간에는 외부 전력망(비싼 전기)에 의존해야 합니다.',
+    '초기 설치 시 목돈 부담이 큽니다.',
+    '지붕 면적과 일조량에 따라 발전 효율 편차가 있으며, 스웨덴의 겨울에는 발전량이 적습니다.',
+    '태양광 부재로 외부 전력망 가격 변동에 노출됩니다.',
+    '지역난방 요금은 지역 공급사가 정하며 다른 업체로 바꿀 수 없습니다.',
+    '투자 회수 기간이 10년 이상으로 깁니다.',
+    'VPP 수익은 시장 가격에 따라 달라지며 보장되지 않습니다.',
+    '배터리 용량은 시간이 지나며 줄어들어 10–15년 후 교체가 필요합니다.',
+    '기존 펌프 교체가 필요하지만 새 난방 시스템이 선택되지 않았습니다.'
+  ]
+},
+en: {
+  tagline: 'Swedish Smart Energy Planner', palette: 'Energy technology',
+  paletteHint: 'Drag a card onto a house, or tap A / B. Cards that cannot be added are greyed out.',
+  rulesH: 'Rules', rule1: 'Heat pump and district heating cannot be combined.', rule2: 'VPP needs solar PV and a battery first.',
+  workspace: 'Comparison · two houses', dashboard: 'Payback and comparison',
+  chartH: 'Cumulative cash flow compared with today', chartLegend0: '— 0 kr = break-even',
+  bill: 'Current monthly energy bill', perMonth: 'kr/mo', kr: 'kr',
+  pump: 'Existing water pump needs replacing', pumpNote: 'Removal 5,000 kr · 10% trade-in on the new heating system',
+  installed: 'Installed technology', drop: 'Drag technology here', count: n => `${n}`,
+  oneTime: 'One-time', subscription: 'Subscription',
+  install: 'Installation', monthly: 'Monthly', term: 'Contract', years: 'yr',
+  edit: '✎ Edit quote', done: 'Done', custom: 'Custom quote', list: 'List price', reset: 'Reset to list price', remove: 'Remove',
+  initial: 'Initial investment', newBill: 'New monthly bill', turnover: 'Turnover (payback)',
+  saved: v => `${v} less than today`, costMore: v => `${v} more than today`,
+  subsLine: (s, a) => `Includes ${s} kr/mo in subscriptions. After contracts end: ${a} kr/mo.`,
+  feeLine: v => `Includes ${v} kr old pump removal.`,
+  net10: 'Net after 10 years',
+  ty: (y, m) => `${y} yr ${m} mo`, tNow: 'Immediately', tNever: 'Over 30 years', tNone: '—',
+  noTech: 'Add technology to see the numbers.',
+  pros: 'Pros', cons: 'Cons', nothing: 'Nothing to show yet.',
+  example: 'Example', yr: 'yr',
+  verdict: (w, d, y) => `After ${y} years <b>${w}</b> comes out <b>${d}</b> ahead of the other option.`,
+  verdictEven: 'Both houses are level after 10 years.',
+  engineOk: 'calc.wasm running', engineFail: 'calc.wasm failed to load',
+  r1: h => `Already installed in ${h}.`, r2: h => `${h}: heat pump and district heating cannot be combined.`, r3: h => `${h}: solar PV and a battery must be installed first.`,
+  dropped: 'VPP was removed. It needs solar PV and a battery.',
+  added: (t, h) => `Added ${t} to ${h}.`,
+  taglines: ['Lowest upfront · subscription', 'Self-sufficient package · one-time'],
+  crossAB: 'A = B', be: 'Break-even',
+  tech: [
+    ['Heat pump', 'Replaces an old boiler or pump'],
+    ['Solar PV', 'Generate your own power'],
+    ['Battery storage (ESS)', 'Store surplus for peak hours'],
+    ['Smart grid controller', 'Follows the hourly spot price'],
+    ['District heating', 'Connect to the heating network'],
+    ['Virtual power plant (VPP)', 'Sell surplus, support the grid'],
+    ['Microgrid', 'Backup from a local grid']
+  ],
+  P: [
+    'Almost no upfront cost, so the household budget improves from the first month.',
+    'Summer surplus power is sold on the market for extra income through the VPP.',
+    'Once the contracts end, the energy bill falls to a fraction of today’s.',
+    'The heat pump gives about 3 kWh of heat per kWh of electricity, cutting heating costs sharply.',
+    'District heating needs no boiler and no servicing in the house.',
+    'The controller moves usage to the hours with the lowest spot price.',
+    'Microgrid backup keeps the house running during power cuts.',
+    'A low upfront investment that is easy to finance.',
+    'Replacing the old pump earns a 10% trade-in discount on the new heating system.',
+    'Solar power is stored in the battery and used in the evening, when electricity costs most.'
+  ],
+  C: [
+    'Subscription fees run for the whole contract, so the long-run total can be higher.',
+    'Without a battery the solar power cannot be stored, so evenings and nights run on expensive grid power.',
+    'A large cash outlay at installation.',
+    'Output depends on roof area and sunlight, and Swedish winters yield little.',
+    'With no own production the household is exposed to electricity price swings.',
+    'The district heating price is set by the local supplier and cannot be put out to tender.',
+    'Long payback, more than 10 years.',
+    'VPP income follows the market and is not guaranteed.',
+    'Battery capacity fades over the years; plan for replacement after 10–15 years.',
+    'The old pump needs replacing, but no new heating system is selected.'
+  ]
+}};
+
+/* ---------------- engine ---------------- */
+const engine = {
+  ok: false,
+  async load() {
+    let bytes = null;
+    try { const r = await fetch('calc.wasm'); if (r.ok) bytes = await r.arrayBuffer(); } catch (e) {}
+    if (!bytes && CALC_WASM_B64) bytes = Uint8Array.from(atob(CALC_WASM_B64), c => c.charCodeAt(0));
+    const { instance } = await WebAssembly.instantiate(bytes, {});
+    const e = this.x = instance.exports;
+    this.IN = new Float64Array(e.memory.buffer, e.in_ptr(), 64);
+    this.OUT = new Float64Array(e.memory.buffer, e.out_ptr(), 272);
+    this.n = e.tech_count();
+    this.ok = true;
+  },
+  list(t) { return { price: this.x.list_price(t, 0), monthly: this.x.list_price(t, 1), years: this.x.list_price(t, 2) }; },
+  write(h) {
+    const I = this.IN; I.fill(0);
+    I[0] = +h.bill || 0; I[1] = h.pump ? 1 : 0;
+    for (const [t, q] of Object.entries(h.techs)) {
+      const b = 2 + t * 5;
+      I[b] = 1; I[b + 1] = q.mode === 'sub' ? 1 : 0; I[b + 2] = +q.price || 0; I[b + 3] = +q.monthly || 0; I[b + 4] = +q.years || 0;
+    }
+  },
+  check(h, t) { this.write(h); return this.x.check(t); },
+  compute(h) {
+    this.write(h); this.x.compute();
+    const O = this.OUT;
+    return { initial: O[0], bill: O[1], savings: O[2], turnover: O[3], pros: O[4], cons: O[5], subs: O[6], after: O[7], share: O[8], fee: O[9],
+             series: Array.from(O.subarray(16, 16 + 241)), n: Object.keys(h.techs).length };
+  }
+};
+
+/* ---------------- state ---------------- */
+const state = { lang: 'sv', houses: [] };
+const L = () => T[state.lang];
+const HN = i => 'House ' + 'AB'[i];
+const fmt = v => new Intl.NumberFormat(LOCALE[state.lang], { maximumFractionDigits: 0 }).format(Math.round(v));
+const fmtKr = v => fmt(v) + ' kr';
+const compact = v => new Intl.NumberFormat(LOCALE[state.lang], { notation: 'compact', maximumFractionDigits: 1 }).format(v);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+function quote(t, mode) { const l = engine.list(t); return { mode, price: l.price, monthly: l.monthly, years: l.years, custom: false, editing: false }; }
+function seed() {
+  state.houses = [
+    { tagline: null, bill: 3000, pump: true, techs: { 0: quote(0, 'sub'), 3: quote(3, 'one') } },
+    { tagline: null, bill: 3000, pump: true, techs: { 0: quote(0, 'one'), 1: quote(1, 'one'), 2: quote(2, 'one'), 5: quote(5, 'one') } }
+  ];
+}
+
+function reason(code, hi) {
+  const l = L(), h = HN(hi);
+  return code === 1 ? l.r1(h) : code === 2 ? l.r2(h) : code === 3 ? l.r3(h) : '';
+}
+
+/* ---------------- rendering ---------------- */
+function renderStatic() {
+  document.documentElement.lang = state.lang;
+  document.querySelectorAll('[data-i]').forEach(el => { el.textContent = L()[el.dataset.i]; });
+  document.querySelectorAll('.lang button').forEach(b => b.setAttribute('aria-pressed', b.dataset.lang === state.lang));
+}
+
+function renderPalette() {
+  const ul = document.getElementById('cards');
+  ul.innerHTML = L().tech.map(([name, desc], t) => `
+    <li class="tech" data-t="${t}" tabindex="-1">
+      <span class="ic"><svg viewBox="0 0 24 24">${ICONS[t]}</svg></span>
+      <span style="min-width:0"><span class="tech-t">${esc(name)}</span><br><span class="tech-d">${esc(desc)}</span></span>
+      <span class="adds">${[0, 1].map(h => `<button type="button" data-add="${h}" aria-label="${esc(name)} → ${HN(h)}">${'AB'[h]}</button>`).join('')}</span>
+      <span class="tip"></span>
+    </li>`).join('');
+  updatePalette();
+}
+
+function updatePalette() {
+  document.querySelectorAll('.tech').forEach(card => {
+    const t = +card.dataset.t;
+    const codes = state.houses.map(h => engine.check(h, t));
+    const why = codes.map((c, i) => reason(c, i)).filter(Boolean);
+    card.classList.toggle('off', codes.every(c => c !== 0));
+    card.querySelector('.tip').textContent = why.join(' ');
+    card.title = why.join('\n');
+    card.querySelectorAll('[data-add]').forEach(b => { const c = codes[+b.dataset.add]; b.disabled = c !== 0; b.title = reason(c, +b.dataset.add); });
+  });
+}
+
+function moneyInput(id, value, cls = '', unit = 'kr') {
+  return `<span class="money ${cls}"><input id="${id}" type="number" inputmode="numeric" min="0" step="1" value="${Math.round(value)}"><span>${unit}</span></span>`;
+}
+
+function renderHouses() {
+  const l = L();
+  document.getElementById('houses').innerHTML = state.houses.map((h, i) => {
+    const ids = Object.keys(h.techs).map(Number).sort((a, b) => a - b);
+    return `
+    <section class="house" data-h="${i}" aria-label="${HN(i)}">
+      <div class="house-h">
+        <span class="hmark"><svg viewBox="0 0 24 24">${HOUSE_ICON[i]}</svg></span>
+        <div style="flex:1;min-width:0">
+          <h2>${HN(i)}</h2>
+          <input class="tagline" id="tagline-${i}" value="${esc(h.tagline ?? l.taglines[i])}" aria-label="${HN(i)}">
+        </div>
+      </div>
+      <div class="basics">
+        <label class="field" for="bill-${i}"><span>${l.bill}</span>${moneyInput('bill-' + i, h.bill, '', l.perMonth)}</label>
+        <label class="check"><input type="checkbox" id="pump-${i}" ${h.pump ? 'checked' : ''}><span>${l.pump}<small>${l.pumpNote}</small></span></label>
+      </div>
+      <div class="zone">
+        <div class="zone-h"><span class="eyebrow">${l.installed}</span><span class="eyebrow">${ids.length ? l.count(ids.length) : ''}</span></div>
+        <div class="deny"></div>
+        <ul class="items">${ids.map(t => item(i, t, h.techs[t])).join('')}</ul>
+        ${ids.length ? '' : `<div class="empty">${l.drop}</div>`}
+      </div>
+    </section>`;
+  }).join('');
+}
+
+function item(hi, t, q) {
+  const l = L(), list = engine.list(t), id = `${hi}-${t}`;
+  const sub = q.mode === 'sub';
+  let vals;
+  if (q.editing) {
+    vals = sub
+      ? `<div class="val"><label for="m-${id}">${l.monthly}</label>${moneyInput('m-' + id, q.monthly, '', l.perMonth)}</div>
+         <div class="val"><label for="y-${id}">${l.term}</label>${moneyInput('y-' + id, q.years, 'short', l.years)}</div>`
+      : `<div class="val"><label for="p-${id}">${l.install}</label>${moneyInput('p-' + id, q.price)}</div>`;
+  } else {
+    vals = sub
+      ? `<div class="val"><span class="k">${l.monthly}</span><span class="v">${fmt(q.monthly)} ${l.perMonth}</span></div>
+         <div class="val"><span class="k">${l.term}</span><span class="v">${fmt(q.years)} ${l.years}</span></div>`
+      : `<div class="val"><span class="k">${l.install}</span><span class="v">${fmtKr(q.price)}</span></div>`;
+  }
+  const listTxt = sub ? `${fmt(list.monthly)} ${l.perMonth} · ${fmt(list.years)} ${l.years}` : fmtKr(list.price);
+  return `
+  <li class="item" data-h="${hi}" data-t="${t}">
+    <div class="item-top">
+      <span class="ic"><svg viewBox="0 0 24 24">${ICONS[t]}</svg></span>
+      <div class="item-name">${esc(l.tech[t][0])}${q.custom ? `<span class="badge">${l.custom}</span>` : ''}</div>
+      <button type="button" class="ghost-btn" data-act="edit" aria-pressed="${q.editing}">${q.editing ? l.done : l.edit}</button>
+      <button type="button" class="x" data-act="remove" aria-label="${l.remove}" title="${l.remove}">×</button>
+    </div>
+    <div class="seg" role="radiogroup">
+      <button type="button" role="radio" data-act="one" aria-checked="${!sub}">${l.oneTime}</button>
+      <button type="button" role="radio" data-act="sub" aria-checked="${sub}">${l.subscription}</button>
+    </div>
+    <div class="vals">${vals}</div>
+    ${q.custom ? `<div class="list"><span>${l.list}: ${listTxt}</span><button type="button" class="link" data-act="reset">${l.reset}</button></div>` : ''}
+  </li>`;
+}
+
+function renderResults() {
+  const l = L();
+  const res = state.houses.map(h => engine.compute(h));
+  const box = document.getElementById('results');
+  if (!box.children.length) {
+    box.innerHTML = state.houses.map((_, i) => `
+      <article class="res" data-h="${i}">
+        <div class="res-h"><h3>${HN(i)}</h3><span data-r="tag"></span></div>
+        <div class="kpis">
+          <div class="kpi"><span class="k" data-r="kInit"></span><span class="big" data-r="init"></span><span class="sub" data-r="fee"></span></div>
+          <div class="kpi"><span class="k" data-r="kBill"></span><span class="big" data-r="bill"></span><span class="sub" data-r="saved"></span></div>
+          <div class="kpi"><span class="k" data-r="kTurn"></span><span class="big" data-r="turn"></span><span class="sub" data-r="net"></span></div>
+        </div>
+        <p class="small-print" data-r="subs"></p>
+        <div class="pc">
+          <div class="pros"><h4 data-r="kPros"></h4><ul data-r="pros"></ul></div>
+          <div class="cons"><h4 data-r="kCons"></h4><ul data-r="cons"></ul></div>
+        </div>
+      </article>`).join('');
+  }
+  res.forEach((r, i) => {
+    const card = box.children[i], q = k => card.querySelector(`[data-r="${k}"]`);
+    const h = state.houses[i];
+    q('tag').textContent = h.tagline ?? l.taglines[i];
+    q('kInit').textContent = l.initial; q('kBill').textContent = l.newBill; q('kTurn').textContent = l.turnover;
+    q('kPros').textContent = l.pros; q('kCons').textContent = l.cons;
+    roll(q('init'), r.n ? fmtKr(r.initial) : l.tNone);
+    roll(q('bill'), r.n ? fmtKr(r.bill) : fmtKr(h.bill));
+    roll(q('turn'), !r.n ? l.tNone : turnText(r.turnover));
+    q('fee').textContent = r.fee ? l.feeLine(fmt(r.fee)) : '';
+    const s = q('saved');
+    s.className = 'sub ' + (r.savings > 0.5 ? 'good' : r.savings < -0.5 ? 'bad' : '');
+    s.textContent = !r.n ? '' : r.savings >= 0 ? l.saved(fmtKr(r.savings)) : l.costMore(fmtKr(-r.savings));
+    q('net').textContent = r.n ? `${l.net10}: ${fmtKr(r.series[120])}` : '';
+    q('subs').textContent = !r.n ? l.noTech : r.subs > 0 ? l.subsLine(fmt(r.subs), fmt(r.after)) : '';
+    const list = (mask, arr) => {
+      const out = arr.filter((_, k) => mask & (1 << k));
+      return out.length ? out.map(x => `<li>${esc(x)}</li>`).join('') : `<li class="none" style="background:none;padding-left:0">${l.nothing}</li>`;
+    };
+    q('pros').innerHTML = list(r.pros, l.P);
+    q('cons').innerHTML = list(r.cons, l.C);
+  });
+
+  const a = res[0].series[120], b = res[1].series[120];
+  const v = document.getElementById('verdict');
+  if (!res[0].n && !res[1].n) v.textContent = l.noTech;
+  else if (Math.abs(a - b) < 1) v.textContent = l.verdictEven;
+  else v.innerHTML = l.verdict(a > b ? HN(0) : HN(1), esc(fmtKr(Math.abs(a - b))), 10);
+  drawChart(res);
+}
+
+function turnText(m) {
+  const l = L();
+  if (m < 0) return l.tNever;
+  if (m === 0) return l.tNow;
+  return l.ty(Math.floor(m / 12), m % 12);
+}
+
+/* rolling digits: each digit is a 0–9 strip that slides to its new value */
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function roll(el, text) {
+  if (el.dataset.v === text) return;
+  el.dataset.v = text;
+  el.setAttribute('aria-label', text);
+  const chars = [...text];
+  const shape = chars.map(c => /\d/.test(c) ? '#' : c).join('');
+  let wrap = el.firstElementChild;
+  if (!wrap || wrap.dataset.shape !== shape) {
+    wrap = document.createElement('span');
+    wrap.className = 'roll'; wrap.dataset.shape = shape; wrap.setAttribute('aria-hidden', 'true');
+    wrap.innerHTML = chars.map(c => /\d/.test(c)
+      ? `<span class="dg"><span class="st">${'0123456789'.split('').map(d => `<b>${d}</b>`).join('')}</span></span>`
+      : `<span>${c === ' ' ? '&nbsp;' : esc(c)}</span>`).join('');
+    el.replaceChildren(wrap);
+    if (!reduceMotion) { wrap.offsetHeight; }
+  }
+  let k = 0;
+  const strips = wrap.querySelectorAll('.st');
+  chars.forEach(c => { if (/\d/.test(c)) strips[k++].style.transform = `translateY(${-1.15 * +c}em)`; });
+}
+
+/* ---------------- chart ---------------- */
+function drawChart(res) {
+  const svg = document.getElementById('chart');
+  const W = svg.clientWidth || 800, H = svg.clientHeight || 300;
+  const pad = { l: 58, r: 16, t: 18, b: 30 };
+  const all = res.flatMap(r => r.series);
+  let lo = Math.min(0, ...all), hi = Math.max(0, ...all);
+  if (hi - lo < 1000) { hi += 1000; }
+  const step = niceStep((hi - lo) / 4);
+  lo = Math.floor(lo / step) * step; hi = Math.ceil(hi / step) * step;
+  const X = m => pad.l + (m / 240) * (W - pad.l - pad.r);
+  const Y = v => pad.t + (hi - v) / (hi - lo) * (H - pad.t - pad.b);
+  const l = L();
+  let g = '';
+  for (let v = lo; v <= hi + 1; v += step) {
+    g += `<line x1="${pad.l}" x2="${W - pad.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)" stroke-width="${v === 0 ? 0 : 1}"/>`;
+    g += `<text x="${pad.l - 8}" y="${Y(v) + 4}" text-anchor="end">${compact(v)}</text>`;
+  }
+  g += `<line x1="${pad.l}" x2="${W - pad.r}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--muted)" stroke-width="1.2" stroke-dasharray="4 4"/>`;
+  for (let y = 0; y <= 20; y += 5) {
+    g += `<text x="${X(y * 12)}" y="${H - 8}" text-anchor="middle">${y} ${l.yr}</text>`;
+  }
+  const colors = ['var(--navy)', 'var(--sky)'];
+  res.forEach((r, i) => {
+    if (!r.n) return;
+    const d = r.series.map((v, m) => `${m ? 'L' : 'M'}${X(m).toFixed(1)},${Y(v).toFixed(1)}`).join('');
+    g += `<path d="${d} L${X(240)},${Y(lo)} L${X(0)},${Y(lo)}Z" fill="${colors[i]}" opacity=".06"/>`;
+    g += `<path d="${d}" fill="none" stroke="${colors[i]}" stroke-width="2.4" stroke-linejoin="round"/>`;
+  });
+  // break-even markers
+  const marks = [];
+  res.forEach((r, i) => {
+    if (!r.n || r.turnover < 0 || r.turnover > 240) return;
+    marks.push({ x: X(r.turnover), y: Y(0), c: colors[i], label: `${'AB'[i]} · ${turnText(r.turnover)}`, i });
+  });
+  marks.sort((a, b) => a.x - b.x);
+  marks.forEach((m, k) => {
+    const up = k % 2 === 0;
+    const ty = m.y + (up ? -12 : 20);
+    const anchor = m.x > W - 120 ? 'end' : m.x < pad.l + 60 ? 'start' : 'middle';
+    g += `<circle cx="${m.x}" cy="${m.y}" r="5" fill="var(--surface)" stroke="${m.c}" stroke-width="2.4"/>`;
+    g += `<text x="${m.x}" y="${ty}" text-anchor="${anchor}" style="fill:${m.c};font-weight:600">${esc(m.label)}</text>`;
+  });
+  // A/B crossover
+  if (res[0].n && res[1].n) {
+    const a = res[0].series, b = res[1].series;
+    for (let m = 2; m <= 240; m++) {
+      if (Math.sign(a[m] - b[m]) !== Math.sign(a[m - 1] - b[m - 1]) && Math.sign(a[m - 1] - b[m - 1]) !== 0) {
+        const cx = X(m), cy = Y(a[m]);
+        g += `<line x1="${cx}" x2="${cx}" y1="${pad.t}" y2="${H - pad.b}" stroke="var(--muted)" stroke-width="1" stroke-dasharray="2 4"/>`;
+        g += `<circle cx="${cx}" cy="${cy}" r="6" fill="var(--amber)" stroke="var(--surface)" stroke-width="2"/>`;
+        g += `<text x="${cx + (cx > W - 140 ? -10 : 10)}" y="${pad.t + 10}" text-anchor="${cx > W - 140 ? 'end' : 'start'}" style="fill:var(--ink);font-weight:600">${l.crossAB} · ${turnText(m)}</text>`;
+        break;
+      }
+    }
+  }
+  g += `<line id="hover" y1="${pad.t}" y2="${H - pad.b}" stroke="var(--ink)" stroke-width="1" opacity="0"/>`;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('aria-label', l.chartH);
+  svg.innerHTML = g;
+  svg._chart = { X, pad, W, res };
+}
+function niceStep(raw) {
+  const p = Math.pow(10, Math.floor(Math.log10(raw || 1)));
+  const f = raw / p;
+  return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p;
+}
+function chartHover(e) {
+  const svg = e.currentTarget, c = svg._chart, tip = document.getElementById('ctip');
+  if (!c) return;
+  const rect = svg.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const m = Math.round(Math.max(0, Math.min(240, (x - c.pad.l) / (c.W - c.pad.l - c.pad.r) * 240)));
+  const line = svg.querySelector('#hover');
+  line.setAttribute('x1', c.X(m)); line.setAttribute('x2', c.X(m)); line.setAttribute('opacity', '.35');
+  const l = L();
+  tip.innerHTML = `${turnText(m) === l.tNow ? '0' : turnText(m)}<br>` + c.res.map((r, i) => r.n ? `House ${'AB'[i]}: <b>${esc(fmtKr(r.series[m]))}</b>` : '').filter(Boolean).join('<br>');
+  const card = svg.parentElement.getBoundingClientRect();
+  const left = e.clientX - card.left;
+  tip.style.left = Math.min(card.width - tip.offsetWidth - 8, Math.max(8, left + 12)) + 'px';
+  tip.style.top = (rect.top - card.top + 20) + 'px';
+  tip.classList.add('on');
+}
+
+/* ---------------- updates ---------------- */
+function refresh(structure) {
+  if (structure) renderHouses();
+  updatePalette();
+  renderResults();
+}
+
+let toastTimer;
+function toast(msg, warn) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.toggle('warn', !!warn); t.classList.add('on');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('on'), 3200);
+}
+
+function addTech(hi, t) {
+  const h = state.houses[hi];
+  const code = engine.check(h, t);
+  if (code !== 0) { toast(reason(code, hi), true); return false; }
+  h.techs[t] = quote(t, 'one');
+  refresh(true);
+  toast(L().added(L().tech[t][0], HN(hi)));
+  return true;
+}
+
+function removeTech(hi, t) {
+  const h = state.houses[hi];
+  delete h.techs[t];
+  if (h.techs[5] && !(h.techs[1] && h.techs[2])) { delete h.techs[5]; toast(L().dropped, true); }
+  refresh(true);
+}
+
+/* ---------------- drag & drop (pointer events: mouse, pen and touch) ---------------- */
+function initDrag() {
+  const cards = document.getElementById('cards');
+  let drag = null;
+
+  cards.addEventListener('pointerdown', e => {
+    const card = e.target.closest('.tech');
+    if (!card || e.target.closest('button') || e.button > 0) return;
+    drag = { card, t: +card.dataset.t, x0: e.clientX, y0: e.clientY, live: false, id: e.pointerId };
+  });
+
+  window.addEventListener('pointermove', e => {
+    if (!drag || e.pointerId !== drag.id) return;
+    if (!drag.live) {
+      if (Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 6) return;
+      start(e);
+    }
+    e.preventDefault();
+    move(e);
+  }, { passive: false });
+
+  const finish = e => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const d = drag; drag = null;
+    if (!d.live) return;
+    document.body.classList.remove('dragging');
+    const zone = d.over;
+    const ok = zone && zone.classList.contains('can');
+    document.querySelectorAll('.house').forEach(z => z.classList.remove('can', 'no', 'over'));
+    if (ok && e.type === 'pointerup') {
+      d.ghost.remove();
+      addTech(+zone.dataset.h, d.t);
+    } else {
+      if (zone && e.type === 'pointerup') toast(reason(engine.check(state.houses[+zone.dataset.h], d.t), +zone.dataset.h), true);
+      const r = d.card.getBoundingClientRect();
+      d.ghost.classList.add('back');
+      d.ghost.style.left = r.left + 'px'; d.ghost.style.top = r.top + 'px';
+      setTimeout(() => d.ghost.remove(), 360);
+    }
+  };
+  window.addEventListener('pointerup', finish);
+  window.addEventListener('pointercancel', finish);
+
+  function start(e) {
+    drag.live = true;
+    const r = drag.card.getBoundingClientRect();
+    drag.dx = e.clientX - r.left; drag.dy = e.clientY - r.top;
+    const g = drag.ghost = drag.card.cloneNode(true);
+    g.classList.add('ghost'); g.classList.remove('off');
+    g.style.width = Math.min(r.width, 260) + 'px';
+    document.body.appendChild(g);
+    document.body.classList.add('dragging');
+    document.querySelectorAll('.house').forEach(z => {
+      const hi = +z.dataset.h, code = engine.check(state.houses[hi], drag.t);
+      z.classList.add(code === 0 ? 'can' : 'no');
+      z.querySelector('.deny').textContent = reason(code, hi);
+    });
+  }
+  function move(e) {
+    drag.ghost.style.left = (e.clientX - drag.dx) + 'px';
+    drag.ghost.style.top = (e.clientY - drag.dy) + 'px';
+    const under = document.elementFromPoint(e.clientX, e.clientY);
+    const zone = under && under.closest('.house');
+    if (zone !== drag.over) {
+      drag.over && drag.over.classList.remove('over');
+      zone && zone.classList.add('over');
+      drag.over = zone;
+      drag.ghost.classList.toggle('denied', !!zone && zone.classList.contains('no'));
+    }
+  }
+}
+
+/* ---------------- events ---------------- */
+function initEvents() {
+  document.querySelector('.lang').addEventListener('click', e => {
+    const b = e.target.closest('[data-lang]'); if (!b) return;
+    state.lang = b.dataset.lang;
+    try { localStorage.setItem('elecplan-lang', state.lang); } catch (err) {}
+    renderStatic(); renderPalette(); renderHouses(); renderResults();
+  });
+
+  document.getElementById('cards').addEventListener('click', e => {
+    const b = e.target.closest('[data-add]'); if (!b) return;
+    addTech(+b.dataset.add, +b.closest('.tech').dataset.t);
+  });
+
+  const houses = document.getElementById('houses');
+  houses.addEventListener('click', e => {
+    const b = e.target.closest('[data-act]'); if (!b) return;
+    const li = b.closest('.item'), hi = +li.dataset.h, t = +li.dataset.t;
+    const q = state.houses[hi].techs[t];
+    const act = b.dataset.act;
+    if (act === 'remove') return removeTech(hi, t);
+    if (act === 'edit') q.editing = !q.editing;
+    if (act === 'one' || act === 'sub') q.mode = act;
+    if (act === 'reset') Object.assign(q, quote(t, q.mode), { editing: q.editing });
+    refresh(true);
+    if (act === 'edit' && q.editing) document.querySelector(`.item[data-h="${hi}"][data-t="${t}"] input`)?.focus();
+  });
+
+  houses.addEventListener('input', e => {
+    const el = e.target, id = el.id;
+    let m;
+    if ((m = id.match(/^bill-(\d)$/))) state.houses[+m[1]].bill = Math.max(0, +el.value || 0);
+    else if ((m = id.match(/^pump-(\d)$/))) state.houses[+m[1]].pump = el.checked;
+    else if ((m = id.match(/^tagline-(\d)$/))) state.houses[+m[1]].tagline = el.value;
+    else if ((m = id.match(/^([pmy])-(\d)-(\d)$/))) {
+      const q = state.houses[+m[2]].techs[+m[3]];
+      q[{ p: 'price', m: 'monthly', y: 'years' }[m[1]]] = Math.max(0, +el.value || 0);
+      if (!q.custom) {
+        q.custom = true;
+        const name = el.closest('.item').querySelector('.item-name');
+        name.insertAdjacentHTML('beforeend', `<span class="badge">${L().custom}</span>`);
+      }
+    } else return;
+    updatePalette(); renderResults();
+  });
+
+  const svg = document.getElementById('chart');
+  svg.addEventListener('pointermove', chartHover);
+  svg.addEventListener('pointerleave', () => {
+    document.getElementById('ctip').classList.remove('on');
+    svg.querySelector('#hover')?.setAttribute('opacity', '0');
+  });
+  let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(renderResults, 120); });
+}
+
+/* ---------------- boot ---------------- */
+(async () => {
+  try { const s = localStorage.getItem('elecplan-lang'); if (T[s]) state.lang = s; } catch (err) {}
+  renderStatic();
+  const badge = document.querySelector('#engine span');
+  try { await engine.load(); }
+  catch (err) {
+    document.getElementById('engine').querySelector('i').style.background = 'var(--red)';
+    badge.textContent = L().engineFail; console.error(err); return;
+  }
+  seed();
+  renderPalette(); renderHouses(); renderResults();
+  badge.dataset.i = 'engineOk'; badge.textContent = L().engineOk;
+  initDrag(); initEvents();
+})();
+</script>
+
+</body>
+</html>
